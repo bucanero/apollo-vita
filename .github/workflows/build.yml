@@ -1,0 +1,76 @@
+name: Build package
+
+on: [ push, pull_request, workflow_dispatch ]
+
+jobs:
+  build_pkg:
+    runs-on: ubuntu-20.04
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 1
+
+    - name: Checkout Dependecies
+      run: |
+        git clone https://github.com/bucanero/dbglogger.git       --depth 1
+        git clone https://github.com/bucanero/apollo-lib.git      --depth 1
+        git clone https://github.com/bucanero/zip.git             --depth 1
+        git clone https://github.com/bucanero/oosdk_libraries.git --depth 1
+        git clone https://github.com/vitasdk/vdpm                 --depth 1
+        git clone https://github.com/bucanero/libun7zip           --depth 1
+
+    - name: Set env vars
+      id: slug
+      run: |
+        echo "::set-output name=sha8::$(echo ${GITHUB_SHA} | cut -c1-8)"
+        echo "vpk_file=apollo-vita.vpk" >> $GITHUB_ENV
+        echo "VITASDK=${GITHUB_WORKSPACE}/vitasdk" >> $GITHUB_ENV
+
+      # install latest vita sdk
+    - name: Download Vita SDK
+      run: |
+        cd vdpm
+        ./bootstrap-vitasdk.sh
+        ./install-all.sh
+
+    - name: Install polarssl
+      working-directory: oosdk_libraries/polarssl-1.3.9
+      run: |
+        mkdir build && cd build
+        cmake .. -DCMAKE_TOOLCHAIN_FILE=$VITASDK/share/vita.toolchain.cmake -DCMAKE_BUILD_TYPE=Release
+        make polarssl
+        cp library/libpolarssl.a "${VITASDK}/arm-vita-eabi/lib"
+        cp -R ../include/polarssl "${VITASDK}/arm-vita-eabi/include/polarssl"
+
+    - name: Install zip
+      working-directory: zip
+      run: |
+        make -f Makefile.vita
+        make -f Makefile.vita install
+
+    - name: Install dbglogger
+      working-directory: dbglogger
+      run: |
+        make -f Makefile.vita
+        make -f Makefile.vita install
+
+    - name: Install apollo-lib
+      working-directory: apollo-lib
+      run: |
+        make -f Makefile.vita
+        make -f Makefile.vita install
+
+    - name: Build Apollo App Package
+      run: |
+        cmake .
+        make
+
+    - name: Push package artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: apollo-vita-build_${{ steps.slug.outputs.sha8 }}
+        path: ${{ env.vpk_file }}
+        if-no-files-found: error
+        retention-days: 7 # don't keep artifacts for too long
