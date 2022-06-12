@@ -36,23 +36,20 @@ int is_char_letter(char c)
 
 int file_exists(const char *path)
 {
-    if (access(path, F_OK) == 0) {
-    	return SUCCESS;
+    struct stat sb;
+    if ((stat(path, &sb) == 0) && sb.st_mode & S_IFREG) {
+        return SUCCESS;
     }
-    
-	return FAILED;
+    return FAILED;
 }
 
 int dir_exists(const char *path)
 {
-    return file_exists(path);
-/*
     struct stat sb;
     if ((stat(path, &sb) == 0) && sb.st_mode & S_IFDIR) {
         return SUCCESS;
     }
     return FAILED;
-*/
 }
 
 int unlink_secure(const char *path)

@@ -1,5 +1,4 @@
 #include <string.h>
-//#include <threads.h>
 #include <unistd.h>
 #include <stdio.h>
 
@@ -51,7 +50,7 @@ void DrawBackground2D(u32 rgba)
 	SDL_RenderFillRect(renderer, &rect);
 }
 
-void _drawListBackground(int off, int icon)
+static void _drawListBackground(int off, int icon)
 {
 	switch (icon)
 	{
@@ -235,55 +234,53 @@ void DrawTextureRotated(png_texture* tex, int x, int y, int z, int w, int h, u32
 		.h = h,
 	};
 
+	SDL_SetTextureAlphaMod(tex->texture, RGBA_A(rgba));
 	SDL_RenderCopyEx(renderer, tex->texture, NULL, &dest, angle, NULL, SDL_FLIP_NONE);
 }
 
-/*
 static int please_wait;
 
-void loading_screen_thread(void* user_data)
+int loading_screen_thread(void* user_data)
 {
-    float angle = 0;
+	float angle = 0;
 
-    while (please_wait == 1)
-    {
-        angle += 0.1f;
-    	tiny3d_Clear(0xff000000, TINY3D_CLEAR_ALL);
-    	tiny3d_AlphaTest(1, 0x10, TINY3D_ALPHA_FUNC_GEQUAL);
-    	tiny3d_BlendFunc(1, TINY3D_BLEND_FUNC_SRC_RGB_SRC_ALPHA | TINY3D_BLEND_FUNC_SRC_ALPHA_SRC_ALPHA,
-    		TINY3D_BLEND_FUNC_SRC_ALPHA_ONE_MINUS_SRC_ALPHA | TINY3D_BLEND_FUNC_SRC_RGB_ONE_MINUS_SRC_ALPHA,
-    		TINY3D_BLEND_RGB_FUNC_ADD | TINY3D_BLEND_ALPHA_FUNC_ADD);
+	while (please_wait == 1)
+	{
+		angle += 4.0f;
 
-    	tiny3d_Project2D();
+		SDL_RenderClear(renderer);
+		DrawBackground2D(0xFFFFFFFF);
 
+		//Background
 		DrawBackgroundTexture(0, 0xFF);
 
-        //Loading animation
-        DrawTextureCentered(&menu_textures[logo_png_index], 424, 256, 0, 76, 75, 0xFFFFFFFF);
-        DrawTextureCentered(&menu_textures[circle_loading_bg_png_index], 424, 256, 0, 89, 89, 0xFFFFFFFF);
-        DrawTextureRotated(&menu_textures[circle_loading_seek_png_index], 424, 256, 0, 89, 89, 0xFFFFFFFF, angle);
+		//Loading animation
+		DrawTextureCentered(&menu_textures[logo_png_index], SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 0, 112, 110, 0xFFFFFFFF);
+		DrawTextureCentered(&menu_textures[circle_loading_bg_png_index], SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 0, 128, 128, 0xFFFFFFFF);
+		DrawTextureRotated(&menu_textures[circle_loading_seek_png_index], SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 0, 128, 128, 0xFFFFFFFF, angle);
 
 		DrawStringMono(0, 336, (char*) user_data);		
 
-    	tiny3d_Flip();
+		SDL_RenderPresent(renderer);
 	}
 
-    please_wait = -1;
-    sysThreadExit (0);
+	please_wait = -1;
+	return (0);
 }
 
 int init_loading_screen(const char* message)
 {
-    sys_ppu_thread_t tid;
-    please_wait = 1;
+	SDL_Thread* tid;
+	please_wait = 1;
 
 	SetFontAlign(FONT_ALIGN_SCREEN_CENTER);
-	SetFontSize(APP_FONT_SIZE_DESCRIPTION);
+	SetFontSize(APP_FONT_SIZE_JARS);
 	SetFontColor(APP_FONT_MENU_COLOR | 0xFF, 0);
 
-    int ret = sysThreadCreate (&tid, loading_screen_thread, (void*) message, 1000, 16*1024, THREAD_JOINABLE, "please_wait");
+	tid = SDL_CreateThread(&loading_screen_thread, "please_wait", (void*) message);
+	SDL_DetachThread(tid);
 
-    return ret;
+	return (tid != NULL);
 }
 
 void stop_loading_screen()
@@ -296,7 +293,6 @@ void stop_loading_screen()
     while (please_wait != -1)
         usleep(1000);
 }
-*/
 
 static void drawJar(uint8_t idx, int pos_x, int pos_y, const char* text, uint8_t alpha)
 {
@@ -349,7 +345,7 @@ static void drawJars(uint8_t alpha)
 	drawJar(jar_db_png_index, jar_db_png_x, jar_db_png_y, (alpha == 0xFF ? "Online DB" : ""), alpha);
 	
 	//User Backup
-	drawJar(jar_bup_png_index, jar_bup_png_x, jar_bup_png_y, (alpha == 0xFF ? "User Tools" : ""), alpha);
+	drawJar(jar_bup_png_index, jar_bup_png_x, jar_bup_png_y, (alpha == 0xFF ? "Tools" : ""), alpha);
 
 	//Options
 	drawJar(jar_opt_png_index, jar_opt_png_x, jar_opt_png_y, (alpha == 0xFF ? "Settings" : ""), alpha);
@@ -390,8 +386,7 @@ void drawSplashLogo(int mode)
 		SDL_SetTextureAlphaMod(menu_textures[buk_scr_png_index].texture, logo_a);
 
 		//App description
-		DrawTextureCentered(&menu_textures[buk_scr_png_index], SCREEN_WIDTH/2, SCREEN_HEIGHT /2, 0, menu_textures[buk_scr_png_index].width * SCREEN_W_ADJ, menu_textures[buk_scr_png_index].height * SCREEN_H_ADJ, 0xFFFFFF00 | logo_a);
-		usleep(4000);
+		DrawTextureCentered(&menu_textures[buk_scr_png_index], SCREEN_WIDTH/2, SCREEN_HEIGHT /2, 0, menu_textures[buk_scr_png_index].width * 3/4, menu_textures[buk_scr_png_index].height * 3/4, 0xFFFFFF00 | logo_a);
 
 		//flush and flip
 		SDL_RenderPresent(renderer);

@@ -90,6 +90,7 @@ void ResetFont()
 u8 * AddFontFromBitmapArray(u8 *font, u8 *texture, u8 first_char, u8 last_char, int w, int h, int bits_per_pixel, int byte_order)
 {
     int n, a, b;
+    u32 buf[w*h];
     u8 i;
     
     if(font_datas.number_of_fonts >= 8) return texture;
@@ -115,7 +116,6 @@ u8 * AddFontFromBitmapArray(u8 *font, u8 *texture, u8 first_char, u8 last_char, 
         font_datas.fonts[font_datas.number_of_fonts].fy[n] = 0;
     }
 
-       
     for(n = first_char; n <= last_char; n++) {
 
         font_datas.fonts[font_datas.number_of_fonts].fw[n] = w;
@@ -143,21 +143,21 @@ u8 * AddFontFromBitmapArray(u8 *font, u8 *texture, u8 first_char, u8 last_char, 
                     //i>>=3;
                     //*((u16 *) texture) = (1<<15) | (i<<10) | (i<<5) | (i);
                     //TINY3D_TEX_FORMAT_A4R4G4B4
-                    *texture = i;
+                    buf[a*w + b] = 0x000000FF;
 //                    i>>=4;
 //                    *((u16 *) texture) = (i<<12) | 0xfff;
                 } else {
 //                    texture[0] = texture[1] = 0x0; //texture[2] = 0x0;
-                    *texture = 0x0; // alpha
-                } 
-                texture++;
-               
+                    buf[a*w + b] = 0x0; // alpha
+                }
             }
-
             font += (w * bits_per_pixel) / 8;
-                
         }
-    
+
+        SDL_Surface* surface = SDL_CreateRGBSurfaceFrom((void*) buf, w, h, 32, 4 * w, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
+        *((SDL_Texture**) texture) = SDL_CreateTextureFromSurface(renderer, surface);
+        SDL_FreeSurface(surface);
+        texture += sizeof(SDL_Texture*);
     }
 
     texture = (u8 *) ((((long) texture) + 15) & ~15);
@@ -390,8 +390,7 @@ int DrawCharSpecial(float x, float y, float z, const special_char* schr, uint8_t
 
 void orbis2dDrawChar(float x, float y, const u8* bitmap, int bw, int bh, int dw, int dh, u32 rgba)
 {
-    u32 buf[bw * bh];
-    u8 a = (rgba & 0x000000FF);
+    SDL_Texture* sdl_tex = ((SDL_Texture**) bitmap)[0];
     SDL_Rect dest = {
         .x = x,
         .y = y,
@@ -399,17 +398,8 @@ void orbis2dDrawChar(float x, float y, const u8* bitmap, int bw, int bh, int dw,
         .h = dh,
     };
 
-    for (int i = 0; i < bw*bh; i++)
-        buf[i] = bitmap[i] ? ((rgba & 0xFFFFFF00) | ((bitmap[i] * a) / 0xFF)) : 0;
-
-    SDL_Surface* surface = SDL_CreateRGBSurfaceFrom((void*) buf, bw, bh, 32, 4 * bw, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
-    SDL_Texture* sdl_tex = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_SetTextureBlendMode(sdl_tex, SDL_BLENDMODE_BLEND);
-    SDL_FreeSurface(surface);
-
     SDL_SetTextureAlphaMod(sdl_tex, RGBA_A(rgba));
     SDL_RenderCopy(renderer, sdl_tex, NULL, &dest);
-    SDL_DestroyTexture(sdl_tex);
 }
 
 void DrawCharMono(float x, float y, float z, u8 chr)
