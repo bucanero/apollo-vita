@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <malloc.h>
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
@@ -25,66 +24,27 @@
 #define CHAR_ICON_LOCK		"\x08"
 #define CHAR_ICON_WARN		"\x0F"
 
-const void* sqlite3_get_sqlite3Apis();
-int sqlite3_memvfs_init(sqlite3 *db, char **pzErrMsg, const sqlite3_api_routines *pApi);
-int sqlite3_memvfs_dump(sqlite3 *db, const char *zSchema, const char *zFilename);
+int sqlite_init();
 
 static sqlite3* open_sqlite_db(const char* db_path)
 {
-	/*
-	uint8_t* db_buf;
-	size_t db_size;
 	sqlite3 *db;
-	const sqlite3_api_routines* api = sqlite3_get_sqlite3Apis();
 
-	// Open an in-memory database to use as a handle for loading the memvfs extension
-	if (sqlite3_open(":memory:", &db) != SQLITE_OK)
+	// initialize the SceSqlite rw_vfs
+	if (sqlite_init() != SQLITE_OK)
 	{
-		LOG("open :memory: %s", sqlite3_errmsg(db));
+		LOG("Error sqlite init");
 		return NULL;
 	}
 
-	sqlite3_enable_load_extension(db, 1);
-	if (sqlite3_memvfs_init(db, NULL, api) != SQLITE_OK_LOAD_PERMANENTLY)
+	LOG("Opening '%s'...", db_path);
+	if (sqlite3_open_v2(db_path, &db, SQLITE_OPEN_READONLY, NULL) != SQLITE_OK)
 	{
-		LOG("Error loading extension: %s", "memvfs");
+		LOG("Error db open: %s", sqlite3_errmsg(db));
 		return NULL;
 	}
 
-	// Done with this database
-	sqlite3_close(db);
-
-	if (read_buffer(db_path, &db_buf, &db_size) != SUCCESS)
-	{
-		LOG("Cannot open database file: %s", db_path);
-		return NULL;
-	}
-
-	// And open that memory with memvfs now that it holds a valid database
-	char *memuri = sqlite3_mprintf("file:memdb?ptr=0x%p&sz=%lld&freeonclose=1", db_buf, db_size);
-	LOG("Opening '%s'...", memuri);
-
-	if (sqlite3_open_v2(memuri, &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI, "memvfs") != SQLITE_OK)
-	{
-		LOG("Error open memvfs: %s", sqlite3_errmsg(db));
-		return NULL;
-	}
-	sqlite3_free(memuri);
-
-	if (sqlite3_exec(db,"PRAGMA journal_mode = OFF;", NULL, NULL, NULL) != SQLITE_OK)
-	{
-		LOG("Error set pragma: %s", sqlite3_errmsg(db));
-	}
-/*
--- SQLite
---SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'tbl_appbrowse_%%';
---SELECT * FROM tbl_appbrowse_0268435456 WHERE titleId NOT IN ('LAPY20001', 'CUSA08960', 'CUSA00001');
-SELECT  * FROM tbl_appbrowse_0268435456 WHERE titleId IN ('xLAPY20001', 'CUSA08960', 'xCUSA00001');
-*/
-//	sqlite3_memvfs_dump(db, NULL, "/data/extrop.db");
-
-//	return db;
-	return NULL;
+	return db;
 }
 
 static int get_appdb_title(sqlite3* db, const char* titleid, char* name)
@@ -616,7 +576,6 @@ int ReadTrophies(save_entry_t * game)
 	int trop_count = 0;
 	code_entry_t * trophy;
 	char query[256];
-/*
 	sqlite3 *db;
 	sqlite3_stmt *res;
 
@@ -624,7 +583,7 @@ int ReadTrophies(save_entry_t * game)
 		return 0;
 
 	game->codes = list_alloc();
-
+/*
 	trophy = _createCmdCode(PATCH_COMMAND, CHAR_ICON_SIGN " Apply Changes & Resign Trophy Set", CMD_RESIGN_TROPHY);
 	list_append(game->codes, trophy);
 
@@ -639,11 +598,11 @@ int ReadTrophies(save_entry_t * game)
 	trophy->options_count = 1;
 	trophy->options = _createOptions(2, "Save .Zip to USB", CMD_EXPORT_ZIP_USB);
 	list_append(game->codes, trophy);
-
+*/
 	trophy = _createCmdCode(PATCH_NULL, "----- " UTF8_CHAR_STAR " Trophies " UTF8_CHAR_STAR " -----", CMD_CODE_NULL);
 	list_append(game->codes, trophy);
 
-	snprintf(query, sizeof(query), "SELECT title_id, trophy_title_id, title, description, grade, unlocked, id FROM tbl_trophy_flag WHERE title_id = %d", game->blocks);
+	snprintf(query, sizeof(query), "SELECT title_id, npcommid, title, description, grade, unlocked, id FROM tbl_trophy_flag WHERE title_id = %d", game->blocks);
 
 	if (sqlite3_prepare_v2(db, query, -1, &res, NULL) != SQLITE_OK)
 	{
@@ -700,7 +659,6 @@ int ReadTrophies(save_entry_t * game)
 
 	sqlite3_finalize(res);
 	sqlite3_close(db);
-*/
 
 	return list_count(game->codes);
 }
@@ -789,11 +747,11 @@ list_t * ReadBackupList(const char* userPath)
 	list_t *list = list_alloc();
 
 	item = _createSaveEntry(SAVE_FLAG_ZIP, CHAR_ICON_ZIP " Extract Archives (RAR, Zip, 7z)");
-	item->path = strdup("/data/");
+	item->path = strdup("ux0:/data/");
 	item->type = FILE_TYPE_ZIP;
 	list_append(list, item);
 
-	item = _createSaveEntry(SAVE_FLAG_PS4, CHAR_ICON_USER " Activate PS4 Accounts");
+	item = _createSaveEntry(SAVE_FLAG_PS4, CHAR_ICON_USER " Activate PS Vita Account");
 	asprintf(&item->path, EXDATA_PATH_HDD, apollo_config.user_id);
 	item->type = FILE_TYPE_ACT;
 	list_append(list, item);
@@ -1400,12 +1358,16 @@ list_t * ReadOnlineList(const char* urlPath)
 	return list;
 }
 
+static int sqlite_trophy_collate(void *foo, int ll, const void *l, int rl, const void *r)
+{
+    return 0;
+}
+
 list_t * ReadTrophyList(const char* userPath)
 {
 	save_entry_t *item;
-//	code_entry_t *cmd;
+	code_entry_t *cmd;
 	list_t *list;
-/*
 	sqlite3 *db;
 	sqlite3_stmt *res;
 
@@ -1413,7 +1375,7 @@ list_t * ReadTrophyList(const char* userPath)
 		return NULL;
 
 	list = list_alloc();
-
+/*
 	item = _createSaveEntry(SAVE_FLAG_PS4, CHAR_ICON_COPY " Export Trophies");
 	item->type = FILE_TYPE_MENU;
 	item->path = strdup(userPath);
@@ -1427,8 +1389,9 @@ list_t * ReadTrophyList(const char* userPath)
 	cmd->options = _createOptions(2, "Save .Zip to USB", CMD_ZIP_TROPHY_USB);
 	list_append(item->codes, cmd);
 	list_append(list, item);
-
-	int rc = sqlite3_prepare_v2(db, "SELECT id, trophy_title_id, title FROM tbl_trophy_title WHERE status = 0", -1, &res, NULL);
+*/
+	sqlite3_create_collation(db, "trophy_collator", SQLITE_UTF8, NULL, &sqlite_trophy_collate);
+	int rc = sqlite3_prepare_v2(db, "SELECT id, npcommid, title FROM tbl_trophy_title WHERE status = 0", -1, &res, NULL);
 	if (rc != SQLITE_OK)
 	{
 		LOG("Failed to fetch data: %s", sqlite3_errmsg(db));
@@ -1438,7 +1401,7 @@ list_t * ReadTrophyList(const char* userPath)
 
 	while (sqlite3_step(res) == SQLITE_ROW)
 	{
-		item = _createSaveEntry(SAVE_FLAG_PS4 | SAVE_FLAG_TROPHY, (const char*) sqlite3_column_text(res, 2));
+		item = _createSaveEntry(SAVE_FLAG_PSV | SAVE_FLAG_TROPHY, (const char*) sqlite3_column_text(res, 2));
 		item->blocks = sqlite3_column_int(res, 0);
 		item->path = strdup(userPath);
 		item->title_id = strdup((const char*) sqlite3_column_text(res, 1));
@@ -1451,18 +1414,16 @@ list_t * ReadTrophyList(const char* userPath)
 	sqlite3_finalize(res);
 	sqlite3_close(db);
 
-*/
 	return list;
 }
 
 int get_save_details(const save_entry_t* save, char **details)
 {
-/*
 	char sfoPath[256];
 	sqlite3 *db;
 	sqlite3_stmt *res;
 
-	if (!(save->flags & SAVE_FLAG_PS4))
+	if (!(save->flags & SAVE_FLAG_PSV))
 	{
 		asprintf(details, "%s\n\nTitle: %s\n", save->path, save->name);
 		return 1;
@@ -1598,6 +1559,5 @@ int get_save_details(const save_entry_t* save, char **details)
 		*account_id);
 
 	sfo_free(sfo);
-*/
 	return 1;
 }

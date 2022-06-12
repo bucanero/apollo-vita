@@ -40,6 +40,7 @@ add_executable(${PROJECT_NAME}
   source/saves.c
   source/settings.c
   source/sfo.c
+  source/sqlite3.c
   source/ttf_fonts.c
   source/util.c
   source/zip_util.c
@@ -50,6 +51,10 @@ target_link_libraries(${PROJECT_NAME}
   SceHttp_stub
   SceSsl_stub
   SceAppUtil_stub
+  SceSqlite_stub
+  SceRegistryMgr_stub
+  SceVshBridge_stub
+  taihen_stub
   polarssl
   dbglogger
   apollo
@@ -60,7 +65,7 @@ target_link_libraries(${PROJECT_NAME}
   z
 )
 
-vita_create_self(${PROJECT_NAME}.self ${PROJECT_NAME})
+vita_create_self(${PROJECT_NAME}.self ${PROJECT_NAME} UNSAFE)
 vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} ${PROJECT_NAME}.self
   VERSION ${VITA_VERSION}
   NAME ${VITA_APP_NAME}

@@ -8,16 +8,9 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <stdbool.h>
-/*
-#include <orbis/UserService.h>
-#include <orbis/CommonDialog.h>
-#include <orbis/Sysmodule.h>
-#include <orbis/SystemService.h>
-*/
 #include <psp2/ctrl.h>
 #include <psp2/audioout.h>
 #include <psp2/kernel/processmgr.h>
-
 
 #include "saves.h"
 #include "sfo.h"
@@ -345,7 +338,7 @@ void LoadFileTexture(const char* fname, int idx)
 // Used only in initialization. Allocates 64 mb for textures and loads the font
 int LoadTextures_Menu()
 {
-	texture_mem = malloc(256 * 32 * 32 * 4);
+	texture_mem = malloc(256 * 8 * 4);
 	
 	if(!texture_mem)
 		return 0; // fail!
@@ -591,6 +584,16 @@ void SetMenu(int id)
 			break;
 
 		case MENU_SAVE_DETAILS:
+			if (apollo_config.doAni)
+				Draw_CheatsMenu_View_Ani_Exit();
+
+			if (selected_centry->name)
+				free(selected_centry->name);
+			if (selected_centry->codes)
+				free(selected_centry->codes);
+			free(selected_centry);
+			break;
+
 		case MENU_PATCH_VIEW: //Cheat View Menu
 			if (apollo_config.doAni)
 				Draw_CheatsMenu_View_Ani_Exit();
@@ -1046,12 +1049,6 @@ void doSaveDetailsMenu()
 
 		if (pad_check_button(SCE_CTRL_CIRCLE))
 		{
-			if (selected_centry->name)
-				free(selected_centry->name);
-			if (selected_centry->codes)
-				free(selected_centry->codes);
-			free(selected_centry);
-
 			SetMenu(last_menu_id[MENU_SAVE_DETAILS]);
 			return;
 		}

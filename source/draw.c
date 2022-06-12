@@ -120,7 +120,7 @@ void DrawHeader_Ani(int icon, const char * hdrTitle, const char * headerSubTitle
 		int width = (SCREEN_WIDTH - 75) - (MENU_ICON_OFF + MENU_TITLE_OFF + WidthFromStr(headerTitle)) - 30;
 		SetFontSize(APP_FONT_SIZE_SUBTITLE);
 		char * tName = strdup(headerSubTitle);
-		while (WidthFromStr(tName) > width)
+		while (tName[0] && WidthFromStr(tName) > width)
 		{
 			tName[strlen(tName) - 1] = 0;
 		}
@@ -171,7 +171,7 @@ void DrawHeader(int icon, int xOff, const char * hdrTitle, const char * headerSu
 		int width = (SCREEN_WIDTH - 75) - (MENU_ICON_OFF + MENU_TITLE_OFF + WidthFromStr(headerTitle)) - 30;
 		SetFontSize(APP_FONT_SIZE_SUBTITLE);
 		char * tName = strdup(headerSubTitle);
-		while (WidthFromStr(tName) > width)
+		while (tName[0] && WidthFromStr(tName) > width)
 		{
 			tName[strlen(tName) - 1] = 0;
 		}

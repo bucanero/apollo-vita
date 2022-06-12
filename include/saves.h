@@ -37,8 +37,8 @@
 
 #define TROPHY_PATH_USB0        USB0_PATH TROPHIES_PATH_USB
 #define TROPHY_PATH_USB1        USB1_PATH TROPHIES_PATH_USB
-#define TROPHY_PATH_HDD         "/user/home/%08x/trophy/db/trophy_local.db"
-// "/user/home/1508e290/trophy/data"
+#define TROPHY_PATH_HDD         "ur0:/user/00/trophy/db/trophy_local.db"
+
 #define EXDATA_PATH_HDD			USER_PATH_HDD PS3_LICENSE_PATH
 
 #define EXPORT_PATH_USB0        USB0_PATH "PS4/EXPORT/"
