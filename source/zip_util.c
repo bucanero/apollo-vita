@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#define _UNIX
 #include <unrar.h>
 #include <un7zip.h>
 
