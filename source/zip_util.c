@@ -166,12 +166,24 @@ int extract_rar(const char* rarFilePath, const char* dstPath)
 	return (err == 0);
 }
 
-/*
-// --- workaround to fix an Open Orbis SDK linking issue with __clock_gettime()
-#include <time.h>
-int __clock_gettime(clockid_t clock_id, struct timespec *tp)
-{
-	return clock_gettime(clock_id, tp);
+// --- workaround to fix a Vita SDK linking issue with unrar
+int symlink(const char *path1, const char *path2) {
+	return 0;
+}
+
+void* getpwnam(const char *login) {
+	return NULL;
+}
+
+int lchown(const char *path, uid_t owner, gid_t group) {
+	return 0;
+}
+
+int flock(int fd, int operation) {
+	return 0;
+}
+
+mode_t umask(mode_t cmask) {
+	return 0;
 }
 // --- to be removed
-*/
