@@ -83,7 +83,7 @@ int mkdirs(const char* dir)
         char last = *ptr;
         *ptr = 0;
 
-        if (file_exists(path) == FAILED)
+        if (dir_exists(path) == FAILED)
         {
             if (mkdir(path, 0777) < 0)
                 return FAILED;

@@ -25,6 +25,10 @@ include_directories(
   ${VITASDK}/arm-vita-eabi/include/freetype2
 )
 
+link_directories(
+  libs
+)
+
 add_executable(${PROJECT_NAME}
   source/common.c
   source/config.c
@@ -54,6 +58,8 @@ target_link_libraries(${PROJECT_NAME}
   SceSqlite_stub
   SceRegistryMgr_stub
   SceVshBridge_stub
+  SceNotificationUtil_stub
+  VitaShellUser_stub_weak
   taihen_stub
   polarssl
   dbglogger

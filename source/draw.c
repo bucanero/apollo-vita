@@ -68,8 +68,8 @@ static void _drawListBackground(int off, int icon)
 
 			if (menu_textures[icon_png_file_index].size)
 			{
-				DrawTexture(&menu_textures[help_png_index], SCREEN_WIDTH - 404, help_png_y + 4, 0, menu_textures[icon_png_file_index].width + 8, menu_textures[icon_png_file_index].height + 8, 0xFFFFFF00 | 0xFF);
-				DrawTexture(&menu_textures[icon_png_file_index], SCREEN_WIDTH - 400, help_png_y + 8, 0, menu_textures[icon_png_file_index].width, menu_textures[icon_png_file_index].height, 0xFFFFFF00 | 0xFF);
+				DrawTexture(&menu_textures[help_png_index], SCREEN_WIDTH - 204, help_png_y + 4, 0, menu_textures[icon_png_file_index].width + 8, menu_textures[icon_png_file_index].height + 8, 0xFFFFFF00 | 0xFF);
+				DrawTexture(&menu_textures[icon_png_file_index], SCREEN_WIDTH - 200, help_png_y + 8, 0, menu_textures[icon_png_file_index].width, menu_textures[icon_png_file_index].height, 0xFFFFFF00 | 0xFF);
 			}
 			break;
 

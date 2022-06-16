@@ -136,7 +136,7 @@ enum save_type_enum
     FILE_TYPE_PSV,
     FILE_TYPE_TRP,
     FILE_TYPE_MENU,
-    FILE_TYPE_PS4,
+    FILE_TYPE_PSP,
 
     // PS1 File Types
     FILE_TYPE_ZIP,
@@ -260,6 +260,6 @@ int regMgr_SetAccountId(int userNumber, uint64_t* psnAccountId);
 
 int create_savegame_folder(const char* folder);
 int get_save_details(const save_entry_t *save, char** details);
-int orbis_SaveUmount(const char* mountPath);
-int orbis_SaveMount(const save_entry_t *save, uint32_t mode, char* mountPath);
+int vita_SaveUmount(const char* mountPath);
+int vita_SaveMount(const save_entry_t *save, char* mountPath);
 int orbis_UpdateSaveParams(const char* mountPath, const char* title, const char* subtitle, const char* details);

@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <dirent.h>
-//#include <orbis/SaveData.h>
+#include <psp2/appmgr.h>
 
 #include "saves.h"
 #include "common.h"
@@ -12,6 +12,7 @@
 #include "settings.h"
 #include "utils.h"
 #include "sqlite3.h"
+#include "vitashell_user.h"
 
 #define UTF8_CHAR_GROUP		"\xe2\x97\x86"
 #define UTF8_CHAR_ITEM		"\xe2\x94\x97"
@@ -24,7 +25,12 @@
 #define CHAR_ICON_LOCK		"\x08"
 #define CHAR_ICON_WARN		"\x0F"
 
+#define MAX_MOUNT_POINT_LENGTH 16
+
 int sqlite_init();
+
+char pfs_mount_point[MAX_MOUNT_POINT_LENGTH];
+const int known_pfs_ids[] = { 0x6E, 0x12E, 0x12F, 0x3ED };
 
 static sqlite3* open_sqlite_db(const char* db_path)
 {
@@ -70,102 +76,57 @@ static int get_appdb_title(sqlite3* db, const char* titleid, char* name)
 	return 1;
 }
 
-int orbis_SaveDelete(const save_entry_t *save)
+int vita_SaveUmount(const char* mount)
 {
-/*
-	OrbisSaveDataDelete del;
-	OrbisSaveDataDirName dir;
-	OrbisSaveDataTitleId title;
-
-	memset(&del, 0, sizeof(OrbisSaveDataDelete));
-	memset(&dir, 0, sizeof(OrbisSaveDataDirName));
-	memset(&title, 0, sizeof(OrbisSaveDataTitleId));
-	strlcpy(dir.data, save->dir_name, sizeof(dir.data));
-	strlcpy(title.data, save->title_id, sizeof(title.data));
-
-	del.userId = apollo_config.user_id;
-	del.dirName = &dir;
-	del.titleId = &title;
-
-	if (sceSaveDataDelete(&del) < 0) {
-		LOG("DELETE_ERROR");
+	if (pfs_mount_point[0] == 0)
 		return 0;
-	}
-*/
 
-	return 1;
-}
-
-int orbis_SaveUmount(const char* mountPath)
-{
-	/*
-	OrbisSaveDataMountPoint umount;
-
-	memset(&umount, 0, sizeof(OrbisSaveDataMountPoint));
-	strncpy(umount.data, mountPath, sizeof(umount.data));
-
-	int32_t umountErrorCode = sceSaveDataUmount(&umount);
-	
+	int umountErrorCode = sceAppMgrUmount(pfs_mount_point);	
 	if (umountErrorCode < 0)
 	{
 		LOG("UMOUNT_ERROR (%X)", umountErrorCode);
-		notifi(NULL, "Warning! Save couldn't be unmounted!");
-		disable_unpatch();
-	}
-
-	return (umountErrorCode == SUCCESS);
-*/
-return 0;
-}
-
-int orbis_SaveMount(const save_entry_t *save, uint32_t mount_mode, char* mount_path)
-{
-	/*
-	OrbisSaveDataDirName dirName;
-	OrbisSaveDataTitleId titleId;
-	int32_t saveDataInitializeResult = sceSaveDataInitialize3(0);
-
-	if (saveDataInitializeResult != SUCCESS)
-	{
-		LOG("Failed to initialize save data library (%X)", saveDataInitializeResult);
+		notification("Warning! Save couldn't be unmounted!");
 		return 0;
 	}
+	pfs_mount_point[0] = 0;
 
-	memset(&dirName, 0, sizeof(OrbisSaveDataDirName));
-	memset(&titleId, 0, sizeof(OrbisSaveDataTitleId));
-	strlcpy(dirName.data, save->dir_name, sizeof(dirName.data));
-	strlcpy(titleId.data, save->title_id, sizeof(titleId.data));
+	return (umountErrorCode == SUCCESS);
+}
 
-	OrbisSaveDataMount mount;
-	memset(&mount, 0, sizeof(OrbisSaveDataMount));
+int vita_SaveMount(const save_entry_t *save, char* mount)
+{
+	char path[0x100];
+	char klicensee[0x10];
+	ShellMountIdArgs args;
 
-	OrbisSaveDataFingerprint fingerprint;
-	memset(&fingerprint, 0, sizeof(OrbisSaveDataFingerprint));
-	strlcpy(fingerprint.data, "0000000000000000000000000000000000000000000000000000000000000000", sizeof(fingerprint.data));
-//	strlcpy(fingerprint.data, "294a5ed06db170618f2eed8c424b9d828879c080cc66fbc4864f69e974deb856", sizeof(fingerprint.data));
-//	strlcpy(fingerprint.data, "7173d9f8f05904801b84eb72cd05d7ceba5baba2d2a72c40269a67e69a48fa42", sizeof(fingerprint.data));
+	memset(klicensee, 0, sizeof(klicensee));
+	snprintf(path, sizeof(path), "ux0:user/00/savedata/%s", save->dir_name);
+	strcpy(mount, save->dir_name);
 
-	mount.userId = apollo_config.user_id;
-	mount.dirName = dirName.data;
-	mount.fingerprint = fingerprint.data;
-	mount.titleId = titleId.data;
-	mount.blocks = save->blocks;
-	mount.mountMode = mount_mode | ORBIS_SAVE_DATA_MOUNT_MODE_DESTRUCT_OFF;
-	
-	OrbisSaveDataMountResult mountResult;
-	memset(&mountResult, 0, sizeof(OrbisSaveDataMountResult));
+	args.process_titleid = "NP0APOLLO";
+	args.path = path;
+	args.desired_mount_point = NULL;
+	args.klicensee = klicensee;
+	args.mount_point = pfs_mount_point;
 
-	int32_t mountErrorCode = sceSaveDataMount(&mount, &mountResult);
+	for (int i = 0; i < countof(known_pfs_ids); i++)
+	{
+		args.id = known_pfs_ids[i];
+		if (shellUserMountById(&args) < 0)
+			continue;
+
+		LOG("[%s] '%s' mounted (%s)", save->title_id, pfs_mount_point, path);
+		return 1;
+	}
+
+	int mountErrorCode = sceAppMgrGameDataMount(path, 0, 0, pfs_mount_point);
 	if (mountErrorCode < 0)
 	{
 		LOG("ERROR (%X): can't mount '%s/%s'", mountErrorCode, save->title_id, save->dir_name);
 		return 0;
 	}
 
-	LOG("'%s/%s' mountPath (%s)", save->title_id, save->dir_name, mountResult.mountPathName);
-	strncpy(mount_path, mountResult.mountPathName, ORBIS_SAVE_DATA_MOUNT_POINT_DATA_MAXSIZE);
-*/
-
+	LOG("[%s] '/%s' mounted (%s)", save->title_id, pfs_mount_point, path);
 	return 1;
 }
 
@@ -529,8 +490,7 @@ int ReadCodes(save_entry_t * save)
 
 	if (save->flags & SAVE_FLAG_HDD)
 	{
-//		if (!orbis_SaveMount(save, ORBIS_SAVE_DATA_MOUNT_MODE_RDONLY, mount))
-		if (1)
+		if (!vita_SaveMount(save, mount))
 		{
 			code = _createCmdCode(PATCH_NULL, CHAR_ICON_WARN " --- Error Mounting Save! Check Save Mount Patches --- " CHAR_ICON_WARN, CMD_CODE_NULL);
 			list_append(save->codes, code);
@@ -563,7 +523,7 @@ int ReadCodes(save_entry_t * save)
 skip_end:
 	if (save->flags & SAVE_FLAG_HDD)
 	{
-		orbis_SaveUmount(mount);
+		vita_SaveUmount(mount);
 		free(save->path);
 		save->path = tmp;
 	}
@@ -1006,7 +966,7 @@ static void read_usb_encrypted_saves(const char* userPath, list_t *list, uint64_
 
 			snprintf(savePath, sizeof(savePath), "(Encrypted) %s/%s", dir->d_name, dir2->d_name);
 			item = _createSaveEntry(SAVE_FLAG_PS4 | SAVE_FLAG_LOCKED, savePath);
-			item->type = FILE_TYPE_PS4;
+			item->type = FILE_TYPE_PSV;
 
 			asprintf(&item->path, "%s%s/", userPath, dir->d_name);
 			asprintf(&item->title_id, "%.9s", dir->d_name);
@@ -1088,7 +1048,7 @@ static void read_usb_savegames(const char* userPath, list_t *list)
 
 		char *sfo_data = (char*) sfo_get_param_value(sfo, "MAINTITLE");
 		item = _createSaveEntry(SAVE_FLAG_PS4, sfo_data);
-		item->type = FILE_TYPE_PS4;
+		item->type = FILE_TYPE_PSV;
 
 		sfo_data = (char*) sfo_get_param_value(sfo, "TITLE_ID");
 		asprintf(&item->path, "%s%s/", userPath, dir->d_name);
@@ -1113,18 +1073,17 @@ static void read_usb_savegames(const char* userPath, list_t *list)
 	closedir(d);
 }
 
-static void read_hdd_savegames(const char* userPath, list_t *list, sqlite3 *appdb)
+static void read_hdd_savegames(const char* userPath, list_t *list)
 {
-/*
 	save_entry_t *item;
 	sqlite3_stmt *res;
-	char name[222]; //ORBIS_SAVE_DATA_DETAIL_MAXSIZE];
 	sqlite3 *db = open_sqlite_db(userPath);
 
 	if (!db)
 		return;
 
-	int rc = sqlite3_prepare_v2(db, "SELECT title_id, dir_name, main_title, blocks, account_id, sub_title FROM savedata", -1, &res, NULL);
+	int rc = sqlite3_prepare_v2(db, "SELECT a.titleId, val, title, iconPath FROM tbl_appinfo_icon AS a, tbl_appinfo AS b "
+		" WHERE (type = 0) AND (a.titleId = b.titleId) AND (a.titleid NOT LIKE 'NPX%') AND (key = 278217076)", -1, &res, NULL);
 	if (rc != SQLITE_OK)
 	{
 		LOG("Failed to fetch data: %s", sqlite3_errmsg(db));
@@ -1134,19 +1093,13 @@ static void read_hdd_savegames(const char* userPath, list_t *list, sqlite3 *appd
 
 	while (sqlite3_step(res) == SQLITE_ROW)
 	{
-		const char* subtitle = (const char*) sqlite3_column_text(res, 5);
-//		strncpy(name, (const char*) sqlite3_column_text(res, 2), ORBIS_SAVE_DATA_DETAIL_MAXSIZE);
-		get_appdb_title(appdb, (const char*) sqlite3_column_text(res, 0), name);
-		strcat(name, " - ");
-		strcat(name, subtitle[0] ? subtitle : (const char*) sqlite3_column_text(res, 1));
-
-		item = _createSaveEntry(SAVE_FLAG_PS4 | SAVE_FLAG_HDD, name);
-		item->type = FILE_TYPE_PS4;
+		item = _createSaveEntry(SAVE_FLAG_PSV | SAVE_FLAG_HDD, (const char*) sqlite3_column_text(res, 2));
+		item->type = FILE_TYPE_PSV;
 		item->path = strdup(userPath);
 		item->dir_name = strdup((const char*) sqlite3_column_text(res, 1));
 		item->title_id = strdup((const char*) sqlite3_column_text(res, 0));
-		item->blocks = sqlite3_column_int(res, 3);
-		item->flags |= (apollo_config.account_id == (uint64_t)sqlite3_column_int64(res, 4) ? SAVE_FLAG_OWNER : 0);
+		item->blocks = 1; //sqlite3_column_int(res, 3);
+		item->flags |= 0; //(apollo_config.account_id == (uint64_t)sqlite3_column_int64(res, 4) ? SAVE_FLAG_OWNER : 0);
 
 		LOG("[%s] F(%d) {%d} '%s'", item->title_id, item->flags, item->blocks, item->name);
 		list_append(list, item);
@@ -1154,7 +1107,6 @@ static void read_hdd_savegames(const char* userPath, list_t *list, sqlite3 *appd
 
 	sqlite3_finalize(res);
 	sqlite3_close(db);
-*/
 }
 
 /*
@@ -1221,7 +1173,6 @@ list_t * ReadUserList(const char* userPath)
 	save_entry_t *item;
 	code_entry_t *cmd;
 	list_t *list;
-//	sqlite3* appdb;
 
 	if (file_exists(userPath) != SUCCESS)
 		return NULL;
@@ -1253,9 +1204,7 @@ list_t * ReadUserList(const char* userPath)
 	list_append(item->codes, cmd);
 	list_append(list, item);
 
-//	appdb = open_sqlite_db("/system_data/priv/mms/app.db");
-//	read_hdd_savegames(userPath, list, appdb);
-//	sqlite3_close(appdb);
+	read_hdd_savegames(userPath, list);
 
 	return list;
 }
@@ -1487,7 +1436,8 @@ int get_save_details(const save_entry_t* save, char **details)
 
 	if(save->flags & SAVE_FLAG_HDD)
 	{
-		if ((db = open_sqlite_db(save->path)) == NULL)
+		asprintf(details, "%s\n\nTitle: %s\n", save->path, save->name);
+/*		if ((db = open_sqlite_db(save->path)) == NULL)
 			return 0;
 
 		char* query = sqlite3_mprintf("SELECT sub_title, detail, free_blocks, size_kib, user_id, account_id, main_title FROM savedata "
@@ -1523,7 +1473,7 @@ int get_save_details(const save_entry_t* save, char **details)
 		sqlite3_free(query);
 		sqlite3_finalize(res);
 		sqlite3_close(db);
-
+*/
 		return 1;
 	}
 

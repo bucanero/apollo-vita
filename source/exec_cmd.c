@@ -2,7 +2,6 @@
 #include <string.h>
 #include <dirent.h>
 #include <time.h>
-//#include <orbis/SaveData.h>
 #include <polarssl/md5.h>
 
 #include "saves.h"
@@ -168,8 +167,7 @@ static int _copy_save_hdd(const save_entry_t* save)
 	char copy_path[256];
 	char mount[32];
 
-	if (1)
-//	if (!orbis_SaveMount(save, ORBIS_SAVE_DATA_MOUNT_MODE_RDWR | ORBIS_SAVE_DATA_MOUNT_MODE_CREATE2 | ORBIS_SAVE_DATA_MOUNT_MODE_COPY_ICON, mount))
+	if (!vita_SaveMount(save, mount))
 		return 0;
 
 	snprintf(copy_path, sizeof(copy_path), APOLLO_SANDBOX_PATH, mount);
@@ -180,7 +178,7 @@ static int _copy_save_hdd(const save_entry_t* save)
 	snprintf(copy_path, sizeof(copy_path), "%s" "sce_sys/", save->path);
 	_update_save_details(copy_path, mount);
 
-	orbis_SaveUmount(mount);
+	vita_SaveUmount(mount);
 	return 1;
 }
 
@@ -217,7 +215,7 @@ static void copyAllSavesHDD(const save_entry_t* save, int all)
 	for (node = list_head(list); (item = list_get(node)); node = list_next(node))
 	{
 		update_progress_bar(progress++, list_count(list), item->name);
-		if (item->type == FILE_TYPE_PS4 && !(item->flags & SAVE_FLAG_LOCKED) && (all || item->flags & SAVE_FLAG_SELECTED))
+		if (item->type == FILE_TYPE_PSV && !(item->flags & SAVE_FLAG_LOCKED) && (all || item->flags & SAVE_FLAG_SELECTED))
 			err_count += ! _copy_save_hdd(item);
 	}
 
@@ -355,13 +353,12 @@ static void dumpAllFingerprints(const save_entry_t* save)
 	for (node = list_head(list); (item = list_get(node)); node = list_next(node))
 	{
 		update_progress_bar(progress++, list_count(list), item->name);
-		if (item->type != FILE_TYPE_PS4 || (item->flags & SAVE_FLAG_LOCKED))
+		if (item->type != FILE_TYPE_PSV || (item->flags & SAVE_FLAG_LOCKED))
 			continue;
 
 		if (item->flags & SAVE_FLAG_HDD)
 		{
-//			if (!orbis_SaveMount(item, ORBIS_SAVE_DATA_MOUNT_MODE_RDONLY, mount))
-			if (1)
+			if (!vita_SaveMount(item, mount))
 				continue;
 
 			free(item->path);
@@ -371,7 +368,7 @@ static void dumpAllFingerprints(const save_entry_t* save)
 		exportFingerprint(item, 1);
 
 		if (item->flags & SAVE_FLAG_HDD)
-			orbis_SaveUmount(mount);
+			vita_SaveUmount(mount);
 	}
 
 	end_progress_bar();
@@ -407,13 +404,12 @@ static void copySavePFS(const save_entry_t* save)
 		.account_id = apollo_config.account_id,
 	};
 
-//	if (!orbis_SaveMount(save, ORBIS_SAVE_DATA_MOUNT_MODE_RDWR | ORBIS_SAVE_DATA_MOUNT_MODE_CREATE2 | ORBIS_SAVE_DATA_MOUNT_MODE_COPY_ICON, mount))
-	if (1)
+	if (!vita_SaveMount(save, mount))
 	{
 		LOG("[!] Error: can't create/mount save!");
 		return;
 	}
-	orbis_SaveUmount(mount);
+	vita_SaveUmount(mount);
 
 	snprintf(src_path, sizeof(src_path), "%s%s", save->path, save->dir_name);
 	snprintf(hdd_path, sizeof(hdd_path), "/user/home/%08x/savedata/%s/sdimg_%s", apollo_config.user_id, save->title_id, save->dir_name);
@@ -433,8 +429,7 @@ static void copySavePFS(const save_entry_t* save)
 		return;
 	}
 
-//	if (!orbis_SaveMount(save, ORBIS_SAVE_DATA_MOUNT_MODE_RDWR, mount))
-	if (1)
+	if (!vita_SaveMount(save, mount))
 	{
 		LOG("[!] Error: can't remount save");
 		show_message("Error! Can't mount encrypted save.\n(incompatible save-game firmware version)");
@@ -447,7 +442,7 @@ static void copySavePFS(const save_entry_t* save)
 
 	*strrchr(hdd_path, 'p') = 0;
 	_update_save_details(hdd_path, mount);
-	orbis_SaveUmount(mount);
+	vita_SaveUmount(mount);
 
 	show_message("Encrypted save copied successfully!\n%s/%s", save->title_id, save->dir_name);
 	return;
@@ -538,8 +533,7 @@ static int webReqHandler(const dWebRequest_t* req, char* outfile)
 
 		if (item->flags & SAVE_FLAG_HDD)
 		{
-//			if (!orbis_SaveMount(item, ORBIS_SAVE_DATA_MOUNT_MODE_RDONLY, mount))
-			if (1)
+			if (!vita_SaveMount(item, mount))
 				return 0;
 
 			asprintf(&path, APOLLO_SANDBOX_PATH, mount);
@@ -555,7 +549,7 @@ static int webReqHandler(const dWebRequest_t* req, char* outfile)
 
 		id = zip_directory(base, path, outfile);
 		if (item->flags & SAVE_FLAG_HDD)
-			orbis_SaveUmount(mount);
+			vita_SaveUmount(mount);
 
 		free(base);
 		free(path);
@@ -613,8 +607,7 @@ static void copyAllSavesUSB(const save_entry_t* save, const char* dst_path, int 
 	for (node = list_head(list); (item = list_get(node)); node = list_next(node))
 	{
 		update_progress_bar(progress++, list_count(list), item->name);
-//		if (item->type != FILE_TYPE_PS4 || !(all || item->flags & SAVE_FLAG_SELECTED) || !orbis_SaveMount(item, ORBIS_SAVE_DATA_MOUNT_MODE_RDONLY, mount))
-		if (1)
+		if (item->type != FILE_TYPE_PSV || !(all || item->flags & SAVE_FLAG_SELECTED) || !vita_SaveMount(item, mount))
 			continue;
 
 		snprintf(save_path, sizeof(save_path), APOLLO_SANDBOX_PATH, mount);
@@ -623,7 +616,7 @@ static void copyAllSavesUSB(const save_entry_t* save, const char* dst_path, int 
 		LOG("Copying <%s> to %s...", save_path, copy_path);
 		copy_directory(save_path, save_path, copy_path);
 
-		orbis_SaveUmount(mount);
+		vita_SaveUmount(mount);
 	}
 
 	end_progress_bar();
@@ -870,7 +863,7 @@ static void resignAllSaves(const save_entry_t* save, int all)
 	for (node = list_head(list); (item = list_get(node)); node = list_next(node))
 	{
 		update_progress_bar(progress++, list_count(list), item->name);
-		if (item->type != FILE_TYPE_PS4 || (item->flags & SAVE_FLAG_LOCKED) || !(all || item->flags & SAVE_FLAG_SELECTED))
+		if (item->type != FILE_TYPE_PSV || (item->flags & SAVE_FLAG_LOCKED) || !(all || item->flags & SAVE_FLAG_SELECTED))
 			continue;
 
 		snprintf(sfoPath, sizeof(sfoPath), "%s" "sce_sys/param.sfo", item->path);
@@ -1044,8 +1037,7 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 
 	if (selected_entry->flags & SAVE_FLAG_HDD)
 	{
-//		if (!orbis_SaveMount(selected_entry, ORBIS_SAVE_DATA_MOUNT_MODE_RDWR, mount))
-		if (1)
+		if (!vita_SaveMount(selected_entry, mount))
 		{
 			LOG("Error Mounting Save! Check Save Mount Patches");
 			return;
@@ -1190,7 +1182,7 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 
 	if (selected_entry->flags & SAVE_FLAG_HDD)
 	{
-		orbis_SaveUmount(mount);
+		vita_SaveUmount(mount);
 		free(selected_entry->path);
 		selected_entry->path = tmp;
 	}
