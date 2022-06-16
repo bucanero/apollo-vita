@@ -50,6 +50,12 @@ jobs:
         make -f Makefile.vita
         make -f Makefile.vita install
 
+    - name: Install un7zip
+      working-directory: libun7zip
+      run: |
+        make -f Makefile.vita
+        make -f Makefile.vita install
+
     - name: Install dbglogger
       working-directory: dbglogger
       run: |

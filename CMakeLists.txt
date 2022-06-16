@@ -68,6 +68,7 @@ target_link_libraries(${PROJECT_NAME}
   freetype
   pthread
   mzip
+  un7zip
   z
 )
 

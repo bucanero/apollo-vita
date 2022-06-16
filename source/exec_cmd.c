@@ -251,7 +251,7 @@ void extractArchive(const char* file_path)
 
 	case '7':
 		/* 7-Zip */
-//		ret = extract_7zip(file_path, exp_path);
+		ret = extract_7zip(file_path, exp_path);
 		break;
 
 	default:

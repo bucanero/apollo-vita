@@ -5,7 +5,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 //#include <unrar.h>
-//#include <un7zip.h>
+#include <un7zip.h>
 
 #include "saves.h"
 #include "common.h"
@@ -95,7 +95,7 @@ int extract_zip(const char* zip_file, const char* dest_path)
 	progress[1] = zip_entries_total(archive);
 	zip_close(archive);
 
-	LOG("Extracting ZIP (%lu) to <%s>...", progress[1], dest_path);
+	LOG("Extracting ZIP (%lld) to <%s>...", progress[1], dest_path);
 
 	init_progress_bar("Extracting files...");
 	ret = zip_extract(zip_file, dest_path, on_extract_entry, progress);
@@ -104,7 +104,6 @@ int extract_zip(const char* zip_file, const char* dest_path)
 	return (ret == SUCCESS);
 }
 
-/*
 void callback_7z(const char* fileName, unsigned long fileSize, unsigned fileNum, unsigned numFiles)
 {
     LOG("Extracted: %s (%ld bytes)", fileName, fileSize);
@@ -125,6 +124,7 @@ int extract_7zip(const char* fpath, const char* dest_path)
 	return (ret == SUCCESS);
 }
 
+/*
 int extract_rar(const char* rarFilePath, const char* dstPath)
 {
 	int err = 0;

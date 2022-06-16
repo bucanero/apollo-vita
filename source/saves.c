@@ -518,8 +518,6 @@ int ReadCodes(save_entry_t * save)
 	load_patch_code_list(buffer, save->codes, &get_file_entries, save->path);
 	free (buffer);
 
-	LOG("Loaded %zu codes", list_count(save->codes));
-
 skip_end:
 	if (save->flags & SAVE_FLAG_HDD)
 	{
@@ -527,6 +525,7 @@ skip_end:
 		free(save->path);
 		save->path = tmp;
 	}
+	LOG("Loaded %ld codes", list_count(save->codes));
 
 	return list_count(save->codes);
 }
@@ -823,7 +822,7 @@ int ReadBackupCodes(save_entry_t * bup)
 		return 0;
 	}
 
-	LOG("%zu items loaded", list_count(bup->codes));
+	LOG("%ld items loaded", list_count(bup->codes));
 
 	return list_count(bup->codes);
 }

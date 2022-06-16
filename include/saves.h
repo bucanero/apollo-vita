@@ -260,6 +260,6 @@ int regMgr_SetAccountId(int userNumber, uint64_t* psnAccountId);
 
 int create_savegame_folder(const char* folder);
 int get_save_details(const save_entry_t *save, char** details);
-int vita_SaveUmount(const char* mountPath);
+int vita_SaveUmount();
 int vita_SaveMount(const save_entry_t *save, char* mountPath);
 int orbis_UpdateSaveParams(const char* mountPath, const char* title, const char* subtitle, const char* details);
