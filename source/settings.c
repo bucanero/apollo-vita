@@ -2,10 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <stdbool.h>
-//#include <orbis/libkernel.h>
-//#include <orbis/SaveData.h>
-//#include <orbis/UserService.h>
+#include <psp2/registrymgr.h>
 
 #include "types.h"
 #include "menu.h"
@@ -260,87 +257,68 @@ char** get_logged_users()
 
 int save_app_settings(app_config_t* config)
 {
-/*
 	char filePath[256];
-	OrbisSaveDataMount2 mount;
-	OrbisSaveDataDirName dirName;
-	OrbisSaveDataMountResult mountResult;
+	char title[32] = "NP0APOLLO";
+	save_entry_t se = {
+		.dir_name = title,
+		.title_id = title,
+	};
 
-	memset(&mount, 0x00, sizeof(mount));
-	memset(&mountResult, 0x00, sizeof(mountResult));
-	strlcpy(dirName.data, "Settings", sizeof(dirName.data));
-
-	mount.userId = apollo_config.user_id;
-	mount.dirName = &dirName;
-	mount.blocks = ORBIS_SAVE_DATA_BLOCKS_MIN2;
-	mount.mountMode = (ORBIS_SAVE_DATA_MOUNT_MODE_CREATE2 | ORBIS_SAVE_DATA_MOUNT_MODE_RDWR | ORBIS_SAVE_DATA_MOUNT_MODE_COPY_ICON);
-
-	if (sceSaveDataMount2(&mount, &mountResult) < 0) {
+	if (!vita_SaveMount(&se, filePath)) {
 		LOG("sceSaveDataMount2 ERROR");
 		return 0;
 	}
 
 	LOG("Saving Settings...");
-	snprintf(filePath, sizeof(filePath), APOLLO_SANDBOX_PATH "settings.bin", mountResult.mountPathName);
+	snprintf(filePath, sizeof(filePath), APOLLO_SANDBOX_PATH "settings.bin", title);
 	write_buffer(filePath, (uint8_t*) config, sizeof(app_config_t));
 
-	orbis_UpdateSaveParams(mountResult.mountPathName, "Apollo Save Tool", "User Settings", "www.bucanero.com.ar");
-	orbis_SaveUmount(mountResult.mountPathName);
-*/
+	vita_SaveUmount();
 	return 1;
 }
 
 int load_app_settings(app_config_t* config)
 {
-/*
 	char filePath[256];
 	app_config_t* file_data;
 	size_t file_size;
-	OrbisSaveDataMount2 mount;
-	OrbisSaveDataDirName dirName;
-	OrbisSaveDataMountResult mountResult;
+	char title[32] = "NP0APOLLO";
+	save_entry_t se = {
+		.dir_name = title,
+		.title_id = title,
+	};
 
-	sceUserServiceGetNpAccountId(config->user_id, &config->account_id);
-	sceKernelGetOpenPsIdForSystem(config->psid);
-	config->psid[0] = ES64(config->psid[0]);
-	config->psid[1] = ES64(config->psid[1]);
-
-	if (sceSaveDataInitialize3(0) != SUCCESS)
+	config->user_id = 0;
+	if (sceRegMgrGetKeyBin("/CONFIG/NP", "account_id", &config->account_id, sizeof(uint64_t)) < 0)
 	{
-		LOG("Failed to initialize save data library");
-		return 0;
+		LOG("Failed to get account_id");
+		config->account_id = 0;
 	}
 
-	memset(&mount, 0x00, sizeof(mount));
-	memset(&mountResult, 0x00, sizeof(mountResult));
-	strlcpy(dirName.data, "Settings", sizeof(dirName.data));
+//	sceKernelGetOpenPsIdForSystem(config->psid);
+//	config->psid[0] = ES64(config->psid[0]);
+//	config->psid[1] = ES64(config->psid[1]);
 
-	mount.userId = apollo_config.user_id;
-	mount.dirName = &dirName;
-	mount.blocks = ORBIS_SAVE_DATA_BLOCKS_MIN2;
-	mount.mountMode = ORBIS_SAVE_DATA_MOUNT_MODE_RDONLY;
-
-	if (sceSaveDataMount2(&mount, &mountResult) < 0) {
+	if (vita_SaveMount(&se, filePath) < 0) {
 		LOG("sceSaveDataMount2 ERROR");
 		return 0;
 	}
 
 	LOG("Loading Settings...");
-	snprintf(filePath, sizeof(filePath), APOLLO_SANDBOX_PATH "settings.bin", mountResult.mountPathName);
+	snprintf(filePath, sizeof(filePath), APOLLO_SANDBOX_PATH "settings.bin", title);
 
 	if (read_buffer(filePath, (uint8_t**) &file_data, &file_size) == SUCCESS && file_size == sizeof(app_config_t))
 	{
 		file_data->user_id = config->user_id;
 		file_data->account_id = config->account_id;
-		file_data->psid[0] = config->psid[0];
-		file_data->psid[1] = config->psid[1];
+//		file_data->psid[0] = config->psid[0];
+//		file_data->psid[1] = config->psid[1];
 		memcpy(config, file_data, file_size);
 
-		LOG("Settings loaded: UserID (%08x) AccountID (%016lX)", config->user_id, config->account_id);
+		LOG("Settings loaded: UserID (%08x) AccountID (%016llX)", config->user_id, config->account_id);
 		free(file_data);
 	}
 
-	orbis_SaveUmount(mountResult.mountPathName);
-*/
+	vita_SaveUmount();
 	return 1;
 }

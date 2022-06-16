@@ -175,8 +175,8 @@ int sfo_write(sfo_context_t *context, const char *file_path) {
 		data_table_size += param->actual_length;
 	}
 	sfo_size = sizeof(sfo_header_t) + num_params * sizeof(sfo_index_table_t) + key_table_size + data_table_size;
-	key_table_size += ALIGN(sfo_size, 8) - sfo_size;
-	sfo_size = ALIGN(sfo_size, 8);
+	key_table_size += ALIGN(sfo_size, 4) - sfo_size;
+	sfo_size = ALIGN(sfo_size, 4);
 
 	sfo = (u8 *)malloc(sfo_size);
 	if (!sfo) {
@@ -375,7 +375,7 @@ int patch_sfo(const char *in_file_path, sfo_patch_t* patches) {
 
 //	sfo_patch_lock(sfo, patches->flags);
 	sfo_patch_account(sfo, patches->account_id);
-	sfo_patch_user_id(sfo, patches->user_id);
+//	sfo_patch_user_id(sfo, patches->user_id);
 //	sfo_patch_psid(sfo, patches->psid);
 //	sfo_patch_directory(sfo, patches->directory);
 
