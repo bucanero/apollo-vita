@@ -72,6 +72,7 @@ target_link_libraries(${PROJECT_NAME}
   un7zip
   stdc++
   c
+  c
   z
 )
 
