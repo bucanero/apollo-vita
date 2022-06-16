@@ -70,6 +70,7 @@ target_link_libraries(${PROJECT_NAME}
   unrar
   mzip
   un7zip
+  stdc++
   z
 )
 
