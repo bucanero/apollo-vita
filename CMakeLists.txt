@@ -61,11 +61,11 @@ target_link_libraries(${PROJECT_NAME}
   SceNotificationUtil_stub
   VitaShellUser_stub_weak
   taihen_stub
+  apollo
   polarssl
   dbglogger
-  apollo
-  png
   freetype
+  png
   pthread
   unrar
   mzip

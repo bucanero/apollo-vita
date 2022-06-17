@@ -246,7 +246,7 @@ void extractArchive(const char* file_path)
 	case 'r':
 	case 'R':
 		/* RAR */
-//		ret = extract_rar(file_path, exp_path);
+		ret = extract_rar(file_path, exp_path);
 		break;
 
 	case '7':

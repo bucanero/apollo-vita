@@ -1,5 +1,5 @@
 /* 
-	Apollo PS4 main.c
+	Apollo PS Vita main.c
 */
 
 #include <stdio.h>
@@ -7,10 +7,16 @@
 #include <string.h>
 #include <unistd.h>
 #include <dirent.h>
-#include <stdbool.h>
+#include <taihen.h>
 #include <psp2/ctrl.h>
+#include <psp2/appmgr.h>
+#include <psp2/apputil.h>
+#include <psp2/common_dialog.h>
+#include <psp2/sysmodule.h>
+#include <psp2/vshbridge.h>
 #include <psp2/audioout.h>
 #include <psp2/kernel/processmgr.h>
+#include <psp2/kernel/modulemgr.h>
 
 #include "saves.h"
 #include "sfo.h"
@@ -218,35 +224,14 @@ int option_index = 0;
 
 
 int initPad()
-{/*
-	int userID;
-
-	if (sceSysmoduleLoadModuleInternal(ORBIS_SYSMODULE_INTERNAL_PAD) < 0)
-		return 0;
-
-    // Initialize the Pad library
-    if (scePadInit() != 0)
-    {
-        LOG("[ERROR] Failed to initialize pad library!");
-        return 0;
-    }
-
-    // Get the user ID
-	OrbisUserServiceInitializeParams param;
-	param.priority = ORBIS_KERNEL_PRIO_FIFO_LOWEST;
-	sceUserServiceInitialize(&param);
-	sceUserServiceGetInitialUser(&userID);
-
-    // Open a handle for the controller
-    padhandle = scePadOpen(userID, 0, 0, NULL);
-	apollo_config.user_id = userID;
-
-    if (padhandle < 0)
+{
+    // Set sampling mode
+    if (sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG) < 0)
     {
         LOG("[ERROR] Failed to open pad!");
         return 0;
     }
-    */
+
     return 1;
 }
 
@@ -468,8 +453,6 @@ int LoadSounds(void* data)
 			continue;
 
 		/* Output audio */
-//		sceAudioOutOutput(audio, NULL);	// NULL: wait for completion
-
 		if (sceAudioOutOutput(audio, pSampleData + sOffs) < 0)
 		{
 			LOG("Failed to output audio");
@@ -1310,18 +1293,8 @@ s32 main(s32 argc, const char* argv[])
 	http_init();
 	initPad();
 
-	// Initialize audio output library
-	if (0)
-//	if (sceSysmoduleLoadModuleInternal(ORBIS_SYSMODULE_INTERNAL_AUDIOOUT) < 0 ||
-//		sceAudioOutInit() != SUCCESS)
-	{
-		LOG("[ERROR] Failed to initialize audio output");
-		return (-1);
-	}
-
 	// Open a handle to audio output device
 	audio = sceAudioOutOpenPort(SCE_AUDIO_OUT_PORT_TYPE_BGM, 256, 48000, SCE_AUDIO_OUT_MODE_STEREO);
-
 	if (audio <= 0)
 	{
 		LOG("[ERROR] Failed to open audio on main port");

@@ -706,7 +706,7 @@ list_t * ReadBackupList(const char* userPath)
 	list_t *list = list_alloc();
 
 	item = _createSaveEntry(SAVE_FLAG_ZIP, CHAR_ICON_ZIP " Extract Archives (RAR, Zip, 7z)");
-	item->path = strdup("ux0:/data/");
+	item->path = strdup("ux0:data/");
 	item->type = FILE_TYPE_ZIP;
 	list_append(list, item);
 

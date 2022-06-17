@@ -9,7 +9,6 @@
 #include "saves.h"
 #include "common.h"
 
-#define ORBIS_USER_SERVICE_USER_ID_INVALID	-1
 
 uint8_t owner_sel = 0;
 

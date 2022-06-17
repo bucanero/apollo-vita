@@ -9,9 +9,7 @@
 typedef struct SceNotificationUtilSendParam {
     SceWChar16 text[SCE_NOTIFICATION_UTIL_TEXT_MAX];         // must be null-terminated
     SceInt16 separator;                                      // must be 0
-    char unk_80[0x3E8];
-    SceInt32 unk_468;                                        // must be set to 0
-    SceInt32 unk_46C;                                        // must be set to 0
+    SceChar8 unknown[0x3F0];
 } SceNotificationUtilSendParam;
 
 
@@ -22,7 +20,7 @@ int show_dialog(int tdialog, const char * format, ...)
     SceMsgDialogParam param;
     SceMsgDialogUserMessageParam user_message_param;
     SceMsgDialogResult result;
-    char str[512];
+    char str[SCE_MSG_DIALOG_USER_MSG_SIZE];
     va_list	opt;
 
     memset(str, 0, sizeof(str));
@@ -108,7 +106,7 @@ void strWChar16ncpy(SceWChar16* out, const char* str2, int len)
 void notification(const char *p_Format, ...)
 {
     SceNotificationUtilSendParam param;
-    char buf[SCE_NOTIFICATION_UTIL_TEXT_MAX * 2];
+    char buf[SCE_NOTIFICATION_UTIL_TEXT_MAX];
 
     va_list p_Args;
     va_start(p_Args, p_Format);
