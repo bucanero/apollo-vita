@@ -4,7 +4,8 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <dirent.h>
-//#include <unrar.h>
+#define _UNIX
+#include <unrar.h>
 #include <un7zip.h>
 
 #include "saves.h"
@@ -124,7 +125,6 @@ int extract_7zip(const char* fpath, const char* dest_path)
 	return (ret == SUCCESS);
 }
 
-/*
 int extract_rar(const char* rarFilePath, const char* dstPath)
 {
 	int err = 0;
@@ -166,11 +166,3 @@ int extract_rar(const char* rarFilePath, const char* dstPath)
 	return (err == 0);
 }
 
-// --- workaround to fix an Open Orbis SDK linking issue with __clock_gettime()
-#include <time.h>
-int __clock_gettime(clockid_t clock_id, struct timespec *tp)
-{
-	return clock_gettime(clock_id, tp);
-}
-// --- to be removed
-*/

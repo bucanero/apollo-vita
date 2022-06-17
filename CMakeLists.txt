@@ -67,8 +67,10 @@ target_link_libraries(${PROJECT_NAME}
   png
   freetype
   pthread
+  unrar
   mzip
   un7zip
+  stdc++
   z
 )
 
