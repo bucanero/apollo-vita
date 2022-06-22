@@ -1,0 +1,13 @@
+;-- Sly Cooper & the Thevius Raccoonus (USA)
+;-- Credits: Slade
+
+:save0000.bin
+
+[99 Lives]
+000019E0 00000063
+
+[99 Coins]
+000019E8 00000063
+
+[Gold Horseshoe]
+000019E4 00000002

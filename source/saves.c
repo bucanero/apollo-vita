@@ -710,6 +710,7 @@ list_t * ReadBackupList(const char* userPath)
 	item->type = FILE_TYPE_ZIP;
 	list_append(list, item);
 
+/*
 	item = _createSaveEntry(SAVE_FLAG_PS4, CHAR_ICON_USER " Activate PS Vita Account");
 	asprintf(&item->path, EXDATA_PATH_HDD, apollo_config.user_id);
 	item->type = FILE_TYPE_ACT;
@@ -723,7 +724,6 @@ list_t * ReadBackupList(const char* userPath)
 	list_append(item->codes, cmd);
 	list_append(list, item);
 
-/*
 	for (int i = 0; i <= MAX_USB_DEVICES; i++)
 	{
 		snprintf(tmp, sizeof(tmp), USB_PATH, i);
@@ -964,7 +964,7 @@ static void read_usb_encrypted_saves(const char* userPath, list_t *list, uint64_
 				continue;
 
 			snprintf(savePath, sizeof(savePath), "(Encrypted) %s/%s", dir->d_name, dir2->d_name);
-			item = _createSaveEntry(SAVE_FLAG_PS4 | SAVE_FLAG_LOCKED, savePath);
+			item = _createSaveEntry(SAVE_FLAG_PSV | SAVE_FLAG_LOCKED, savePath);
 			item->type = FILE_TYPE_PSV;
 
 			asprintf(&item->path, "%s%s/", userPath, dir->d_name);
@@ -1046,7 +1046,7 @@ static void read_usb_savegames(const char* userPath, list_t *list)
 		}
 
 		char *sfo_data = (char*) sfo_get_param_value(sfo, "MAINTITLE");
-		item = _createSaveEntry(SAVE_FLAG_PS4, sfo_data);
+		item = _createSaveEntry(SAVE_FLAG_PSV, sfo_data);
 		item->type = FILE_TYPE_PSV;
 
 		sfo_data = (char*) sfo_get_param_value(sfo, "TITLE_ID");
@@ -1132,7 +1132,7 @@ list_t * ReadUsbList(const char* userPath)
 
 	list = list_alloc();
 
-	item = _createSaveEntry(SAVE_FLAG_PS4, CHAR_ICON_COPY " Bulk Save Management");
+	item = _createSaveEntry(SAVE_FLAG_PSV, CHAR_ICON_COPY " Bulk Save Management");
 	item->type = FILE_TYPE_MENU;
 	item->codes = list_alloc();
 	item->path = strdup(userPath);
@@ -1178,7 +1178,7 @@ list_t * ReadUserList(const char* userPath)
 
 	list = list_alloc();
 
-	item = _createSaveEntry(SAVE_FLAG_PS4, CHAR_ICON_COPY " Bulk Save Management");
+	item = _createSaveEntry(SAVE_FLAG_PSV, CHAR_ICON_COPY " Bulk Save Management");
 	item->type = FILE_TYPE_MENU;
 	item->codes = list_alloc();
 	item->path = strdup(userPath);
@@ -1284,8 +1284,8 @@ list_t * ReadOnlineList(const char* urlPath)
 	list_t *list = list_alloc();
 
 	// PS4 save-games (Zip folder)
-	snprintf(url, sizeof(url), "%s" "PS4/", urlPath);
-	_ReadOnlineListEx(url, SAVE_FLAG_PS4, list);
+	snprintf(url, sizeof(url), "%s" "PSV/", urlPath);
+	_ReadOnlineListEx(url, SAVE_FLAG_PSV, list);
 
 /*
 	// PS2 save-games (Zip PSV)

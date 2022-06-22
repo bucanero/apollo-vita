@@ -71,6 +71,7 @@ jobs:
     - name: Build Apollo App Package
       run: |
         cmake .
+        make createzip
         make
 
     - name: Push package artifact

@@ -19,25 +19,27 @@
 int LoadMenuTexture(const char* path, int idx)
 {
 	int d;
+	void *buffer;
 
-	menu_textures[idx].buffer = (uint32_t*) stbi_load(path, &menu_textures[idx].width, &menu_textures[idx].height, &d, STBI_rgb_alpha);
+	if (path)
+		buffer = stbi_load(path, &menu_textures[idx].width, &menu_textures[idx].height, &d, STBI_rgb_alpha);
+	else
+		buffer = stbi_load_from_memory(menu_textures[idx].buffer, menu_textures[idx].size, &menu_textures[idx].width, &menu_textures[idx].height, &d, STBI_rgb_alpha);
 
-	if (!menu_textures[idx].buffer)
+	if (!buffer)
 	{
 		LOG("Error Loading texture (%s)!", path);
 		return 0;
 	}
 
-	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(menu_textures[idx].buffer, menu_textures[idx].width, menu_textures[idx].height, 32, 4 * menu_textures[idx].width,
+	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(buffer, menu_textures[idx].width, menu_textures[idx].height, 32, 4 * menu_textures[idx].width,
 												0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
 
 	menu_textures[idx].texture = SDL_CreateTextureFromSurface(renderer, surface);
 
 	SDL_FreeSurface(surface);
-	stbi_image_free(menu_textures[idx].buffer);
+	stbi_image_free(buffer);
 
-	menu_textures[idx].size = menu_textures[idx].width * menu_textures[idx].height * 4;
-	menu_textures[idx].buffer = NULL;
 	return 1;
 }
 

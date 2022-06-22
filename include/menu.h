@@ -188,7 +188,7 @@ typedef struct pad_input
 
 typedef struct t_png_texture
 {
-	uint32_t *buffer;
+	const uint8_t *buffer;
 	int width;
 	int height;
 	u32 size;

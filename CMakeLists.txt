@@ -29,7 +29,34 @@ link_directories(
   libs
 )
 
+# From vita shell CMakeLists - credits TheFlow
+FUNCTION(ADD_RESOURCES out_var)
+    SET(result)
+    FOREACH(in_f ${ARGN})
+        SET(out_f "${CMAKE_CURRENT_BINARY_DIR}/${in_f}.o")
+        GET_FILENAME_COMPONENT(out_dir ${out_f} DIRECTORY)
+        ADD_CUSTOM_COMMAND(OUTPUT ${out_f}
+                COMMAND ${CMAKE_COMMAND} -E make_directory ${out_dir}
+                COMMAND ${CMAKE_LINKER} -r -b binary -o ${out_f} ${in_f}
+                DEPENDS ${in_f}
+                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                COMMENT "Building resource ${out_f}"
+                VERBATIM
+                )
+        LIST(APPEND result ${out_f})
+    ENDFOREACH()
+    SET(${out_var} "${result}" PARENT_SCOPE)
+ENDFUNCTION()
+
+file(GLOB res_files RELATIVE
+  ${CMAKE_SOURCE_DIR}
+  data/*.png
+  data/*.jpg
+)
+add_resources(apollo_res ${res_files})
+
 add_executable(${PROJECT_NAME}
+  ${apollo_res}
   source/common.c
   source/config.c
   source/dialog.c
@@ -82,4 +109,14 @@ vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} ${PROJECT_NAME}.self
   FILE sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
   FILE sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
   FILE sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
+  FILE data/background_music.mp3 data/background_music.mp3
+  FILE data/appdata.zip cache/appdata.zip
+  FILE libs/user.suprx sce_module/user.suprx
+  FILE libs/kernel.skprx sce_module/kernel.skprx
+)
+
+add_custom_target(createzip
+  COMMAND @echo "creating appdata.zip ..."
+  COMMAND @rm -fr ${CMAKE_SOURCE_DIR}/data/appdata.zip
+  COMMAND @cd ${CMAKE_SOURCE_DIR}/appdata && zip ../data/appdata.zip *.savepatch
 )

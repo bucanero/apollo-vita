@@ -163,5 +163,5 @@ int extract_rar(const char* rarFilePath, const char* dstPath)
 	end_progress_bar();
 
 	RARCloseArchive(hArcData);
-	return (err == 0);
+	return (err == ERAR_SUCCESS);
 }

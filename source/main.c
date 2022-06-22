@@ -58,8 +58,12 @@ int32_t audio = 0;
 
 
 #define load_menu_texture(name, type) \
-			if (!LoadMenuTexture(APOLLO_APP_PATH "images/" #name "." #type , name##_##type##_index)) return 0;
-
+	({ extern const uint8_t _binary_data_##name##_##type##_start; \
+		extern const uint8_t _binary_data_##name##_##type##_size; \
+		menu_textures[name##_##type##_index].buffer = &_binary_data_##name##_##type##_start; \
+		menu_textures[name##_##type##_index].size = (int) &_binary_data_##name##_##type##_size; \
+	}); \
+		if (!LoadMenuTexture(NULL, name##_##type##_index)) return 0;
 
 //Pad stuff
 #define ANALOG_CENTER       0x78
@@ -86,7 +90,6 @@ app_config_t apollo_config = {
     .marginH = 0,
     .marginV = 0,
     .user_id = 0,
-    .packver = 0,
     .psid = {0, 0},
     .account_id = 0,
 };
@@ -315,9 +318,8 @@ void LoadFileTexture(const char* fname, int idx)
 	if (menu_textures[idx].texture)
 		SDL_DestroyTexture(menu_textures[idx].texture);
 
-	menu_textures[idx].size = 0;
 	menu_textures[idx].texture = NULL;
-	LoadMenuTexture(fname, idx);
+	menu_textures[idx].size = LoadMenuTexture(fname, idx);
 }
 
 // Used only in initialization. Allocates 64 mb for textures and loads the font
@@ -331,8 +333,10 @@ int LoadTextures_Menu()
 	ResetFont();
 	free_mem = (u32 *) AddFontFromBitmapArray((u8 *) data_font_Adonais, (u8 *) texture_mem, 0x20, 0x7e, 32, 31, 1, BIT7_FIRST_PIXEL);
 	
-	if (TTFLoadFont(0, "/preinst/common/font/DFHEI5-SONY.ttf", NULL, 0) != SUCCESS ||
-		TTFLoadFont(1, "ux0:/data/apollo/debug/fonts/SCE-PS3-SR-R-LATIN2.TTF", NULL, 0) != SUCCESS)
+	if (TTFLoadFont(0, "sa0:data/font/pvf/ltn0.pvf", NULL, 0) != SUCCESS ||
+		TTFLoadFont(1, "sa0:data/font/pvf/jpn0.pvf", NULL, 0) != SUCCESS ||
+		TTFLoadFont(2, "sa0:data/font/pvf/kr0.pvf", NULL, 0) != SUCCESS ||
+		TTFLoadFont(3, "sa0:data/font/pvf/cn0.pvf", NULL, 0) != SUCCESS)
 		return 0;
 	free_mem = (u32*) init_ttf_table((u8*) free_mem);
 
@@ -431,7 +435,7 @@ int LoadSounds(void* data)
 	drmp3 wav;
 
 	// Decode a mp3 file to play
-	if (!drmp3_init_file(&wav, APOLLO_APP_PATH "audio/background_music.mp3", NULL))
+	if (!drmp3_init_file(&wav, APOLLO_DATA_PATH "background_music.mp3", NULL))
 	{
 		LOG("[ERROR] Failed to decode audio file");
 		return -1;
@@ -778,7 +782,7 @@ void doSaveMenu(save_list_t * save_list)
     	else if (pad_data.active & SCE_CTRL_LTRIGGER)
     		move_selection_back(list_count(save_list->list), 25);
     
-    	else if (pad_data.active & SCE_CTRL_L1) //ORBIS_PAD_BUTTON_L2
+    	else if (pad_data.active & SCE_CTRL_L2)
     		move_letter_back(save_list->list);
     
     	else if (pad_data.active & SCE_CTRL_RIGHT)
@@ -787,7 +791,7 @@ void doSaveMenu(save_list_t * save_list)
     	else if (pad_data.active & SCE_CTRL_RTRIGGER)
     		move_selection_fwd(list_count(save_list->list), 25);
     
-    	else if (pad_data.active & SCE_CTRL_R1) //ORBIS_PAD_BUTTON_R2
+    	else if (pad_data.active & SCE_CTRL_R2)
     		move_letter_fwd(save_list->list);
     
     	else if (pad_check_button(SCE_CTRL_CIRCLE))
@@ -1361,14 +1365,13 @@ s32 main(s32 argc, const char* argv[])
 	load_app_settings(&apollo_config);
 
 	// Unpack application data on first run
-	if (apollo_config.packver < APOLLO_DATA_VERSION)
+	if (file_exists(APOLLO_LOCAL_CACHE "appdata.zip") == SUCCESS)
 	{
 //		clean_directory(APOLLO_DATA_PATH);
-		if (extract_zip(APOLLO_APP_PATH "misc/appdata.zip", APOLLO_DATA_PATH))
+		if (extract_zip(APOLLO_LOCAL_CACHE "appdata.zip", APOLLO_DATA_PATH))
 			show_message("Successfully installed local application data");
 
-		apollo_config.packver = APOLLO_DATA_VERSION;
-		save_app_settings(&apollo_config);
+		unlink_secure(APOLLO_LOCAL_CACHE "appdata.zip");
 	}
 
 	// Start BGM audio thread
@@ -1376,9 +1379,6 @@ s32 main(s32 argc, const char* argv[])
 
 	// Splash screen logo (fade-in)
 	drawSplashLogo(1);
-
-	// Apply save-mounter patches
-//	patch_save_libraries();
 
 	menu_options[8].options = get_logged_users();
  

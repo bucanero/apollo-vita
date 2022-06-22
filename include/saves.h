@@ -127,7 +127,7 @@ enum cmd_code_enum
 #define SAVE_FLAG_PSV           64
 #define SAVE_FLAG_TROPHY        128
 #define SAVE_FLAG_ONLINE        256
-#define SAVE_FLAG_PS4           512
+#define SAVE_FLAG_PS1           512
 #define SAVE_FLAG_HDD           1024
 
 enum save_type_enum

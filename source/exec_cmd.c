@@ -498,18 +498,18 @@ static int webReqHandler(const dWebRequest_t* req, char* outfile)
 		int i = 0;
 		for (node = list_head(list); (item = list_get(node)); node = list_next(node), i++)
 		{
-			if (item->type == FILE_TYPE_MENU || !(item->flags & SAVE_FLAG_PS4) || item->flags & SAVE_FLAG_LOCKED)
+			if (item->type == FILE_TYPE_MENU || !(item->flags & SAVE_FLAG_PSV) || item->flags & SAVE_FLAG_LOCKED)
 				continue;
 
 			fprintf(f, "<tr><td><a href=\"/zip/%08x/%s_%s.zip\">%s</a></td>", i, item->title_id, item->dir_name, item->name);
 			fprintf(f, "<td><img class=\"lazy\" data-src=\"");
 
 			if (item->flags & SAVE_FLAG_HDD)
-				fprintf(f, "/icon/%s/%s_icon0.png", item->title_id, item->dir_name);
+				fprintf(f, "/icon/%s/icon0.png", item->title_id);
 			else
 				fprintf(f, "/icon/%s" "sce_sys/icon0.png", item->path +21);
 
-			fprintf(f, "\" alt=\"%s\" width=\"228\" height=\"128\"></td>", item->name);
+			fprintf(f, "\" alt=\"%s\" width=\"128\" height=\"128\"></td>", item->name);
 			fprintf(f, "<td>%s</td>", item->title_id);
 			fprintf(f, "<td>%s</td>", item->dir_name);
 			fprintf(f, "<td>%s</td></tr>", selected_entry->path[5] == 'u' ? "USB":"HDD");
@@ -538,6 +538,7 @@ static int webReqHandler(const dWebRequest_t* req, char* outfile)
 
 			asprintf(&path, APOLLO_SANDBOX_PATH, mount);
 			asprintf(&base, APOLLO_SANDBOX_PATH, "");
+			*strrchr(base, '/') = 0;
 		}
 		else
 		{
@@ -564,9 +565,9 @@ static int webReqHandler(const dWebRequest_t* req, char* outfile)
 	}
 
 	// http://ps3-ip:8080/icon/CUSA12345/DIR-NAME_icon0.png
-	if (wildcard_match(req->resource, "/icon/\?\?\?\?\?\?\?\?\?/*_icon0.png"))
+	if (wildcard_match(req->resource, "/icon/\?\?\?\?\?\?\?\?\?/icon0.png"))
 	{
-		snprintf(outfile, BUFSIZ, PS4_SAVES_PATH_HDD "%s", apollo_config.user_id, req->resource + 6);
+		snprintf(outfile, BUFSIZ, "ur0:appmeta/%s", req->resource + 6);
 		return (file_exists(outfile) == SUCCESS);
 	}
 
@@ -999,7 +1000,7 @@ static void decryptSaveFile(const char* filename)
 {
 	char path[256];
 
-	snprintf(path, sizeof(path), APOLLO_USER_PATH "%s_%s/", apollo_config.user_id, selected_entry->title_id, selected_entry->dir_name);
+	snprintf(path, sizeof(path), APOLLO_USER_PATH "%s/", apollo_config.user_id, selected_entry->title_id);
 	mkdirs(path);
 
 	LOG("Decrypt '%s%s' to '%s'...", selected_entry->path, filename, path);
@@ -1014,14 +1015,14 @@ static void encryptSaveFile(const char* filename)
 {
 	char path[256];
 
-	snprintf(path, sizeof(path), APOLLO_USER_PATH "%s_%s/%s", apollo_config.user_id, selected_entry->title_id, selected_entry->dir_name, filename);
+	snprintf(path, sizeof(path), APOLLO_USER_PATH "%s/%s", apollo_config.user_id, selected_entry->title_id, filename);
 
 	if (file_exists(path) != SUCCESS)
 	{
 		show_message("Error! Can't find decrypted save-game file:\n%s", path);
 		return;
 	}
-	snprintf(path, sizeof(path), APOLLO_USER_PATH "%s_%s/", apollo_config.user_id, selected_entry->title_id, selected_entry->dir_name);
+	snprintf(path, sizeof(path), APOLLO_USER_PATH "%s/", apollo_config.user_id, selected_entry->title_id);
 
 	LOG("Encrypt '%s%s' to '%s'...", path, filename, selected_entry->path);
 
@@ -1055,7 +1056,7 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			break;
 
 		case CMD_DOWNLOAD_USB:
-			if (selected_entry->flags & SAVE_FLAG_PS4)
+			if (selected_entry->flags & SAVE_FLAG_PSV)
 				downloadSave(code->file, codecmd[1] ? SAVES_PATH_USB1 : SAVES_PATH_USB0);
 			else
 				downloadSave(code->file, codecmd[1] ? EXP_PSV_PATH_USB1 : EXP_PSV_PATH_USB0);

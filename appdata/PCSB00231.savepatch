@@ -1,0 +1,19 @@
+;-- Alien Breed (EUR)
+;-- Credits: Slade
+
+:my_data.bin
+
+[999,999 Credits]
+20003C10 000F423F 
+
+[99 Lives]
+00003C2C 00000063 
+
+[99 Health]
+00003C30 00000063 
+
+[99 Keys]
+00003C34 00000063
+
+[Full Ammo]
+10003C38 00003DE0

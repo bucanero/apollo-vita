@@ -1,0 +1,31 @@
+;-- Akiba's Trip Undressed & Undead (EUR)
+;-- Credits: Slade & Rasa39
+
+:USR-DATA0000.BIN
+
+[999,999 XP]
+2000060C 000F423F
+
+[999,990 Money]
+2000B51C 000F4236
+
+[999 Upper Body Points]
+10000124 000003E7
+
+[999 Equipment Points]
+100005A4 000003E7
+
+[999 Lower Body Points]
+10000184 000003E7
+
+[300 Base Attack]
+10000608 0000012C
+
+[300 Base Defence]
+10000604 0000012C
+
+[1000 Upper Durability]
+10000988 000003E8
+
+[1000 Lower Durability]
+100009E8 000003E8
