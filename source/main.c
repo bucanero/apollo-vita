@@ -477,9 +477,11 @@ int LoadSounds(void* data)
 
 void update_usb_path(char* path)
 {
-	for (int i = 0; i <= MAX_USB_DEVICES; i++)
+	const char *dev[MAX_USB_DEVICES] = {"ux0", "uma0", "imc0", "xmc0", "ur0"};
+
+	for (int i = 0; i < MAX_USB_DEVICES; i++)
 	{
-		sprintf(path, USB_PATH "PS4/", i);
+		sprintf(path, USB_PATH, dev[i]);
 
 		if (dir_exists(path) == SUCCESS)
 			return;
@@ -660,7 +662,7 @@ void SetMenu(int id)
 				menu_old_sel[MENU_PATCHES] = 0;
 
 			char iconfile[256];
-			snprintf(iconfile, sizeof(iconfile), "%s" "sce_sys/icon0.png", selected_entry->path);
+			snprintf(iconfile, sizeof(iconfile), PSV_ICONS_PATH_HDD "/icon0.png", selected_entry->title_id);
 
 			if (selected_entry->flags & SAVE_FLAG_ONLINE)
 			{
@@ -670,7 +672,7 @@ void SetMenu(int id)
 					http_download(selected_entry->path, "icon0.png", iconfile, 0);
 			}
 			else if (selected_entry->flags & SAVE_FLAG_HDD)
-				snprintf(iconfile, sizeof(iconfile), PS4_SAVES_PATH_HDD "%s/%s_icon0.png", apollo_config.user_id, selected_entry->title_id, selected_entry->dir_name);
+				snprintf(iconfile, sizeof(iconfile), PSV_ICONS_PATH_HDD "/icon0.png", selected_entry->title_id);
 
 			if (file_exists(iconfile) == SUCCESS)
 				LoadFileTexture(iconfile, icon_png_file_index);

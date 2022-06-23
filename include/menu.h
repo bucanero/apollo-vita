@@ -110,11 +110,11 @@ enum texture_index
 #define APP_FONT_SIZE_SUBTITLE				28, 28
 #define APP_FONT_SIZE_SUBTEXT				16, 16
 #define APP_FONT_SIZE_ABOUT					25, 23
-#define APP_FONT_SIZE_SELECTION				19, 21
+#define APP_FONT_SIZE_SELECTION				24, 24
 #define APP_FONT_SIZE_DESCRIPTION			24, 21
 #define APP_FONT_SIZE_MENU					25, 24
 #define APP_FONT_SIZE_JARS					32, 31
-#define APP_LINE_OFFSET						25
+#define APP_LINE_OFFSET						26
 
 #define SCREEN_WIDTH						960
 #define SCREEN_HEIGHT						544

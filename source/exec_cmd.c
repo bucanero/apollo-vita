@@ -567,7 +567,7 @@ static int webReqHandler(const dWebRequest_t* req, char* outfile)
 	// http://ps3-ip:8080/icon/CUSA12345/DIR-NAME_icon0.png
 	if (wildcard_match(req->resource, "/icon/\?\?\?\?\?\?\?\?\?/icon0.png"))
 	{
-		snprintf(outfile, BUFSIZ, "ur0:appmeta/%s", req->resource + 6);
+		snprintf(outfile, BUFSIZ, PSV_ICONS_PATH_HDD, req->resource + 6);
 		return (file_exists(outfile) == SUCCESS);
 	}
 

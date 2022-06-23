@@ -3,37 +3,34 @@
 #define LOG dbglogger_log
 
 #define APOLLO_PATH				"ux0:/data/apollo/"
-//#define APOLLO_APP_PATH			"/mnt/sandbox/APOL00004_000/app0/assets/"
-//#define APOLLO_SANDBOX_PATH		"/mnt/sandbox/APOL00004_000%s/"
-#define APOLLO_APP_PATH			"ux0:/data/apollo/debug/"               //"/app0/assets/"
-#define APOLLO_SANDBOX_PATH		"/mnt/sandbox/EXEC00001_000%s/"
-#define APOLLO_USER_PATH		APOLLO_PATH "%08x/"
-#define APOLLO_DATA_PATH		APOLLO_PATH "data/"
-#define APOLLO_LOCAL_CACHE		APOLLO_PATH "cache/"
+#define APOLLO_APP_PATH			"ux0:app/NP0APOLLO/"
+#define APOLLO_SANDBOX_PATH		"ux0:user/00/savedata/%s/"
+#define APOLLO_USER_PATH		APOLLO_PATH "%02x/"
+#define APOLLO_DATA_PATH		APOLLO_APP_PATH "data/"
+#define APOLLO_LOCAL_CACHE		APOLLO_APP_PATH "cache/"
 #define APOLLO_UPDATE_URL		"https://api.github.com/repos/bucanero/apollo-vita/releases/latest"
 
-#define MAX_USB_DEVICES         6
-#define USB0_PATH               "/mnt/usb0/"
-#define USB1_PATH               "/mnt/usb1/"
-#define USB_PATH                "/mnt/usb%d/"
-#define USER_PATH_HDD           "/system_data/savedata/%08x/db/user/savedata.db"
+#define MAX_USB_DEVICES         5
+#define USB0_PATH               "ux0:data/"
+#define USB1_PATH               "uma0:data/"
+#define USB_PATH                "%s:data/savegames/"
+#define USER_PATH_HDD           "ur0:shell/db/app.db"
 
-#define PS4_SAVES_PATH_USB      "PS4/APOLLO/"
 #define PS2_SAVES_PATH_USB      "PS3/EXPORT/PS2SD/"
 #define PSP_SAVES_PATH_USB      "PSP/SAVEDATA/"
-#define PSV_SAVES_PATH_USB      "PS3/EXPORT/PSV/"
+#define PSV_SAVES_PATH_USB      "savegames/"
 #define TROPHIES_PATH_USB       "PS4/EXPORT/TROPHY/"
 
 #define PS3_LICENSE_PATH        "exdata/"
-#define PS4_SAVES_PATH_HDD      "/user/home/%08x/savedata_meta/user/"
+#define PSV_ICONS_PATH_HDD      "ur0:appmeta/%s"
 #define PS2_SAVES_PATH_HDD      "ps2emu2_savedata/"
 #define PSP_SAVES_PATH_HDD      "minis_savedata/"
 
 #define PS1_IMP_PATH_USB        "PS1/SAVEDATA/"
 #define PS2_IMP_PATH_USB        "PS2/SAVEDATA/"
 
-#define SAVES_PATH_USB0         USB0_PATH PS4_SAVES_PATH_USB
-#define SAVES_PATH_USB1         USB1_PATH PS4_SAVES_PATH_USB
+#define SAVES_PATH_USB0         USB0_PATH PSV_SAVES_PATH_USB
+#define SAVES_PATH_USB1         USB1_PATH PSV_SAVES_PATH_USB
 
 #define TROPHY_PATH_USB0        USB0_PATH TROPHIES_PATH_USB
 #define TROPHY_PATH_USB1        USB1_PATH TROPHIES_PATH_USB
@@ -41,8 +38,8 @@
 
 #define EXDATA_PATH_HDD			USER_PATH_HDD PS3_LICENSE_PATH
 
-#define EXPORT_PATH_USB0        USB0_PATH "PS4/EXPORT/"
-#define EXPORT_PATH_USB1        USB1_PATH "PS4/EXPORT/"
+#define EXPORT_PATH_USB0        USB0_PATH "savegames/EXPORT/"
+#define EXPORT_PATH_USB1        USB1_PATH "savegames/EXPORT/"
 #define EXPORT_RAP_PATH_USB     USB_PATH PS3_LICENSE_PATH
 #define EXPORT_RAP_PATH_HDD     "/dev_hdd0/" PS3_LICENSE_PATH
 

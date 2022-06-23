@@ -55,13 +55,12 @@ static sqlite3* open_sqlite_db(const char* db_path)
 
 static int get_appdb_title(sqlite3* db, const char* titleid, char* name)
 {
-/*	sqlite3_stmt* res;
+	sqlite3_stmt* res;
 
 	if (!db)
 		return 0;
 
-	char* query = sqlite3_mprintf("SELECT titleId, val FROM tbl_appinfo WHERE key='TITLE' AND (titleId = %Q "
-		"OR titleId = (SELECT titleId FROM tbl_appinfo WHERE key='INSTALL_DIR_SAVEDATA' AND val = %Q))", titleid, titleid);
+	char* query = sqlite3_mprintf("SELECT titleId, title FROM tbl_appinfo_icon WHERE (titleId = %Q)", titleid);
 
 	if (sqlite3_prepare_v2(db, query, -1, &res, NULL) != SQLITE_OK || sqlite3_step(res) != SQLITE_ROW)
 	{
@@ -70,9 +69,9 @@ static int get_appdb_title(sqlite3* db, const char* titleid, char* name)
 		return 0;
 	}
 
-//	strncpy(name, (const char*) sqlite3_column_text(res, 1), ORBIS_SAVE_DATA_DETAIL_MAXSIZE);
+	strncpy(name, (const char*) sqlite3_column_text(res, 1), 0x80);
 	sqlite3_free(query);
-*/
+
 	return 1;
 }
 
@@ -1015,7 +1014,7 @@ static void read_usb_encrypted_savegames(const char* userPath, list_t *list)
 	closedir(d);
 }
 
-static void read_usb_savegames(const char* userPath, list_t *list)
+static void read_usb_savegames(const char* userPath, list_t *list, sqlite3 *db)
 {
 	DIR *d;
 	struct dirent *dir;
@@ -1045,23 +1044,18 @@ static void read_usb_savegames(const char* userPath, list_t *list)
 			continue;
 		}
 
-		char *sfo_data = (char*) sfo_get_param_value(sfo, "MAINTITLE");
-		item = _createSaveEntry(SAVE_FLAG_PSV, sfo_data);
+		char *sfo_data = (char*)(sfo_get_param_value(sfo, "PARAMS") + 0x28);
+		item = _createSaveEntry(SAVE_FLAG_PSV, get_appdb_title(db, sfo_data, sfoPath) ? sfoPath : sfo_data);
 		item->type = FILE_TYPE_PSV;
-
-		sfo_data = (char*) sfo_get_param_value(sfo, "TITLE_ID");
 		asprintf(&item->path, "%s%s/", userPath, dir->d_name);
 		asprintf(&item->title_id, "%.9s", sfo_data);
 
-		sfo_data = (char*) sfo_get_param_value(sfo, "SAVEDATA_DIRECTORY");
+		sfo_data = (char*)(sfo_get_param_value(sfo, "PARENT_DIRECTORY") + 1);
 		item->dir_name = strdup(sfo_data);
 
 		uint64_t* int_data = (uint64_t*) sfo_get_param_value(sfo, "ACCOUNT_ID");
 		if (int_data && (apollo_config.account_id == *int_data))
 			item->flags |= SAVE_FLAG_OWNER;
-
-		int_data = (uint64_t*) sfo_get_param_value(sfo, "SAVEDATA_BLOCKS");
-		item->blocks = (*int_data);
 
 		sfo_free(sfo);
 			
@@ -1074,6 +1068,7 @@ static void read_usb_savegames(const char* userPath, list_t *list)
 
 static void read_hdd_savegames(const char* userPath, list_t *list)
 {
+	char sfoPath[256];
 	save_entry_t *item;
 	sqlite3_stmt *res;
 	sqlite3 *db = open_sqlite_db(userPath);
@@ -1098,7 +1093,16 @@ static void read_hdd_savegames(const char* userPath, list_t *list)
 		item->dir_name = strdup((const char*) sqlite3_column_text(res, 1));
 		item->title_id = strdup((const char*) sqlite3_column_text(res, 0));
 		item->blocks = 1; //sqlite3_column_int(res, 3);
-		item->flags |= 0; //(apollo_config.account_id == (uint64_t)sqlite3_column_int64(res, 4) ? SAVE_FLAG_OWNER : 0);
+
+		sfo_context_t* sfo = sfo_alloc();
+		snprintf(sfoPath, sizeof(sfoPath), APOLLO_SANDBOX_PATH "sce_sys/param.sfo", item->dir_name);
+		if (file_exists(sfoPath) == SUCCESS && sfo_read(sfo, sfoPath) == SUCCESS)
+		{
+			uint64_t* int_data = (uint64_t*) sfo_get_param_value(sfo, "ACCOUNT_ID");
+			if (int_data && (apollo_config.account_id == *int_data))
+				item->flags |= SAVE_FLAG_OWNER;
+		}
+		sfo_free(sfo);
 
 		LOG("[%s] F(%d) {%d} '%s'", item->title_id, item->flags, item->blocks, item->name);
 		list_append(list, item);
@@ -1122,10 +1126,10 @@ list_t * ReadUsbList(const char* userPath)
 	save_entry_t *item;
 	code_entry_t *cmd;
 	list_t *list;
-//	sqlite3* appdb;
+	sqlite3* appdb;
 	char pathEnc[64], pathDec[64];
 
-	snprintf(pathDec, sizeof(pathDec), "%sAPOLLO/", userPath);
+	snprintf(pathDec, sizeof(pathDec), "%s", userPath);
 	snprintf(pathEnc, sizeof(pathEnc), "%sSAVEDATA/", userPath);
 	if (dir_exists(pathDec) != SUCCESS && dir_exists(pathEnc) != SUCCESS)
 		return NULL;
@@ -1159,10 +1163,10 @@ list_t * ReadUsbList(const char* userPath)
 	list_append(item->codes, cmd);
 	list_append(list, item);
 
-	read_usb_savegames(pathDec, list);
-	read_usb_encrypted_savegames(pathEnc, list);
-//	appdb = open_sqlite_db("/system_data/priv/mms/app.db");
-//	sqlite3_close(appdb);
+	appdb = open_sqlite_db(USER_PATH_HDD);
+	read_usb_savegames(pathDec, list, appdb);
+//	read_usb_encrypted_savegames(pathEnc, list);
+	sqlite3_close(appdb);
 
 	return list;
 }
@@ -1434,49 +1438,9 @@ int get_save_details(const save_entry_t* save, char **details)
 	}
 
 	if(save->flags & SAVE_FLAG_HDD)
-	{
-		asprintf(details, "%s\n\nTitle: %s\n", save->path, save->name);
-/*		if ((db = open_sqlite_db(save->path)) == NULL)
-			return 0;
-
-		char* query = sqlite3_mprintf("SELECT sub_title, detail, free_blocks, size_kib, user_id, account_id, main_title FROM savedata "
-			" WHERE title_id = %Q AND dir_name = %Q", save->title_id, save->dir_name);
-
-		if (sqlite3_prepare_v2(db, query, -1, &res, NULL) != SQLITE_OK || sqlite3_step(res) != SQLITE_ROW)
-		{
-			LOG("Failed to fetch data: %s", sqlite3_errmsg(db));
-			sqlite3_free(query);
-			sqlite3_close(db);
-			return 0;
-		}
-
-		asprintf(details, "%s\n\n"
-			"Title: %s\n"
-			"Subtitle: %s\n"
-			"Detail: %s\n"
-			"Dir Name: %s\n"
-			"Blocks: %d (%d Free)\n"
-			"Size: %d Kb\n"
-			"User ID: %08x\n"
-			"Account ID: %016llx\n",
-			save->path,
-			sqlite3_column_text(res, 6),
-			sqlite3_column_text(res, 0),
-			sqlite3_column_text(res, 1),
-			save->dir_name,
-			save->blocks, sqlite3_column_int(res, 2), 
-			sqlite3_column_int(res, 3),
-			sqlite3_column_int(res, 4),
-			sqlite3_column_int64(res, 5));
-
-		sqlite3_free(query);
-		sqlite3_finalize(res);
-		sqlite3_close(db);
-*/
-		return 1;
-	}
-
-	snprintf(sfoPath, sizeof(sfoPath), "%s" "sce_sys/param.sfo", save->path);
+		snprintf(sfoPath, sizeof(sfoPath), APOLLO_SANDBOX_PATH "sce_sys/param.sfo", save->dir_name);
+	else
+		snprintf(sfoPath, sizeof(sfoPath), "%s" "sce_sys/param.sfo", save->path);
 	LOG("Save Details :: Reading %s...", sfoPath);
 
 	sfo_context_t* sfo = sfo_alloc();
@@ -1486,21 +1450,18 @@ int get_save_details(const save_entry_t* save, char **details)
 		return 0;
 	}
 
-	char* subtitle = (char*) sfo_get_param_value(sfo, "SUBTITLE");
 	char* detail = (char*) sfo_get_param_value(sfo, "DETAIL");
 	uint64_t* account_id = (uint64_t*) sfo_get_param_value(sfo, "ACCOUNT_ID");
 	sfo_params_ids_t* param_ids = (sfo_params_ids_t*) sfo_get_param_value(sfo, "PARAMS");
 
 	asprintf(details, "%s\n\n"
 		"Title: %s\n"
-		"Subtitle: %s\n"
 		"Detail: %s\n"
 		"Dir Name: %s\n"
 		"Blocks: %d\n"
 		"User ID: %08x\n"
-		"Account ID: %016lx\n",
+		"Account ID: %016llx\n",
 		save->path, save->name,
-		subtitle,
 		detail,
 		save->dir_name,
 		save->blocks,
