@@ -1,0 +1,25 @@
+;-- Adventure Time: The Secret of the Nameless Kingdom (USA)
+;-- Credits: Slade
+
+:data.bin
+
+[999 Rubles]
+10001A00 000003E7
+
+[99 Nuts]
+00001A08 00000063
+
+[99 Fruit]
+00001A0C 00000063
+
+[3 Thump Shards]
+000019F8 00000003
+
+[99 Rattling Artifact]
+00001A24 00000063
+
+[99 Gross?]
+00001A04 00000063
+
+[9 Wood]
+00001A28 00000009

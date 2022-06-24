@@ -1,0 +1,8 @@
+;-- Everybody's Golf (AUS)
+;-- Credits: Slade
+
+:data2_EU.bin
+
+[50,000,000 Points]
+20058EF8 02FAF080
+20058EFC 02FAF080

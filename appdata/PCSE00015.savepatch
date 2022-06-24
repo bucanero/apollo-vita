@@ -1,0 +1,76 @@
+;-- Shinobido 2: Revenge of Zen (USA)
+;-- Credits: Udaius
+
+:data0000.bin
+
+[9,999,999 Money]
+20001434 0098967F
+
+[Max Level]
+00001444 00000063
+
+[Max SP]
+0000144C 000000FF
+
+[Max Stamina]
+00001450 000000C8
+
+[Max Offense]
+00001454 00000064
+
+[Max Defense]
+00001458 00000064
+
+[Max Zankoku]
+00001460 00000064
+
+[x99 Ninja Tool Slot 1]
+0000A8EA 00000063
+
+[x99 Ninja Tool Slot 2]
+0000A9AA 00000063
+
+[x99 Ninja Tool Slot 3]
+0000AA6A 00000063
+
+[x99 Ninja Tool Slot 4]
+0000AB2A 00000063
+
+[x99 Ninja Tool Slot 5]
+0000ABEA 00000063
+
+[x99 Ninja Tool Slot 6]
+0000ACAA 00000063
+
+[x99 Ninja Tool Slot 7]
+0000AD6A 00000063
+
+[x99 Ninja Tool Slot 8]
+0000AE2A 00000063
+
+[x99 Ninja Tool Slot 9]
+0000AEEA 00000063
+
+[x99 Ninja Tool Slot 10]
+0000AFAA 00000063
+
+[x99 Ninja Tool Slot 11]
+0000B06A 00000063
+
+[x99 Ninja Tool Slot 12]
+0000B12A 00000063
+
+[x99 Ninja Tool Slot 13]
+0000B1EA 00000063
+
+[x99 Ninja Tool Slot 14]
+0000B2AA 00000063
+
+[x99 Ninja Tool Slot 15]
+0000B36A 00000063
+
+[x99 Ninja Tool Slot 16]
+0000B42A 00000063
+
+[x99 Ninja Tool Slot 17]
+0000B4EA 00000063

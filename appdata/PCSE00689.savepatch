@@ -1,0 +1,22 @@
+;-- Croixleur Sigma (US)
+;-- Credits: Konnoke
+
+:FILENAME0.bin
+
+[99,999 Gold]
+2000BC88 0001869F
+
+[999,999 Sliver]
+2000BC8C 000F423F
+
+[Records: Set Number of Acquired Gold Coins to 9999]
+2000B468 0000270F
+
+[Records: Set Number of Acquired Silver Coins to 99999]
+2000B46C 0001869F
+
+[Records: Set Number of Defeated Monsters to 999]
+2000AF70 000003E7
+
+[Records: Set Number of Defeated Monsters to 9999]
+2000AF70 0000270F

@@ -1,0 +1,25 @@
+;-- Heroes of Loot (USA)
+;-- Credits: Slade
+
+:SaveGave.sav
+
+[99,999 Gold]
+2000006B 0001869F
+
+[5 Keys]
+0000007B 00000005
+
+[Max Level]
+00000087 00000014
+
+[Max Score]
+2000009F 000F423F
+
+[999 Health]
+10000077 000003E7
+1000008B 000003E7
+
+[Dungeon 29]
+00000049 0000001D
+
+; "Dungeon 29 will set your character / party to that level to start from."

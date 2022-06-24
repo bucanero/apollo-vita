@@ -1,0 +1,16 @@
+;-- La-Mulana Ex (USA)
+;-- Credits: Slade
+
+:save/lm_00.sav
+
+[Max Health]
+1000000D 0000E703
+
+[999 Coins]
+100010E5 0000E703
+
+[100 Weights]
+000010E4 00000064
+
+[6 Pistol Ammo]
+000010FA 00000006

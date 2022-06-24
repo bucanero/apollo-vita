@@ -1,0 +1,85 @@
+;-- Digimon Cyber Sleuth (EUR)
+;-- Credits: Kaz721, Udaius
+
+:0000.bin
+
+[Max Yen]
+2003EB58 0098967F
+
+[x99 Item Slot 1]
+00034A44 00000063
+
+[x99 Item Slot 2]
+00034A5C 00000063
+
+[x99 Item Slot 3]
+00034A74 00000063
+
+[x99 Item Slot 4]
+00034A8C 00000063
+
+[x99 Item Slot 5]
+00034AA4 00000063
+
+[x99 Item Slot 6]
+00034ABC 00000063
+
+[x99 Item Slot 7]
+00034AD4 00000063
+
+[x99 Item Slot 8]
+000034AEC 00000063
+
+[x99 Item Slot 9]
+000034B04 00000063
+
+[x99 Item Slot 10]
+00034B1C 00000063
+
+[x99 Item Slot 11]
+00034B34 00000063
+
+[x99 Item Slot 12]
+00034B4C 00000063
+
+[x99 Item Slot 13]
+00034B64 00000063
+
+[x99 Item Slot 14]
+00034B7C 00000063
+
+[x99 Item Slot 15]
+00034B94 00000063
+
+[x99 Item Slot 16]
+00034BAC 00000063
+
+[x99 Item Slot 17]
+00034BC4 00000063
+
+[x99 Item Slot 18]
+00034BDC 00000063
+
+[x99 Item Slot 19]
+00034BF4 00000063
+
+[Sleuth Rank 19]
+0003EB60 00000013
+
+[CSP 100 off of Max]
+1003EB5C 0000C2EC
+
+[255 Party Memory]
+0003EB64 000000FF
+
+[Party Slot 1 Memory Use is 1]
+00031F14 00000001
+
+[Party Slot 2 Memory Use is 1]
+00032154 00000001
+
+[Party Slot 3 Memory Use is 1]
+00032394 00000001
+
+[Brave Point A in Slot 1 (Auto Corrects)]
+00034A3C 00000036

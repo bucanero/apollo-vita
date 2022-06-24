@@ -1,0 +1,27 @@
+;-- Silent Hill: Book of Memories (USA)
+;-- Credits: Slade
+
+:data0000.bin
+
+[99 Health Packs]
+0000611B 00000063
+
+[99 Ammo Packs]
+00006113 00000063
+
+[99 Wrenches]
+00006123 00000063
+
+[999 Upgrade Points]
+1000632F 000003E7
+
+[Level 99]
+00006337 00000063
+
+[9,999,999 MR]
+2000633B 0098967F
+
+[99 Keys]
+00006333 00000063
+
+; "Keys reset to zero every level."
