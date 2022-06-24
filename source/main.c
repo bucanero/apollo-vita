@@ -107,10 +107,7 @@ uint32_t* free_mem;                         // Pointer after last texture
 
 const char * menu_about_strings[] = { "Bucanero", "Developer",
 									"", "",
-									"PS3", "credits",
-									"Berion", "GUI design",
-									"Dnawrkshp", "Artemis code",
-									"aldostools", "Bruteforce Save Data",
+									"console", "details:",
 									NULL, NULL };
 
 char user_id_str[9] = "00000000";

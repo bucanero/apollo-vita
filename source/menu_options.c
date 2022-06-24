@@ -13,7 +13,7 @@ static void _draw_OptionsMenu(u8 alpha)
 	char *option_name;
 
     SetFontSize(APP_FONT_SIZE_SELECTION);
-    int ind = 0, y_off = 120;
+    int ind = 0, y_off = 70;
     while ((option_name = menu_options[ind].name))
     {
         if (option_name[0] == '\n')
@@ -32,7 +32,7 @@ static void _draw_OptionsMenu(u8 alpha)
 				DrawTexture(&menu_textures[c], OPTION_ITEM_OFF - 29, y_off, 0, menu_textures[c].width, menu_textures[c].height, 0xFFFFFF00 | alpha);
 				break;
 			case APP_OPTION_CALL:
-				DrawTexture(&menu_textures[footer_ico_cross_png_index], OPTION_ITEM_OFF - 29, y_off+2, 0, menu_textures[footer_ico_cross_png_index].width, menu_textures[footer_ico_cross_png_index].height, 0xFFFFFF00 | alpha);
+				DrawTexture(&menu_textures[footer_ico_cross_png_index], OPTION_ITEM_OFF - 29, y_off+2, 0, menu_textures[footer_ico_cross_png_index].width * 3/4, menu_textures[footer_ico_cross_png_index].height * 3/4, 0xFFFFFF00 | alpha);
 				break;
 			case APP_OPTION_LIST:
 				SetFontAlign(FONT_ALIGN_CENTER);
@@ -48,7 +48,7 @@ static void _draw_OptionsMenu(u8 alpha)
         
         if (menu_sel == ind)
         {
-            DrawTexture(&menu_textures[mark_line_png_index], 0, y_off, 0, SCREEN_WIDTH, menu_textures[mark_line_png_index].height * 2, 0xFFFFFF00 | alpha);
+            DrawTexture(&menu_textures[mark_line_png_index], 0, y_off, 0, SCREEN_WIDTH, menu_textures[mark_line_png_index].height * 3/2, 0xFFFFFF00 | alpha);
             DrawTextureCenteredX(&menu_textures[mark_arrow_png_index], MENU_ICON_OFF + MENU_TITLE_OFF, y_off, 0, (2 * APP_LINE_OFFSET) / 3, APP_LINE_OFFSET + 2, 0xFFFFFF00 | alpha);
         }
         
