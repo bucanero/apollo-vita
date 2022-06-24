@@ -33,7 +33,7 @@ typedef struct
     uint8_t marginV;
     uint8_t update;
     uint32_t user_id;
-    uint64_t psid[2];
+    uint64_t idps[2];
     uint64_t account_id;
 } app_config_t;
 

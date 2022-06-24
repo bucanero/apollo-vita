@@ -3,6 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include <psp2/registrymgr.h>
+#include <psp2/vshbridge.h>
 
 #include "types.h"
 #include "menu.h"
@@ -128,7 +129,7 @@ void unzip_app_data(const char* zip_file)
 
 void upd_appdata_callback(int sel)
 {
-	if (http_download(ONLINE_URL, "PS4/ps4appdata.zip", APOLLO_LOCAL_CACHE "appdata.zip", 1))
+	if (http_download(ONLINE_URL, "PSV/psvappdata.zip", APOLLO_LOCAL_CACHE "appdata.zip", 1))
 		unzip_app_data(APOLLO_LOCAL_CACHE "appdata.zip");
 }
 
@@ -294,9 +295,9 @@ int load_app_settings(app_config_t* config)
 		config->account_id = 0;
 	}
 
-//	sceKernelGetOpenPsIdForSystem(config->psid);
-//	config->psid[0] = ES64(config->psid[0]);
-//	config->psid[1] = ES64(config->psid[1]);
+	_vshSblAimgrGetConsoleId((char*) config->idps);
+	config->idps[0] = ES64(config->idps[0]);
+	config->idps[1] = ES64(config->idps[1]);
 
 	if (vita_SaveMount(&se, filePath) < 0) {
 		LOG("sceSaveDataMount2 ERROR");
@@ -310,8 +311,8 @@ int load_app_settings(app_config_t* config)
 	{
 		file_data->user_id = config->user_id;
 		file_data->account_id = config->account_id;
-//		file_data->psid[0] = config->psid[0];
-//		file_data->psid[1] = config->psid[1];
+		file_data->idps[0] = config->idps[0];
+		file_data->idps[1] = config->idps[1];
 		memcpy(config, file_data, file_size);
 
 		LOG("Settings loaded: UserID (%08x) AccountID (%016llX)", config->user_id, config->account_id);

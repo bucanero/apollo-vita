@@ -242,7 +242,7 @@ void DrawTextureRotated(png_texture* tex, int x, int y, int z, int w, int h, u32
 
 static int please_wait;
 
-int loading_screen_thread(void* user_data)
+static int loading_screen_thread(void* user_data)
 {
 	float angle = 0;
 

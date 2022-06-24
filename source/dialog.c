@@ -72,7 +72,19 @@ void init_progress_bar(const char* msg)
 
 void end_progress_bar(void)
 {
-    sceMsgDialogClose();
+    SceCommonDialogStatus stat;
+
+    do
+    {
+        sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, 100);
+        stat = sceMsgDialogGetStatus();
+
+        if(stat == SCE_COMMON_DIALOG_STATUS_RUNNING)
+            sceMsgDialogClose();
+
+        drawDialogBackground();
+    } while (stat != SCE_COMMON_DIALOG_STATUS_FINISHED);
+    
     sceMsgDialogTerm();
 }
 
@@ -82,8 +94,8 @@ void update_progress_bar(uint64_t progress, const uint64_t total_size, const cha
 
     if (sceMsgDialogGetStatus() == SCE_COMMON_DIALOG_STATUS_RUNNING)
     {
-        sceMsgDialogProgressBarSetMsg(0, (SceChar8*) msg);
-        sceMsgDialogProgressBarSetValue(0, (SceUInt32) bar_value);
+        sceMsgDialogProgressBarSetMsg(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, (SceChar8*) msg);
+        sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, (SceUInt32) bar_value);
     }
 
     drawDialogBackground();

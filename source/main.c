@@ -10,8 +10,6 @@
 #include <taihen.h>
 #include <psp2/ctrl.h>
 #include <psp2/appmgr.h>
-#include <psp2/apputil.h>
-#include <psp2/common_dialog.h>
 #include <psp2/sysmodule.h>
 #include <psp2/vshbridge.h>
 #include <psp2/audioout.h>
@@ -90,7 +88,7 @@ app_config_t apollo_config = {
     .marginH = 0,
     .marginV = 0,
     .user_id = 0,
-    .psid = {0, 0},
+    .idps = {0, 0},
     .account_id = 0,
 };
 
@@ -121,7 +119,7 @@ char account_id_str[SFO_ACCOUNT_ID_SIZE*2+1] = "0000000000000000";
 
 const char * menu_about_strings_project[] = { "User ID", user_id_str,
 											"Account ID", account_id_str,
-											"Console PSID", psid_str,
+											"Console IDPS", psid_str,
 											NULL, NULL };
 
 /*
@@ -635,9 +633,9 @@ void SetMenu(int id)
 
 		case MENU_CREDITS: //About Menu
 			// set to display the PSID on the About menu
-			sprintf(psid_str, "%016lX %016lX", apollo_config.psid[0], apollo_config.psid[1]);
+			sprintf(psid_str, "%016llX %016llX", apollo_config.idps[0], apollo_config.idps[1]);
 			sprintf(user_id_str, "%08x", apollo_config.user_id);
-			sprintf(account_id_str, "%016lx", apollo_config.account_id);
+			sprintf(account_id_str, "%016llx", apollo_config.account_id);
 
 			if (apollo_config.doAni)
 				Draw_AboutMenu_Ani();
@@ -1231,43 +1229,91 @@ void registerSpecialChars()
 	RegisterSpecialCharacter(CHAR_TRP_SYNC, 0, 1.2f, &menu_textures[trp_sync_png_index]);
 }
 
-void terminate()
+static void terminate()
 {
 	LOG("Exiting...");
 
 	sceAudioOutReleasePort(audio);
 	sceKernelExitProcess(0);
-/*
-	// Unload loaded libraries
-	if (unpatch_SceShellCore())
-		notifi(NULL, "PS4 Save patches removed from memory");
-
-	terminate_jbc();
-	sceSystemServiceLoadExec("exit", NULL);
-*/
 }
 
 static int initInternal()
-{/*
-    // load common modules
-    int ret = sceSysmoduleLoadModuleInternal(ORBIS_SYSMODULE_INTERNAL_SYSTEM_SERVICE);
-    if (ret != SUCCESS) {
-        LOG("load module failed: SYSTEM_SERVICE (0x%08x)\n", ret);
-        return 0;
-    }
+{
+	// load common modules
+	int ret = sceSysmoduleLoadModule(SCE_SYSMODULE_SQLITE);
+	if (ret != SUCCESS) {
+		LOG("load module failed: SQLITE (0x%08x)\n", ret);
+		return 0;
+	}
 
-    ret = sceSysmoduleLoadModuleInternal(ORBIS_SYSMODULE_INTERNAL_USER_SERVICE);
-    if (ret != SUCCESS) {
-        LOG("load module failed: USER_SERVICE (0x%08x)\n", ret);
-        return 0;
-    }
+	ret = sceSysmoduleLoadModule(SCE_SYSMODULE_NOTIFICATION_UTIL);
+	if (ret != SUCCESS) {
+		LOG("load module failed: NOTIFICATION (0x%08x)\n", ret);
+		return 0;
+	}
 
-    ret = sceSysmoduleLoadModuleInternal(ORBIS_SYSMODULE_INTERNAL_SAVE_DATA);
-    if (ret != SUCCESS) {
-        LOG("load module failed: SAVE_DATA (0x%08x)\n", ret);
-        return 0;
-    }
-*/
+	return 1;
+}
+
+static int initialize_vitashell_modules()
+{
+	SceUID kern_modid, user_modid;
+	char module_path[60] = {0};
+	int search_unk[2];
+	int res = 0;
+
+	// Load kernel module
+	if (_vshKernelSearchModuleByName("VitaShellKernel2", search_unk) < 0)
+	{
+		snprintf(module_path, sizeof(module_path), "ux0:VitaShell/module/kernel.skprx");
+		if (file_exists(module_path) != SUCCESS)
+		{
+			snprintf(module_path, sizeof(module_path), APOLLO_APP_PATH "sce_module/kernel.skprx");
+			if (file_exists(module_path) != SUCCESS)
+			{
+				LOG("Kernel module not found!");
+				return 0;
+			}
+		}
+
+		kern_modid = taiLoadKernelModule(module_path, 0, NULL);
+		if (kern_modid >= 0)
+		{
+			res = taiStartKernelModule(kern_modid, 0, NULL, 0, NULL, NULL);
+			if (res < 0)
+				taiStopUnloadKernelModule(kern_modid, 0, NULL, 0, NULL, NULL);
+		}
+
+		if (kern_modid < 0 || res < 0)
+		{
+			LOG("Kernel module load error: %x\nPlease reboot.", kern_modid);
+			return 0;
+		}
+	}
+
+	// Load user module
+	snprintf(module_path, sizeof(module_path), "ux0:VitaShell/module/user.suprx");
+	if (file_exists(module_path) != SUCCESS)
+	{
+		snprintf(module_path, sizeof(module_path), APOLLO_APP_PATH "sce_module/user.suprx");
+		if (file_exists(module_path) != SUCCESS)
+		{
+			LOG("User module not found!");
+			return 0;
+		}
+	}
+
+	user_modid = sceKernelLoadStartModule(module_path, 0, NULL, 0, NULL, NULL);
+	if (user_modid < 0)
+	{
+		LOG("User module load %s error: %x\nPlease reboot.", module_path, user_modid);
+		return 0;
+	}
+
+	// Allow writing to ux0:app/NP0APOLLO
+	sceAppMgrUmount("app0:");
+	sceAppMgrUmount("savedata0:");
+
     return 1;
 }
 
@@ -1283,8 +1329,7 @@ s32 main(s32 argc, const char* argv[])
 	uint32_t startFrameTicks = 0;
 	uint32_t deltaFrameTicks = 0;
 
-//	dbglogger_init();
-	dbglogger_init_mode(TCP_LOGGER, "172.20.10.3", 19999);
+	dbglogger_init();
 #endif
 
 	// Initialize SDL functions
@@ -1323,43 +1368,16 @@ s32 main(s32 argc, const char* argv[])
 	}
 
 	// Initialize jailbreak
-//	if (!initialize_jbc())
-//		terminate();
+	if (!initialize_vitashell_modules())
+		notification("Error loading VitaShell modules!");
 
 	mkdirs(APOLLO_DATA_PATH);
 	mkdirs(APOLLO_LOCAL_CACHE);
 	
-	// Load freetype
-	if (0)
-//	if (sceSysmoduleLoadModule(ORBIS_SYSMODULE_FREETYPE_OL) < 0)
-	{
-		LOG("Failed to load freetype!");
-		return (-1);
-	}
-
-	// Load MsgDialog
-	if (0)
-//	if (sceSysmoduleLoadModule(ORBIS_SYSMODULE_MESSAGE_DIALOG) < 0)
-	{
-		LOG("Failed to load dialog!");
-		return (-1);
-	}
-
-	if (0)
-//	if (sceSysmoduleLoadModuleInternal(ORBIS_SYSMODULE_INTERNAL_COMMON_DIALOG) < 0 ||
-//		sceCommonDialogInitialize() < 0)
-	{
-		LOG("Failed to init CommonDialog!");
-		return (-1);
-	}
-
-	// register exit callback
-	atexit(terminate);
-	
 	// Load texture
 	if (!LoadTextures_Menu())
 	{
-		LOG("Failed to load menu textures!");
+		notification("Failed to load menu textures!");
 		return (-1);
 	}
 
@@ -1468,6 +1486,7 @@ s32 main(s32 argc, const char* argv[])
     // Stop all SDL sub-systems
     SDL_Quit();
 	http_end();
+	terminate();
 
 	return 0;
 }

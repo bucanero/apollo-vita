@@ -17,7 +17,7 @@ set(VITA_APP_NAME "Apollo Save Tool")
 set(VITA_TITLEID  "NP0APOLLO")
 set(VITA_VERSION  "00.50")
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -DAPOLLO_ENABLE_LOGGING")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 include_directories(
@@ -116,7 +116,7 @@ vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} ${PROJECT_NAME}.self
 )
 
 add_custom_target(createzip
-  COMMAND @echo "creating appdata.zip ..."
+  COMMAND @echo "Creating appdata.zip ..."
   COMMAND @rm -fr ${CMAKE_SOURCE_DIR}/data/appdata.zip
   COMMAND @cd ${CMAKE_SOURCE_DIR}/appdata && zip ../data/appdata.zip *.savepatch
 )

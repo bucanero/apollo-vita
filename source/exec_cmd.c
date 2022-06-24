@@ -504,15 +504,15 @@ static int webReqHandler(const dWebRequest_t* req, char* outfile)
 			fprintf(f, "<tr><td><a href=\"/zip/%08x/%s_%s.zip\">%s</a></td>", i, item->title_id, item->dir_name, item->name);
 			fprintf(f, "<td><img class=\"lazy\" data-src=\"");
 
-			if (item->flags & SAVE_FLAG_HDD)
+			if (item->flags & SAVE_FLAG_PSP)
 				fprintf(f, "/icon/%s/icon0.png", item->title_id);
 			else
-				fprintf(f, "/icon/%s" "sce_sys/icon0.png", item->path +21);
+				fprintf(f, "/icon/%s/icon0.png", item->title_id);
 
 			fprintf(f, "\" alt=\"%s\" width=\"128\" height=\"128\"></td>", item->name);
 			fprintf(f, "<td>%s</td>", item->title_id);
 			fprintf(f, "<td>%s</td>", item->dir_name);
-			fprintf(f, "<td>%s</td></tr>", selected_entry->path[5] == 'u' ? "USB":"HDD");
+			fprintf(f, "<td>%s</td></tr>", selected_entry->path[1] == 'r' ? "USB":"HDD");
 		}
 
 		fprintf(f, "</tbody></table></body></html>");
@@ -854,7 +854,7 @@ static void resignAllSaves(const save_entry_t* save, int all)
 	list_t *list = ((void**)save->dir_name)[0];
 	sfo_patch_t patch = {
 		.user_id = apollo_config.user_id,
-		.psid = (u8*) apollo_config.psid,
+//		.psid = (u8*) apollo_config.psid,
 		.account_id = apollo_config.account_id,
 	};
 
@@ -1135,7 +1135,7 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 				sfo_patch_t patch = {
 					.flags = 0,
 					.user_id = apollo_config.user_id,
-					.psid = (u8*) apollo_config.psid,
+//					.psid = (u8*) apollo_config.psid,
 					.directory = NULL,
 					.account_id = apollo_config.account_id,
 				};
