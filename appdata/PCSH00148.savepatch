@@ -1,0 +1,25 @@
+;-- Genkai Tokki: Moero Chronicle (ASN)
+;-- Credits: ness151
+
+:SaveData_0001.sav
+
+[Lilla Max HP]
+20000018 00000F27
+
+[Lilla Max MP]
+2000001E 00000F27
+
+[Lilla Max ATK]
+200000FA 00000F27
+
+[Lilla Max MAT]
+200000FC 00000F27
+
+[Lilla Max DEF]
+200000FE 00000F27
+
+[Lilla Max MDEF]
+20000100 00000F27
+
+[Lilla Max AGI]
+20000102 000000FF

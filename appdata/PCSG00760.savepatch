@@ -1,0 +1,25 @@
+;-- Gundam Breaker 3 (JPN)
+;-- Credits: hippotamamus, Sabishinbo, ness151
+
+:SAVEDATA.DAT
+
+[Max GP]
+20019590 0098967F
+
+[Max Low Quality Plastic]
+200C93FC 00000F27
+
+[Max Regular Plastic]
+200C93FE 00000F27
+
+[Max High Quality Plastic]
+200C9400 00000F27
+
+[Max Low Quality Hard Plastic]
+200C9402 00000F27
+
+[Max Hard Plastic]
+200C9404 00000F27
+
+[Max High Quality Hard Plastic]
+200C9406 000000FF

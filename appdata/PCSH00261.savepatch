@@ -1,0 +1,61 @@
+;-- Digimon: Next Order (ASN)
+;-- Credits: hippotamamus, ness151
+
+:data0000.bin
+
+[Max BIT]
+20019590 0098967F
+
+[Max TP]
+20019590 0098967F
+
+[1st Partner Max HP]
+20002210 00000F27
+
+[1st Partner Max MP]
+20002218 00000F27
+
+[1st Partner Max STR]
+2000221C 0000E703
+
+[1st Partner Max STA]
+20002220 0000E703
+
+[1st Partner Max WIS]
+20002224 0000E703
+
+[1st Partner Max SPD]
+20002228 0000E703
+
+[1st Partner Weight Modifier]
+20002208 00000000
+
+[1st Partner Happiness Modifier]
+200023F0 00000F27
+
+[1st Partner Bond Trainer]
+200023D4 00000F27
+
+[2nd Partner Max HP]
+20001AE4 0000E703
+
+[2nd Partner Max MP]
+20001AEC 0000E703
+
+[2nd Partner Max STR]
+20001AF0 0000E703
+
+[2nd Partner Max STA]
+20001AF4 0000E703
+
+[2nd Partner Max WIS]
+20001AF8 0000E703
+
+[2nd Partner Max SPD]
+20001AFC 0000E703
+
+[2nd Partner Weight Modifier]
+20001ADC 00000000
+
+[2nd Partner Happiness Modifier]
+20001CC4 00000F27

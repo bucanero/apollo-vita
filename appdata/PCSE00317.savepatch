@@ -1,0 +1,8 @@
+;-- Terraria (USA)
+;-- Credits: Slade
+
+:PLAYER1.PLR
+
+[Max Health]
+1000000B 00000190
+1000000D 00000190
