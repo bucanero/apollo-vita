@@ -1,0 +1,27 @@
+;-- Dragon's Crown (EUR)
+;-- Credits: Slade
+
+:SAVE0.DAT
+
+[9,999,999 Gold]
+200AF288 0098967F
+
+[999 Skill Points]
+1000A4F4 000003E7
+
+[Level 255 (Depends on game difficulty)]
+0000A4F6 000000FF
+
+[999 Current Health]
+1000A4DC 000003E7
+
+[999 Max Health]
+1000A4E0 000003E7
+
+[Update CRC32 for SAVE0.DAT (Required)]
+; crc32 is stored in little-endian
+set pointer:eof+1
+set range:0x04,pointer
+set [crc]:crc32
+set [crc]:endian_swap
+write at 0x00:[crc]

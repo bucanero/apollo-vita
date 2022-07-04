@@ -1,0 +1,10 @@
+;-- Crazy Market (EUR)
+;-- Credits: Slade
+
+:data.bin
+
+[99 Coffee]
+10000520 00000063
+
+[99,999,999 Coins]
+20000524 05F5E0FF

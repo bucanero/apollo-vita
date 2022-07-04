@@ -1,0 +1,10 @@
+;-- Gal*Gun Double Peace (EUR)
+;-- Credits: Slade
+
+:gg2shootingSavedata0001.bin
+
+[9,999,999 MP]
+20000020 0098967F
+
+[99,999 Angel Feathers]
+20000030 0001869F

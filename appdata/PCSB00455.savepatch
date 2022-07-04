@@ -1,0 +1,7 @@
+;-- Disgaea 4 - A Promise Revisited (EUR)
+;-- Credits: Kaz721
+
+:data0000_0.bin
+
+[Max Money]
+20000B18 0098967F

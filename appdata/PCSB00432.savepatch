@@ -1,0 +1,10 @@
+;-- Valhalla Knights 3 (EUR)
+;-- Credits: oxenh, Rinnegatamante
+
+:savedata00.dat
+
+[x9999999 Money]
+20067760 0098967F
+
+[x9999999 Walking Points]
+20067768 0098967F
