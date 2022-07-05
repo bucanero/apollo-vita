@@ -1,0 +1,34 @@
+;-- Legend of Heroes: Trails of Cold Steel (EUR)
+;-- Credits: currowth
+
+:save000.dat
+
+[x99999999 Gald]
+20065CA8 05F5E0FF
+
+[x9999999 Sepith]
+20065C84 0098967F
+
+[x9999999 Orange Sepith]
+20065C68 0098967F
+
+[x9999999 Blue Sepith]
+20065C6C 0098967F
+
+[x9999999 Red Sepith]
+20065C70 0098967F
+
+[x9999999 Green Sepith]
+20065C74 0098967F
+
+[x9999999 Black Sepith]
+20065C78 0098967F
+
+[x9999999 Yellow Sepith]
+20065C7C 0098967F
+
+[x9999999 White Sepith]
+20065C80 0098967F
+
+[x99 U-Material]
+1004165A 00000063

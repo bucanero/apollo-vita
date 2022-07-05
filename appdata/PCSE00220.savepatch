@@ -1,0 +1,19 @@
+;-- Nun Attack (USA)
+;-- Credits: Slade
+
+:SAVEGAME_000.sav
+
+[9,999,999 Gold]
+20000034 0098967F
+
+[Max Level Eva]
+10000078 0000C350
+
+[Max Level Rosy]
+100000F4 0000C350
+
+[Max Level Olga]
+10000170 0000C350
+
+[Max Level Mandy]
+100001EC 0000C350

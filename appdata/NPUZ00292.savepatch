@@ -1,0 +1,16 @@
+;-- Jetpack Joyride (USA)
+;-- Credits: Slade
+
+:JETPACK.SAV
+
+; "The Credits cheat can be used only when the player has few coins."
+[9,999,999 Credits]
+20000050 0098967F
+
+[Update CRC32 for JETPACK.SAV (Required)]
+; crc32 is stored in little-endian
+set pointer:eof+1
+set range:0x04,pointer
+set [crc]:crc32
+set [crc]:endian_swap
+write at 0x00:[crc]
