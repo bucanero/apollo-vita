@@ -1,0 +1,8 @@
+;-- Ridge Racer (JP)
+;-- Credits: Slade
+
+:system0000.bin
+
+[500,000 Credits]
+2000008F 0007A120
+2000008B 0007A120
