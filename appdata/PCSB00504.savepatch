@@ -1,0 +1,31 @@
+;-- Titan Attacks (EUR)
+;-- Credits: Slade
+
+:data_0.bin
+
+[Max Shields]
+0000001A 00000008
+
+[Max Gun Power]
+0000001B 00000008
+
+[Max Smart Bomb]
+0000001D 00000003
+
+[Max Add-ons]
+0000001E 00000004
+
+[Max Recharge]
+0000001F 00000004
+
+[Max Xtra Bullets]
+0000001C 00000005
+
+[Max Bonus]
+00000019 00000009
+
+[Max Smarts]
+00000018 00000003
+
+[9,99,999 Cash]
+20000010 0098967F

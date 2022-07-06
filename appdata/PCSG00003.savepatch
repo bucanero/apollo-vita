@@ -1,0 +1,25 @@
+;-- BlazBlue: Continuum Shift Extend
+;-- Credits: Bucanero
+
+:SYSTEM/SYSTEM.DAT
+
+[9999999 P$]
+200E3160 0098967F
+
+[Unlock All Gallery]
+41000160 00000202
+40F90002 00000000
+
+[Player Level 33]
+200E3168 00017BCF
+
+[Player Level 100]
+200E3168 00FF423F
+
+[Update WADD for SYSTEM.DAT (Required)]
+set [csum]:0
+carry(2)
+set pointer:eof+1
+set [csum]:wadd(0x000004,pointer)
+set [csum]:xor:FFFF
+write at 0x000000:[csum]

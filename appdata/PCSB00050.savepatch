@@ -1,0 +1,11 @@
+;-- Army Corps of Hell (EUR)
+;-- Credits: Slade
+
+:data0000.bin
+
+[9,999,999 Gems]
+20000018 0098967F
+
+; "Use 0 Gems Spent to reset the gems value back to 9,999,999."
+[0 Gems Spent]
+20000020 00000000

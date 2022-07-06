@@ -1,0 +1,149 @@
+;-- Dead Nation (US)
+;-- Credits: Slade
+
+:SAVE.DAT
+
+; "Unlock cheats will make an item visible, but not purchasable. 
+; Both halves of the cheats will need to be run for two part cheats to enable them correctly."
+
+[9,999,999 Cash]
+20006A47 0098967F
+
+[Max Rifle]
+20006A8B 00040404
+
+[SMG Unlock (No purchase)]
+00006AA7 00000003
+
+[SMG Purchasable]
+20006AB3 09090909
+00006AB7 00000001
+
+[SMG Max Level]
+20006AAB 09090909
+00006AAF 00000001
+
+[SMG Infinite Ammo]
+10006ABD 0000FFFF
+
+[Shotgun Unlock (No Purchase)]
+00006AC7 00000003
+
+[Shotgun Purchasable]
+20006AB3 09090909
+00006AD7 00000001
+
+[Shotgun Max Level]
+20006ACB 09090909
+00006ACF 00000001
+
+[Shotgun Infinite Ammo]
+10006ADD 0000FFFF
+
+[Flamethrower Unlock (No purchase)]
+00006AE7 00000003
+
+[Flamethrower Purchasable]
+20006AF3 04040404
+
+[Flamethrower Max Level]
+20006AEB 04040404
+
+[Flamethrower Infinite Ammo]
+10006AFD 0000FFFF
+
+[Blade Cannon Unlock (No purchase)]
+00006B07 00000003
+
+[Blade Cannon Purchasable]
+20006B13 FF010202
+
+[Blade Cannon Max Level]
+20006B0B FF010202
+
+[Blade Cannon Infinite Ammo]
+10006B1D 0000FFFF
+
+[Launcher Unlock (No purchase)]
+00006B27 00000003
+
+[Launcher Purchasable]
+10006B33 00000204
+
+[Launcher Max Level]
+20006B2B 09090909
+
+[Launcher Infinite Ammo]
+10006B3D 0000FFFF
+
+[Shocker Unlock (No purchase)]
+00006B47 00000003
+
+[Shocker Purchasable]
+20006B53 04040404
+
+[Shocker Max Level]
+20006B4B 04040404
+
+[Shocker Infinite Ammo]
+10006B5D 0000FFFF
+
+[Flare Max Level]
+10006B6B 00000304
+
+[Flare Max Ammo]
+10006B7D 0000FFFF
+
+[Grenade Max Level]
+10006B8B 00000304
+
+[Grenade Infinite Ammo]
+10006B9D 0000FFFF
+
+[Mine Unlock (No purchase)]
+00006BA7 00000003
+
+[Mine Purchasable]
+10006BB3 00000304
+
+[Mine Max Level]
+10006BAB 00000304
+
+[Mine Infinite Ammo]
+10006BBD 0000FFFF
+
+[Molotov Unlock (No purchase)]
+00006BC7 00000003
+
+[Molotov Purchasable]
+00006BD3 00000002
+
+[Molotov Max Level]
+00006BCB 00000002
+
+[Molotov Infinite Ammo]
+10006BDD 0000FFFF
+
+[Dynamite Unlock (No purchase)]
+00006BE7 00000003
+
+[Dynamite Purchasable]
+00006BF3 00000001
+
+[Dynamite Max Level]
+00006BEB 00000001
+
+[Dynamite Infinite Ammo]
+10006BFD 0000FFFF
+
+[Auto-Turret Unlock (No purchase)]
+00006C07 00000003
+
+[Auto-Turret Purchasable]
+10006C13 00000303
+
+[Auto-Turret Max Level]
+10006C0B 00000303
+
+[Auto-Turret Infinite Ammo]
+10006C1D 0000FFFF
