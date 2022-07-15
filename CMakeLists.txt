@@ -12,6 +12,8 @@ project(apollo-vita)
 include("${VITASDK}/share/vita.cmake" REQUIRED)
 
 find_package(SDL2 REQUIRED)
+find_package(CURL REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 set(VITA_APP_NAME "Apollo Save Tool")
 set(VITA_TITLEID  "NP0APOLLO")
@@ -52,6 +54,7 @@ file(GLOB res_files RELATIVE
   ${CMAKE_SOURCE_DIR}
   data/*.png
   data/*.jpg
+  data/*.s3m
 )
 add_resources(apollo_res ${res_files})
 
@@ -79,8 +82,8 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   SDL2::SDL2
-  SceHttp_stub
-  SceSsl_stub
+  ${CURL_LIBRARIES}
+  ${OPENSSL_LIBRARIES}
   SceAppUtil_stub
   SceSqlite_stub
   SceRegistryMgr_stub
@@ -98,6 +101,7 @@ target_link_libraries(${PROJECT_NAME}
   mzip
   un7zip
   stdc++
+  xmp-lite
   z
 )
 
@@ -109,7 +113,6 @@ vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} ${PROJECT_NAME}.self
   FILE sce_sys/livearea/contents/bg.png sce_sys/livearea/contents/bg.png
   FILE sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
   FILE sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
-  FILE data/background_music.mp3 data/background_music.mp3
   FILE data/appdata.zip cache/appdata.zip
   FILE libs/user.suprx sce_module/user.suprx
   FILE libs/kernel.skprx sce_module/kernel.skprx

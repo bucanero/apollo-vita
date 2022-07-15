@@ -15,11 +15,17 @@
 #include <psp2/audioout.h>
 #include <psp2/kernel/processmgr.h>
 #include <psp2/kernel/modulemgr.h>
+#include <xmp.h>
 
 #include "saves.h"
 #include "sfo.h"
 #include "utils.h"
 #include "common.h"
+
+//Font
+#include "libfont.h"
+#include "ttf_render.h"
+#include "font_adonais.h"
 
 //Menus
 #include "menu.h"
@@ -42,17 +48,14 @@ enum menu_screen_ids
 	TOTAL_MENU_IDS
 };
 
-//Font
-#include "libfont.h"
-#include "ttf_render.h"
-#include "font_adonais.h"
-
 //Sound
-#define DR_MP3_IMPLEMENTATION
-#include "dr_mp3.h"
+#define SAMPLING_FREQ       48000 /* 48khz. */
+#define AUDIO_SAMPLES       256   /* audio samples */
 
 // Audio handle
 int32_t audio = 0;
+extern const uint8_t _binary_data_haiku_s3m_start;
+extern const uint8_t _binary_data_haiku_s3m_size;
 
 
 #define load_menu_texture(name, type) \
@@ -426,22 +429,21 @@ int LoadTextures_Menu()
 int LoadSounds(void* data)
 {
 	uint8_t* play_audio = data;
-	int32_t sOffs = 0;
-	drmp3 wav;
+	xmp_context xmp = xmp_create_context();
 
 	// Decode a mp3 file to play
-	if (!drmp3_init_file(&wav, APOLLO_DATA_PATH "background_music.mp3", NULL))
+	if (xmp_load_module_from_memory(xmp, (void*) &_binary_data_haiku_s3m_start, (int) &_binary_data_haiku_s3m_size) < 0)
 	{
 		LOG("[ERROR] Failed to decode audio file");
 		return -1;
 	}
 
-	// Calculate the sample count and allocate a buffer for the sample data accordingly
-	size_t sampleCount = drmp3_get_pcm_frame_count(&wav) * wav.channels;
-	drmp3_int16 *pSampleData = (drmp3_int16 *)malloc(sampleCount * sizeof(uint16_t));
+	xmp_set_player(xmp, XMP_PLAYER_INTERP, XMP_INTERP_SPLINE);
+	xmp_start_player(xmp, SAMPLING_FREQ, 0);
 
-	// Decode the wav into pSampleData  wav.totalPCMFrameCount
-	drmp3_read_pcm_frames_s16(&wav, drmp3_get_pcm_frame_count(&wav), pSampleData);
+	// Calculate the sample count and allocate a buffer for the sample data accordingly
+	size_t sampleCount = AUDIO_SAMPLES * 2;
+	int16_t *pSampleData = (int16_t *)malloc(sampleCount * sizeof(uint16_t));
 
 	sceAudioOutSetVolume(audio, SCE_AUDIO_VOLUME_FLAG_L_CH |SCE_AUDIO_VOLUME_FLAG_R_CH, (int[]){SCE_AUDIO_VOLUME_0DB,SCE_AUDIO_VOLUME_0DB});
 
@@ -449,23 +451,26 @@ int LoadSounds(void* data)
 	while (!close_app)
 	{
 		if (*play_audio == 0)
+		{
+			usleep(0x1000);
 			continue;
+		}
+
+		// Decode the audio into pSampleData
+		xmp_play_buffer(xmp, pSampleData, sampleCount * sizeof(uint16_t), 0);
 
 		/* Output audio */
-		if (sceAudioOutOutput(audio, pSampleData + sOffs) < 0)
+		if (sceAudioOutOutput(audio, pSampleData) < 0)
 		{
 			LOG("Failed to output audio");
 			return -1;
 		}
-
-		sOffs += 256 * 2;
-
-		if (sOffs >= sampleCount)
-			sOffs = 0;
 	}
 
 	free(pSampleData);
-	drmp3_uninit(&wav);
+	xmp_end_player(xmp);
+	xmp_release_module(xmp);
+	xmp_free_context(xmp);
 
 	return 0;
 }
@@ -663,8 +668,8 @@ void SetMenu(int id)
 			{
 				snprintf(iconfile, sizeof(iconfile), APOLLO_LOCAL_CACHE "%s.PNG", selected_entry->title_id);
 
-				if (file_exists(iconfile) != SUCCESS)
-					http_download(selected_entry->path, "icon0.png", iconfile, 0);
+//				if (file_exists(iconfile) != SUCCESS)
+//					http_download(selected_entry->path, "icon0.png", iconfile, 0);
 			}
 			else if (selected_entry->flags & SAVE_FLAG_HDD)
 				snprintf(iconfile, sizeof(iconfile), PSV_ICONS_PATH_HDD "/icon0.png", selected_entry->title_id);
@@ -1342,7 +1347,7 @@ s32 main(s32 argc, const char* argv[])
 	initPad();
 
 	// Open a handle to audio output device
-	audio = sceAudioOutOpenPort(SCE_AUDIO_OUT_PORT_TYPE_BGM, 256, 48000, SCE_AUDIO_OUT_MODE_STEREO);
+	audio = sceAudioOutOpenPort(SCE_AUDIO_OUT_PORT_TYPE_BGM, AUDIO_SAMPLES, SAMPLING_FREQ, SCE_AUDIO_OUT_MODE_STEREO);
 	if (audio <= 0)
 	{
 		LOG("[ERROR] Failed to open audio on main port");
@@ -1391,9 +1396,6 @@ s32 main(s32 argc, const char* argv[])
 		unlink_secure(APOLLO_LOCAL_CACHE "appdata.zip");
 	}
 
-	// Start BGM audio thread
-	SDL_CreateThread(&LoadSounds, "audio_thread", &apollo_config.music);
-
 	// Splash screen logo (fade-in)
 	drawSplashLogo(1);
 
@@ -1431,6 +1433,8 @@ s32 main(s32 argc, const char* argv[])
 
 	SetMenu(MENU_MAIN_SCREEN);
 
+	// Start BGM audio thread
+	SDL_CreateThread(&LoadSounds, "audio_thread", &apollo_config.music);
 	SDL_CreateThread(&pad_input_update, "input_thread", &pad_data);
 
 	while (!close_app)

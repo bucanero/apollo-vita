@@ -20,6 +20,7 @@ jobs:
         git clone https://github.com/bucanero/oosdk_libraries.git --depth 1
         git clone https://github.com/vitasdk/vdpm                 --depth 1
         git clone https://github.com/bucanero/libun7zip           --depth 1
+        git clone https://github.com/bucanero/libxmp-lite-ps4     --depth 1
 
     - name: Set env vars
       id: slug
@@ -47,25 +48,26 @@ jobs:
     - name: Install zip
       working-directory: zip
       run: |
-        make -f Makefile.vita
         make -f Makefile.vita install
 
     - name: Install un7zip
       working-directory: libun7zip
       run: |
-        make -f Makefile.vita
         make -f Makefile.vita install
 
     - name: Install dbglogger
       working-directory: dbglogger
       run: |
-        make -f Makefile.vita
         make -f Makefile.vita install
 
     - name: Install apollo-lib
       working-directory: apollo-lib
       run: |
-        make -f Makefile.vita
+        make -f Makefile.vita install
+
+    - name: Install xmp-lite
+      working-directory: libxmp-lite-ps4
+      run: |
         make -f Makefile.vita install
 
     - name: Build Apollo App Package

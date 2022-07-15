@@ -201,8 +201,8 @@ void update_callback(int sel)
 
 	if (show_dialog(1, "New version available! Download update?"))
 	{
-		if (http_download(start, "", "/data/apollo-ps4.pkg", 1))
-			show_message("Update downloaded to /data/apollo-ps4.pkg");
+		if (http_download(start, "", USB0_PATH "apollo-vita.vpk", 1))
+			show_message("Update downloaded to %sapollo-vita.vpk", USB0_PATH);
 		else
 			show_message("Download error!");
 	}
