@@ -77,32 +77,19 @@ static void xorKey(uint8_t* dest, int dest_offset, uint8_t* src, int src_offset,
 static void ScrambleSD(uint8_t *buf, int size, int seed, int cbc, int kirk_code) {
 	KIRK_AES128CBC_HEADER *header = (KIRK_AES128CBC_HEADER*)buf;
 
-	header->mode = cbc;
-	header->unk_4 = 0;
-	header->unk_8 = 0;
-	header->keyseed = seed;
-	header->data_size = size;
-/*
 	// Set CBC mode.
-	*(int*)(buf)=cbc;
+	header->mode = cbc;
 
 	// Set unkown parameters to 0.
-	buf[4] = 0;
-	buf[5] = 0;
-	buf[6] = 0;
-	buf[7] = 0;
-
-	buf[8] = 0;
-	buf[9] = 0;
-	buf[10] = 0;
-	buf[11] = 0;
+	header->unk_4 = 0;
+	header->unk_8 = 0;
 
 	// Set the the key seed to seed.
-	*(int*)(buf+12)=seed;
+	header->keyseed = seed;
 
 	// Set the the data size to size.
-	*(int*)(buf+16)=size;
-*/
+	header->data_size = size;
+
 	sceUtilsBufferCopyWithRange(buf, size, buf, size, kirk_code);
 	if(kirk_code==KIRK_CMD_ENCRYPT_IV_0)
 		memmove(buf,buf+20,size);

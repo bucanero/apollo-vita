@@ -989,12 +989,12 @@ static void read_usb_encrypted_saves(const char* userPath, list_t *list, uint64_
 	closedir(d);
 }
 
-static void read_usb_encrypted_savegames(const char* userPath, list_t *list)
+static void read_psp_savegames(const char* userPath, list_t *list)
 {
 	DIR *d;
 	struct dirent *dir;
-	char accPath[256];
-	uint64_t acc_id;
+	save_entry_t *item;
+	char sfoPath[256];
 
 	d = opendir(userPath);
 
@@ -1006,9 +1006,27 @@ static void read_usb_encrypted_savegames(const char* userPath, list_t *list)
 		if (!(dir->d_stat.st_mode & SCE_S_IFDIR) || strcmp(dir->d_name, ".") == 0 || strcmp(dir->d_name, "..") == 0)
 			continue;
 
-		sscanf(dir->d_name, "%lx", &acc_id);
-		snprintf(accPath, sizeof(accPath), "%s%s/", userPath, dir->d_name);
-		read_usb_encrypted_saves(accPath, list, acc_id);
+		snprintf(sfoPath, sizeof(sfoPath), "%s%s/PARAM.SFO", userPath, dir->d_name);
+		if (file_exists(sfoPath) != SUCCESS)
+			continue;
+
+		LOG("Reading %s...", sfoPath);
+		sfo_context_t* sfo = sfo_alloc();
+		if (sfo_read(sfo, sfoPath) < 0) {
+			LOG("Unable to read from '%s'", sfoPath);
+			sfo_free(sfo);
+			continue;
+		}
+
+		item = _createSaveEntry(SAVE_FLAG_PSP, (char*) sfo_get_param_value(sfo, "TITLE"));
+		item->type = FILE_TYPE_PSP;
+		item->dir_name = strdup((char*) sfo_get_param_value(sfo, "SAVEDATA_DIRECTORY"));
+		asprintf(&item->title_id, "%.9s", item->dir_name);
+		asprintf(&item->path, "%s%s/", userPath, dir->d_name);
+
+		sfo_free(sfo);
+		LOG("[%s] F(%d) name '%s'", item->title_id, item->flags, item->name);
+		list_append(list, item);
 	}
 
 	closedir(d);
@@ -1208,6 +1226,7 @@ list_t * ReadUserList(const char* userPath)
 	list_append(list, item);
 
 	read_hdd_savegames(userPath, list);
+	read_psp_savegames("ux0:pspemu/PSP/SAVEDATA/", list);
 
 	return list;
 }
@@ -1372,8 +1391,40 @@ list_t * ReadTrophyList(const char* userPath)
 int get_save_details(const save_entry_t* save, char **details)
 {
 	char sfoPath[256];
+	char mount[32] = "";
 	sqlite3 *db;
 	sqlite3_stmt *res;
+	sdslot_dat_t* sdslot;
+	size_t size;
+
+	if (save->flags & SAVE_FLAG_PSP)
+	{
+		snprintf(sfoPath, sizeof(sfoPath), "%sPARAM.SFO", save->path);
+		LOG("Save Details :: Reading %s...", sfoPath);
+
+		sfo_context_t* sfo = sfo_alloc();
+		if (sfo_read(sfo, sfoPath) < 0) {
+			LOG("Unable to read from '%s'", sfoPath);
+			sfo_free(sfo);
+			return 0;
+		}
+
+		asprintf(details, "%s\n\n"
+			"Game: %s\n"
+			"Title ID: %s\n"
+			"Folder: %s\n"
+			"Title: %s\n"
+			"Details: %s\n",
+			save->path,
+			save->name,
+			save->title_id,
+			save->dir_name,
+			(char*)sfo_get_param_value(sfo, "SAVEDATA_TITLE"),
+			(char*)sfo_get_param_value(sfo, "SAVEDATA_DETAIL"));
+
+		sfo_free(sfo);
+		return 1;
+	}
 
 	if (!(save->flags & SAVE_FLAG_PSV))
 	{
