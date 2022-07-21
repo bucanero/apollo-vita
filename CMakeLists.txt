@@ -78,6 +78,8 @@ add_executable(${PROJECT_NAME}
   source/ttf_fonts.c
   source/util.c
   source/zip_util.c
+  source/kirk_engine.c
+  source/psp_decrypter.c
 )
 
 target_link_libraries(${PROJECT_NAME}

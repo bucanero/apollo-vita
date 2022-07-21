@@ -15,7 +15,7 @@
 #include <psp2/audioout.h>
 #include <psp2/kernel/processmgr.h>
 #include <psp2/kernel/modulemgr.h>
-#include <xmp.h>
+#include <libxmp-lite/xmp.h>
 
 #include "saves.h"
 #include "sfo.h"
@@ -438,6 +438,7 @@ int LoadSounds(void* data)
 		return -1;
 	}
 
+	xmp_set_player(xmp, XMP_PLAYER_VOLUME, 100);
 	xmp_set_player(xmp, XMP_PLAYER_INTERP, XMP_INTERP_SPLINE);
 	xmp_start_player(xmp, SAMPLING_FREQ, 0);
 
