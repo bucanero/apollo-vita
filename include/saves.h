@@ -95,8 +95,8 @@ enum cmd_code_enum
     CMD_EXP_KEYSTONE,
     CMD_EXP_LICS_RAPS,
     CMD_EXP_FLASH2_USB,
-    CMD_EXP_PSV_MCS,
-    CMD_EXP_PSV_PSU,
+    CMD_EXP_PSPKEY,
+    CMD_DUMP_PSPKEY,
 
 // Import commands
     CMD_IMP_KEYSTONE,

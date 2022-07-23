@@ -448,17 +448,20 @@ static void _addSfoCommands(save_entry_t* save)
 */
 }
 
-static int set_pfs_codes(save_entry_t* item)
+static void add_psp_commands(save_entry_t* item)
 {
 	code_entry_t* cmd;
-	item->codes = list_alloc();
 
-	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_USER " View Save Details", CMD_VIEW_DETAILS);
-	list_append(item->codes, cmd);
-	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy Save game to User Storage (ux0:user/)", CMD_COPY_PFS);
+	cmd = _createCmdCode(PATCH_NULL, "----- " UTF8_CHAR_STAR " Game Key Backup " UTF8_CHAR_STAR " -----", CMD_CODE_NULL);
 	list_append(item->codes, cmd);
 
-	return list_count(item->codes);
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_LOCK " Export binary Game Key", CMD_EXP_PSPKEY);
+	list_append(item->codes, cmd);
+
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_LOCK " Dump Game Key fingerprint", CMD_DUMP_PSPKEY);
+	list_append(item->codes, cmd);
+
+	return;
 }
 
 option_entry_t* get_file_entries(const char* path, const char* mask)
@@ -484,23 +487,18 @@ int ReadCodes(save_entry_t * save)
 	char * buffer = NULL;
 	char mount[32];
 
-	if (save->flags & SAVE_FLAG_LOCKED)
-		return set_pfs_codes(save);
-
 	save->codes = list_alloc();
 
-	if (save->flags & SAVE_FLAG_HDD)
-	{
+	if (save->flags & SAVE_FLAG_PSV && save->flags & SAVE_FLAG_HDD)
 		if (!vita_SaveMount(save, mount))
 		{
 			code = _createCmdCode(PATCH_NULL, CHAR_ICON_WARN " --- Error Mounting Save! Check Save Mount Patches --- " CHAR_ICON_WARN, CMD_CODE_NULL);
 			list_append(save->codes, code);
 			return list_count(save->codes);
 		}
-	}
 
 	_addBackupCommands(save);
-	_addSfoCommands(save);
+	(save->flags & SAVE_FLAG_PSP) ? add_psp_commands(save) : _addSfoCommands(save);
 
 	snprintf(filePath, sizeof(filePath), APOLLO_DATA_PATH "%s.savepatch", save->title_id);
 	if (file_exists(filePath) != SUCCESS)
@@ -518,7 +516,7 @@ int ReadCodes(save_entry_t * save)
 	free (buffer);
 
 skip_end:
-	if (save->flags & SAVE_FLAG_HDD)
+	if (save->flags & SAVE_FLAG_PSV && save->flags & SAVE_FLAG_HDD)
 		vita_SaveUmount(mount);
 
 	LOG("Loaded %ld codes", list_count(save->codes));

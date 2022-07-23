@@ -118,48 +118,12 @@ static void copySave(const save_entry_t* save, const char* exp_path)
 	show_message("Files successfully copied to:\n%s", exp_path);
 }
 
-static int _update_save_details(const char* sys_path, const char* mount)
+static int get_psp_save_key(const save_entry_t* entry, uint8_t* key)
 {
-	char file_path[256];
-	uint8_t* iconBuf;
-	size_t iconSize;
+	char path[256];
 
-	snprintf(file_path, sizeof(file_path), "%s" "param.sfo", sys_path);
-	LOG("Update Save Details :: Reading %s...", file_path);
-
-	sfo_context_t* sfo = sfo_alloc();
-	if (sfo_read(sfo, file_path) == SUCCESS)
-	{
-		char* title = (char*) sfo_get_param_value(sfo, "MAINTITLE");
-		char* subtitle = (char*) sfo_get_param_value(sfo, "SUBTITLE");
-		char* detail = (char*) sfo_get_param_value(sfo, "DETAIL");
-
-		orbis_UpdateSaveParams(mount, title, subtitle, detail);
-	}
-	sfo_free(sfo);
-
-	snprintf(file_path, sizeof(file_path), "%s" "icon0.png", sys_path);
-/*
-	if (read_buffer(file_path, &iconBuf, &iconSize) == SUCCESS)
-	{
-		OrbisSaveDataMountPoint mp;
-		OrbisSaveDataIcon icon;
-
-		strlcpy(mp.data, mount, sizeof(mp.data));
-		memset(&icon, 0x00, sizeof(icon));
-		icon.buf = iconBuf;
-		icon.bufSize = iconSize;
-		icon.dataSize = iconSize;  // Icon data size
-
-		if (sceSaveDataSaveIcon(&mp, &icon) < 0) {
-			// Error handling
-			LOG("ERROR sceSaveDataSaveIcon");
-		}
-
-		free(iconBuf);
-	}
-*/
-	return 1;
+	snprintf(path, sizeof(path), "ux0:pspemu/PSP/SAVEPLAIN/%s/%s.bin", entry->dir_name, entry->title_id);
+	return (read_psp_game_key(path, key));
 }
 
 static int _copy_save_hdd(const save_entry_t* save)
@@ -175,8 +139,8 @@ static int _copy_save_hdd(const save_entry_t* save)
 	LOG("Copying <%s> to %s...", save->path, copy_path);
 	copy_directory(save->path, save->path, copy_path);
 
-	snprintf(copy_path, sizeof(copy_path), "%s" "sce_sys/", save->path);
-	_update_save_details(copy_path, mount);
+//	snprintf(copy_path, sizeof(copy_path), "%s" "sce_sys/", save->path);
+//	_update_save_details(copy_path, mount);
 
 	vita_SaveUmount(mount);
 	return 1;
@@ -227,7 +191,7 @@ static void copyAllSavesHDD(const save_entry_t* save, int all)
 		show_message("All Saves copied to Internal Storage");
 }
 
-void extractArchive(const char* file_path)
+static void extractArchive(const char* file_path)
 {
 	int ret = 0;
 	char exp_path[256];
@@ -328,16 +292,55 @@ void exportTrophiesZip(const char* exp_path)
 	stop_loading_screen();
 	show_message("Trophies successfully saved to:\n%strophies_%08d.zip", exp_path, apollo_config.user_id);
 }
-
-void resignPSVfile(const char* psv_path)
-{
-	init_loading_screen("Resigning PSV file...");
-	psv_resign(psv_path);
-	stop_loading_screen();
-
-	show_message("File successfully resigned!");
-}
 */
+static void pspDumpKey(const save_entry_t* save)
+{
+	char fpath[256];
+	uint8_t buffer[0x10];
+
+	if (!get_psp_save_key(save, buffer))
+	{
+		show_message("Error! Game Key file is not available:\n%s/%s.bin", save->dir_name, save->title_id);
+		return;
+	}
+
+	snprintf(fpath, sizeof(fpath), APOLLO_PATH "fingerprints.txt");
+	FILE *fp = fopen(fpath, "a");
+	if (!fp)
+	{
+		show_message("Error! Can't open file:\n%s", fpath);
+		return;
+	}
+
+	fprintf(fp, "%s=", save->title_id);
+	for (size_t i = 0; i < sizeof(buffer); i++)
+		fprintf(fp, "%02x", buffer[i]);
+
+	fprintf(fp, "\n");
+	fclose(fp);
+
+	show_message("%s fingerprint successfully saved to:\n%s", save->title_id, fpath);
+}
+
+static void pspExportKey(const save_entry_t* save)
+{
+	char fpath[256];
+	uint8_t buffer[0x10];
+
+	if (!get_psp_save_key(save, buffer))
+	{
+		show_message("Error! Game Key file is not available:\n%s/%s.bin", save->dir_name, save->title_id);
+		return;
+	}
+
+	snprintf(fpath, sizeof(fpath), APOLLO_USER_PATH "%s/%s.bin", apollo_config.user_id, save->title_id, save->title_id);
+	mkdirs(fpath);
+
+	if (write_buffer(fpath, buffer, sizeof(buffer)) == SUCCESS)
+		show_message("%s game key successfully saved to:\n%s", save->title_id, fpath);
+	else
+		show_message("Error! Can't save file:\n%s", fpath);
+}
 
 static void dumpAllFingerprints(const save_entry_t* save)
 {
@@ -435,8 +438,8 @@ static void copySavePFS(const save_entry_t* save)
 	if (show_dialog(1, "Resign save %s/%s?", save->title_id, save->dir_name))
 		patch_sfo(hdd_path, &patch);
 
-	*strrchr(hdd_path, 'p') = 0;
-	_update_save_details(hdd_path, mount);
+//	*strrchr(hdd_path, 'p') = 0;
+//	_update_save_details(hdd_path, mount);
 	vita_SaveUmount(mount);
 
 	show_message("Encrypted save copied successfully!\n%s/%s", save->title_id, save->dir_name);
@@ -616,7 +619,7 @@ static void copyAllSavesUSB(const save_entry_t* save, const char* dst_path, int 
 	show_message("All Saves copied to:\n%s", dst_path);
 }
 
-void exportFolder(const char* src_path, const char* exp_path, const char* msg)
+static void exportFolder(const char* src_path, const char* exp_path, const char* msg)
 {
 	if (mkdirs(exp_path) != SUCCESS)
 	{
@@ -789,14 +792,6 @@ static int psp_is_decrypted(list_t* list, const char* fname)
 			return 1;
 
 	return 0;
-}
-
-static int get_psp_save_key(const save_entry_t* entry, uint8_t* key)
-{
-	char path[256];
-
-	snprintf(path, sizeof(path), "ux0:pspemu/PSP/SAVEPLAIN/%s/%s.bin", entry->dir_name, entry->title_id);
-	return (read_psp_game_key(path, key));
 }
 
 static int apply_cheat_patches(const save_entry_t* entry)
@@ -1146,17 +1141,18 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			break;
 
 		case CMD_EXP_KEYSTONE:
-			copyKeystone(0);
-			code->activated = 0;
-			break;
-
 		case CMD_IMP_KEYSTONE:
-			copyKeystone(1);
+			copyKeystone(codecmd[0] == CMD_IMP_KEYSTONE);
 			code->activated = 0;
 			break;
 
-		case CMD_CREATE_ACT_DAT:
-			activateAccount(code->file[0], code->options->value[code->options->sel] + 1);
+		case CMD_EXP_PSPKEY:
+			pspExportKey(selected_entry);
+			code->activated = 0;
+			break;
+
+		case CMD_DUMP_PSPKEY:
+			pspDumpKey(selected_entry);
 			code->activated = 0;
 			break;
 /*
