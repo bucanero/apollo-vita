@@ -240,9 +240,9 @@ static option_entry_t* _createOptions(int count, const char* name, char value)
 {
 	option_entry_t* options = _initOptions(count);
 
-	asprintf(&options->name[0], "%s %d", name, 0);
+	asprintf(&options->name[0], "%s (%s)", name, UMA0_PATH);
 	asprintf(&options->value[0], "%c%c", value, 0);
-	asprintf(&options->name[1], "%s %d", name, 1);
+	asprintf(&options->name[1], "%s (%s)", name, IMC0_PATH);
 	asprintf(&options->value[1], "%c%c", value, 1);
 
 	return options;
@@ -342,15 +342,15 @@ static void _addBackupCommands(save_entry_t* item)
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy save game", CMD_CODE_NULL);
 	cmd->options_count = 1;
-	cmd->options = _createOptions(3, "Copy Save to USB", CMD_COPY_SAVE_USB);
-	asprintf(&cmd->options->name[2], "Copy Save to HDD");
+	cmd->options = _createOptions(3, "Copy Save to Backup Storage", CMD_COPY_SAVE_USB);
+	asprintf(&cmd->options->name[2], "Copy Save to User Storage (ux0:data/)");
 	asprintf(&cmd->options->value[2], "%c", CMD_COPY_SAVE_HDD);
 	list_append(item->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_ZIP " Export save game to Zip", CMD_CODE_NULL);
 	cmd->options_count = 1;
-	cmd->options = _createOptions(3, "Export Zip to USB", CMD_EXPORT_ZIP_USB);
-	asprintf(&cmd->options->name[2], "Export Zip to HDD");
+	cmd->options = _createOptions(3, "Export Zip to Backup Storage", CMD_EXPORT_ZIP_USB);
+	asprintf(&cmd->options->name[2], "Export Zip to User Storage (ux0:data/)");
 	asprintf(&cmd->options->value[2], "%c", CMD_EXPORT_ZIP_HDD);
 	list_append(item->codes, cmd);
 
@@ -419,7 +419,7 @@ static void _addSfoCommands(save_entry_t* save)
 	list_append(save->codes, cmd);
 
 	return;
-
+/*
 	cmd = _createCmdCode(PATCH_NULL, "----- " UTF8_CHAR_STAR " SFO Patches " UTF8_CHAR_STAR " -----", CMD_CODE_NULL);
 	list_append(save->codes, cmd);
 
@@ -445,6 +445,7 @@ static void _addSfoCommands(save_entry_t* save)
 	cmd->options_count = 1;
 	cmd->options = _getSaveTitleIDs(save->title_id);
 	list_append(save->codes, cmd);
+*/
 }
 
 static int set_pfs_codes(save_entry_t* item)
@@ -454,7 +455,7 @@ static int set_pfs_codes(save_entry_t* item)
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_USER " View Save Details", CMD_VIEW_DETAILS);
 	list_append(item->codes, cmd);
-	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy Save game to HDD", CMD_COPY_PFS);
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy Save game to User Storage (ux0:user/)", CMD_COPY_PFS);
 	list_append(item->codes, cmd);
 
 	return list_count(item->codes);
@@ -672,7 +673,7 @@ int ReadOnlineSaves(save_entry_t * game)
 			asprintf(&item->file, "%.12s", content);
 
 			item->options_count = 1;
-			item->options = _createOptions(2, "Download to USB", CMD_DOWNLOAD_USB);
+			item->options = _createOptions(2, "Download to Backup Storage", CMD_DOWNLOAD_USB);
 			list_append(game->codes, item);
 
 			LOG("[%s%s] %s", game->path, item->file, item->name + 1);
@@ -1141,11 +1142,8 @@ list_t * ReadUsbList(const char* userPath)
 	code_entry_t *cmd;
 	list_t *list;
 	sqlite3* appdb;
-	char pathEnc[64], pathDec[64];
 
-	snprintf(pathDec, sizeof(pathDec), "%s", userPath);
-	snprintf(pathEnc, sizeof(pathEnc), "%sSAVEDATA/", userPath);
-	if (dir_exists(pathDec) != SUCCESS && dir_exists(pathEnc) != SUCCESS)
+	if (dir_exists(userPath) != SUCCESS)
 		return NULL;
 
 	list = list_alloc();
@@ -1164,10 +1162,10 @@ list_t * ReadUsbList(const char* userPath)
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_SIGN " Resign all decrypted Saves", CMD_RESIGN_ALL_SAVES);
 	list_append(item->codes, cmd);
 
-	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy selected Saves to HDD", CMD_COPY_SAVES_HDD);
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy selected Saves to User Storage (ux0:user/)", CMD_COPY_SAVES_HDD);
 	list_append(item->codes, cmd);
 
-	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy all decrypted Saves to HDD", CMD_COPY_ALL_SAVES_HDD);
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy all decrypted Saves to User Storage (ux0:user/)", CMD_COPY_ALL_SAVES_HDD);
 	list_append(item->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Start local Web Server", CMD_RUN_WEBSERVER);
@@ -1178,8 +1176,8 @@ list_t * ReadUsbList(const char* userPath)
 	list_append(list, item);
 
 	appdb = open_sqlite_db(USER_PATH_HDD);
-	read_usb_savegames(pathDec, list, appdb);
-//	read_usb_encrypted_savegames(pathEnc, list);
+	read_usb_savegames(userPath, list, appdb);
+	read_psp_savegames(userPath, list);
 	sqlite3_close(appdb);
 
 	return list;
@@ -1204,14 +1202,14 @@ list_t * ReadUserList(const char* userPath)
 	item->dir_name = malloc(sizeof(void**));
 	((void**)item->dir_name)[0] = list;
 
-	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy selected Saves to USB", CMD_CODE_NULL);
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy selected Saves to Backup Storage", CMD_CODE_NULL);
 	cmd->options_count = 1;
-	cmd->options = _createOptions(2, "Copy Saves to USB", CMD_COPY_SAVES_USB);
+	cmd->options = _createOptions(2, "Copy Saves to Backup Storage", CMD_COPY_SAVES_USB);
 	list_append(item->codes, cmd);
 
-	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy all Saves to USB", CMD_CODE_NULL);
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy all Saves to Backup Storage", CMD_CODE_NULL);
 	cmd->options_count = 1;
-	cmd->options = _createOptions(2, "Copy Saves to USB", CMD_COPY_ALL_SAVES_USB);
+	cmd->options = _createOptions(2, "Copy Saves to Backup Storage", CMD_COPY_ALL_SAVES_USB);
 	list_append(item->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Start local Web Server", CMD_RUN_WEBSERVER);
@@ -1222,7 +1220,7 @@ list_t * ReadUserList(const char* userPath)
 	list_append(list, item);
 
 	read_hdd_savegames(userPath, list);
-	read_psp_savegames("ux0:pspemu/PSP/SAVEDATA/", list);
+	read_psp_savegames(PSP_SAVES_PATH_HDD, list);
 
 	return list;
 }
@@ -1302,15 +1300,15 @@ list_t * ReadOnlineList(const char* urlPath)
 	char url[256];
 	list_t *list = list_alloc();
 
-	// PS4 save-games (Zip folder)
+	// PSV save-games (Zip folder)
 	snprintf(url, sizeof(url), "%s" "PSV/", urlPath);
 	_ReadOnlineListEx(url, SAVE_FLAG_PSV, list);
 
-/*
-	// PS2 save-games (Zip PSV)
-	snprintf(url, sizeof(url), "%s" "PS2/", urlPath);
-	_ReadOnlineListEx(url, SAVE_FLAG_PS2, list);
+	// PSP save-games (Zip folder)
+	snprintf(url, sizeof(url), "%sPSP/", urlPath);
+	_ReadOnlineListEx(url, SAVE_FLAG_PSP, list);
 
+/*
 	// PS1 save-games (Zip PSV)
 	//snprintf(url, sizeof(url), "%s" "PS1/", urlPath);
 	//_ReadOnlineListEx(url, SAVE_FLAG_PS1, list);
@@ -1511,7 +1509,6 @@ int get_save_details(const save_entry_t* save, char **details)
 		memset(sfoPath, 0, sizeof(sfoPath));
 
 	char* out = *details = (char*) sdslot;
-	char* detail = (char*) sfo_get_param_value(sfo, "DETAIL");
 	uint64_t* account_id = (uint64_t*) sfo_get_param_value(sfo, "ACCOUNT_ID");
 
 	out += sprintf(out, "%s\n----- Save -----\n"
@@ -1524,7 +1521,7 @@ int get_save_details(const save_entry_t* save, char **details)
 		save->dir_name,
 		*account_id);
 
-	for (int i = 0; sfoPath[i] && (i < 256); i++)
+	for (int i = 0; (i < 256) && sfoPath[i]; i++)
 	{
 		out += sprintf(out, "----- Slot %03d -----\n"
 			"Title: %s\n"

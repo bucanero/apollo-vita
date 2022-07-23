@@ -24,13 +24,12 @@ typedef struct
 	void(*callback)(int);
 } menu_option_t;
 
-typedef struct
+typedef struct __attribute__((packed))
 {
     uint8_t music;
     uint8_t doSort;
     uint8_t doAni;
-    uint8_t marginH;
-    uint8_t marginV;
+    uint8_t storage;
     uint8_t update;
     uint32_t user_id;
     uint64_t idps[2];
@@ -46,10 +45,7 @@ void owner_callback(int sel);
 void music_callback(int sel);
 void sort_callback(int sel);
 void ani_callback(int sel);
-void horm_callback(int sel);
-void verm_callback(int sel);
 void update_callback(int sel);
-void redetect_callback(int sel);
 void clearcache_callback(int sel);
 void upd_appdata_callback(int sel);
 void unzip_app_data(const char* zip_file);
@@ -57,4 +53,3 @@ void unzip_app_data(const char* zip_file);
 int save_xml_owner(const char *xmlfile);
 int read_xml_owner(const char *xmlfile, const char *owner);
 int get_xml_owners(const char *xmlfile, int cmd, char*** nam, char*** val);
-char** get_logged_users();

@@ -88,8 +88,7 @@ app_config_t apollo_config = {
     .doSort = 1,
     .doAni = 1,
     .update = 1,
-    .marginH = 0,
-    .marginV = 0,
+    .storage = 0,
     .user_id = 0,
     .idps = {0, 0},
     .account_id = 0,
@@ -338,7 +337,7 @@ int LoadTextures_Menu()
 		return 0;
 	free_mem = (u32*) init_ttf_table((u8*) free_mem);
 
-	set_ttf_window(0, 0, SCREEN_WIDTH + apollo_config.marginH, SCREEN_HEIGHT + apollo_config.marginV, WIN_SKIP_LF);
+	set_ttf_window(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, WIN_SKIP_LF);
 	
 	if (!menu_textures)
 		menu_textures = (png_texture *)malloc(sizeof(png_texture) * TOTAL_MENU_TEXTURES);
@@ -478,15 +477,10 @@ int LoadSounds(void* data)
 
 void update_usb_path(char* path)
 {
-	const char *dev[MAX_USB_DEVICES] = {"ux0", "uma0", "imc0", "xmc0", "ur0"};
+	sprintf(path, USB_PATH, menu_options[3].options[apollo_config.storage]);
 
-	for (int i = 0; i < MAX_USB_DEVICES; i++)
-	{
-		sprintf(path, USB_PATH, dev[i]);
-
-		if (dir_exists(path) == SUCCESS)
-			return;
-	}
+	if (dir_exists(path) == SUCCESS)
+		return;
 
 	strcpy(path, "");
 }
@@ -669,11 +663,11 @@ void SetMenu(int id)
 			{
 				snprintf(iconfile, sizeof(iconfile), APOLLO_LOCAL_CACHE "%s.PNG", selected_entry->title_id);
 
-//				if (file_exists(iconfile) != SUCCESS)
-//					http_download(selected_entry->path, "icon0.png", iconfile, 0);
+				if (selected_entry->flags & SAVE_FLAG_PSP && file_exists(iconfile) != SUCCESS)
+					http_download(selected_entry->path, "ICON0.PNG", iconfile, 0);
 			}
-			else if (selected_entry->flags & SAVE_FLAG_HDD)
-				snprintf(iconfile, sizeof(iconfile), PSV_ICONS_PATH_HDD "/icon0.png", selected_entry->title_id);
+			else if (selected_entry->flags & SAVE_FLAG_PSP)
+				snprintf(iconfile, sizeof(iconfile), "%sICON0.PNG", selected_entry->path);
 
 			if (file_exists(iconfile) == SUCCESS)
 				LoadFileTexture(iconfile, icon_png_file_index);
@@ -899,7 +893,7 @@ void doOptionsMenu()
 		else if (pad_check_button(SCE_CTRL_CIRCLE))
 		{
 			save_app_settings(&apollo_config);
-			set_ttf_window(0, 0, SCREEN_WIDTH + apollo_config.marginH, SCREEN_HEIGHT + apollo_config.marginV, WIN_SKIP_LF);
+			set_ttf_window(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, WIN_SKIP_LF);
 			SetMenu(MENU_MAIN_SCREEN);
 			return;
 		}
@@ -1399,8 +1393,6 @@ s32 main(s32 argc, const char* argv[])
 
 	// Splash screen logo (fade-in)
 	drawSplashLogo(1);
-
-	menu_options[8].options = get_logged_users();
  
 	// Setup font
 	SetExtraSpace(-10);

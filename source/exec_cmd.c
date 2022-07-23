@@ -222,9 +222,9 @@ static void copyAllSavesHDD(const save_entry_t* save, int all)
 	end_progress_bar();
 
 	if (err_count)
-		show_message("Error: %d Saves couldn't be copied to HDD", err_count);
+		show_message("Error: %d Saves couldn't be copied to Internal Storage", err_count);
 	else
-		show_message("All Saves copied to HDD");
+		show_message("All Saves copied to Internal Storage");
 }
 
 void extractArchive(const char* file_path)
@@ -799,22 +799,24 @@ static int get_psp_save_key(const save_entry_t* entry, uint8_t* key)
 	return (read_psp_game_key(path, key));
 }
 
-static int apply_cheat_patches()
+static int apply_cheat_patches(const save_entry_t* entry)
 {
 	int ret = 1;
 	char tmpfile[256];
 	char* filename;
 	code_entry_t* code;
 	list_node_t* node;
+	list_t* decrypted_files = list_alloc();
+	uint8_t key[16];
 
 	init_loading_screen("Applying changes...");
 
-	for (node = list_head(selected_entry->codes); (code = list_get(node)); node = list_next(node))
+	for (node = list_head(entry->codes); (code = list_get(node)); node = list_next(node))
 	{
 		if (!code->activated || (code->type != PATCH_GAMEGENIE && code->type != PATCH_BSD))
 			continue;
 
-    	LOG("Active code: [%s]", code->name);
+		LOG("Active code: [%s]", code->name);
 
 		if (strrchr(code->file, '\\'))
 			filename = strrchr(code->file, '\\')+1;
@@ -825,11 +827,28 @@ static int apply_cheat_patches()
 			filename = code->options[0].name[code->options[0].sel];
 
 		if (strstr(code->file, "~extracted\\"))
-			snprintf(tmpfile, sizeof(tmpfile), "%s[%s]%s", APOLLO_LOCAL_CACHE, selected_entry->title_id, filename);
+			snprintf(tmpfile, sizeof(tmpfile), "%s[%s]%s", APOLLO_LOCAL_CACHE, entry->title_id, filename);
 		else
-			snprintf(tmpfile, sizeof(tmpfile), "%s%s", selected_entry->path, filename);
+		{
+			snprintf(tmpfile, sizeof(tmpfile), "%s%s", entry->path, filename);
 
-		if (!apply_cheat_patch_code(tmpfile, selected_entry->title_id, code, APOLLO_LOCAL_CACHE))
+			if (entry->flags & SAVE_FLAG_PSP && !psp_is_decrypted(decrypted_files, filename))
+			{
+				if (get_psp_save_key(entry, key) && psp_DecryptSavedata(tmpfile, key))
+				{
+					LOG("Decrypted PSP file '%s'", filename);
+					list_append(decrypted_files, strdup(filename));
+				}
+				else
+				{
+					LOG("Error: failed to decrypt (%s)", filename);
+					ret = 0;
+					continue;
+				}
+			}
+		}
+
+		if (!apply_cheat_patch_code(tmpfile, entry->title_id, code, APOLLO_LOCAL_CACHE))
 		{
 			LOG("Error: failed to apply (%s)", code->name);
 			ret = 0;
@@ -838,6 +857,19 @@ static int apply_cheat_patches()
 		code->activated = 0;
 	}
 
+	for (node = list_head(decrypted_files); (filename = list_get(node)); node = list_next(node))
+	{
+		LOG("Encrypting '%s'...", filename);
+		if (!get_psp_save_key(entry, key) || !psp_EncryptSavedata(entry->path, filename, key))
+		{
+			LOG("Error: failed to encrypt (%s)", filename);
+			ret = 0;
+		}
+
+		free(filename);
+	}
+
+	list_free(decrypted_files);
 	free_patch_var_list();
 	stop_loading_screen();
 
@@ -852,7 +884,7 @@ static void resignSave(sfo_patch_t* patch)
         show_message("Error! Account changes couldn't be applied");
 
     LOG("Applying cheats to '%s'...", selected_entry->name);
-    if (!apply_cheat_patches())
+    if (!apply_cheat_patches(selected_entry))
         show_message("Error! Cheat codes couldn't be applied");
 
     show_message("Save %s successfully modified!", selected_entry->title_id);
@@ -1089,16 +1121,12 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			break;
 
 		case CMD_DOWNLOAD_USB:
-			if (selected_entry->flags & SAVE_FLAG_PSV)
-				downloadSave(code->file, codecmd[1] ? SAVES_PATH_USB1 : SAVES_PATH_USB0);
-			else
-				downloadSave(code->file, codecmd[1] ? EXP_PSV_PATH_USB1 : EXP_PSV_PATH_USB0);
-			
+			downloadSave(code->file, codecmd[1] ? SAVES_PATH_IMC0 : SAVES_PATH_UMA0);
 			code->activated = 0;
 			break;
 
 		case CMD_EXPORT_ZIP_USB:
-			zipSave(codecmd[1] ? EXPORT_PATH_USB1 : EXPORT_PATH_USB0);
+			zipSave(codecmd[1] ? EXPORT_PATH_IMC0 : EXPORT_PATH_UMA0);
 			code->activated = 0;
 			break;
 
@@ -1108,7 +1136,7 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			break;
 
 		case CMD_COPY_SAVE_USB:
-			copySave(selected_entry, codecmd[1] ? SAVES_PATH_USB1 : SAVES_PATH_USB0);
+			copySave(selected_entry, codecmd[1] ? SAVES_PATH_IMC0 : SAVES_PATH_UMA0);
 			code->activated = 0;
 			break;
 
@@ -1149,7 +1177,7 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 */
 		case CMD_COPY_SAVES_USB:
 		case CMD_COPY_ALL_SAVES_USB:
-			copyAllSavesUSB(selected_entry, codecmd[1] ? SAVES_PATH_USB1 : SAVES_PATH_USB0, codecmd[0] == CMD_COPY_ALL_SAVES_USB);
+			copyAllSavesUSB(selected_entry, codecmd[1] ? SAVES_PATH_IMC0 : SAVES_PATH_UMA0, codecmd[0] == CMD_COPY_ALL_SAVES_USB);
 			code->activated = 0;
 			break;
 

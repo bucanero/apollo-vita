@@ -11,7 +11,7 @@
 #include "common.h"
 
 
-uint8_t owner_sel = 0;
+static char* ext_src[] = {"ux0", "uma0", "imc0", "xmc0", "ur0", NULL};
 
 menu_option_t menu_options[] = {
 	{ .name = "\nBackground Music", 
@@ -32,17 +32,11 @@ menu_option_t menu_options[] = {
 		.value = &apollo_config.doAni, 
 		.callback = ani_callback 
 	},
-	{ .name = "Screen Horizontal Margin", 
-		.options = NULL, 
-		.type = APP_OPTION_INC, 
-		.value = &apollo_config.marginH, 
-		.callback = horm_callback 
-	},
-	{ .name = "Screen Vertical Margin", 
-		.options = NULL, 
-		.type = APP_OPTION_INC, 
-		.value = &apollo_config.marginV, 
-		.callback = verm_callback 
+	{ .name = "\nExternal Saves Source",
+		.options = (char**) ext_src,
+		.type = APP_OPTION_LIST,
+		.value = &apollo_config.storage,
+		.callback = owner_callback
 	},
 	{ .name = "\nVersion Update Check", 
 		.options = NULL, 
@@ -62,13 +56,7 @@ menu_option_t menu_options[] = {
 		.value = NULL, 
 		.callback = upd_appdata_callback 
 	},
-	{ .name = "\nSave Data Owner",
-		.options = NULL,
-		.type = APP_OPTION_LIST,
-		.value = &owner_sel,
-		.callback = owner_callback
-	},
-	{ .name = "Enable Debug Log",
+	{ .name = "\nEnable Debug Log",
 		.options = NULL,
 		.type = APP_OPTION_CALL,
 		.value = NULL,
@@ -91,24 +79,6 @@ void sort_callback(int sel)
 void ani_callback(int sel)
 {
 	apollo_config.doAni = !sel;
-}
-
-void horm_callback(int sel)
-{
-	if (sel == 255)
-		sel = 0;
-	if (sel > 100)
-		sel = 100;
-	apollo_config.marginH = sel;
-}
-
-void verm_callback(int sel)
-{
-	if (sel == 255)
-		sel = 0;
-	if (sel > 100)
-		sel = 100;
-	apollo_config.marginV = sel;
 }
 
 void clearcache_callback(int sel)
@@ -201,8 +171,8 @@ void update_callback(int sel)
 
 	if (show_dialog(1, "New version available! Download update?"))
 	{
-		if (http_download(start, "", USB0_PATH "apollo-vita.vpk", 1))
-			show_message("Update downloaded to %sapollo-vita.vpk", USB0_PATH);
+		if (http_download(start, "", "ux0:data/apollo-vita.vpk", 1))
+			show_message("Update downloaded to ux0:data/apollo-vita.vpk");
 		else
 			show_message("Download error!");
 	}
@@ -214,45 +184,13 @@ end_update:
 
 void owner_callback(int sel)
 {
-//	if (file_exists(APOLLO_PATH OWNER_XML_FILE) == SUCCESS)
-//		read_xml_owner(APOLLO_PATH OWNER_XML_FILE, menu_options[8].options[sel]);
+	apollo_config.storage = sel;
 }
 
 void log_callback(int sel)
 {
 	dbglogger_init_mode(FILE_LOGGER, APOLLO_PATH "apollo.log", 0);
 	show_message("Debug Logging Enabled!\n\n" APOLLO_PATH "apollo.log");
-}
-
-char** get_logged_users()
-{
-	char** users;
-	users = calloc(1, sizeof(char*) * (7+1));
-	users[0] = strdup("VITA");
-/*
-	char buff[ORBIS_USER_SERVICE_MAX_USER_NAME_LENGTH+1];
-	OrbisUserServiceLoginUserIdList userIdList;
-	char** users;
-
-	owner_sel = 0;
-	users = calloc(1, sizeof(char*) * (ORBIS_USER_SERVICE_MAX_LOGIN_USERS+1));
-
-	if (sceUserServiceGetLoginUserIdList(&userIdList) < 0)
-	{
-		sceUserServiceGetUserName(apollo_config.user_id, buff, sizeof(buff));
-		users[0] = strdup(buff);
-		return users;
-	}
-
-	for (int i = 0; i < ORBIS_USER_SERVICE_MAX_LOGIN_USERS; i++)
-		if (userIdList.userId[i] != ORBIS_USER_SERVICE_USER_ID_INVALID)
-		{
-			sceUserServiceGetUserName(userIdList.userId[i], buff, sizeof(buff));
-			users[i] = strdup(buff);
-		}
-*/
-
-	return users;
 }
 
 int save_app_settings(app_config_t* config)

@@ -29,19 +29,19 @@ static void _draw_OptionsMenu(u8 alpha)
 		{
 			case APP_OPTION_BOOL:
 				c = (*menu_options[ind].value == 1) ? opt_on_png_index : opt_off_png_index;
-				DrawTexture(&menu_textures[c], OPTION_ITEM_OFF - 29, y_off, 0, menu_textures[c].width, menu_textures[c].height, 0xFFFFFF00 | alpha);
+				DrawTextureCenteredX(&menu_textures[c], OPTION_ITEM_OFF-2, y_off-4, 0, menu_textures[c].width, menu_textures[c].height, 0xFFFFFF00 | alpha);
 				break;
 			case APP_OPTION_CALL:
-				DrawTexture(&menu_textures[footer_ico_cross_png_index], OPTION_ITEM_OFF - 29, y_off+2, 0, menu_textures[footer_ico_cross_png_index].width * 3/4, menu_textures[footer_ico_cross_png_index].height * 3/4, 0xFFFFFF00 | alpha);
+                DrawTextureCenteredX(&menu_textures[footer_ico_cross_png_index], OPTION_ITEM_OFF, y_off+4, 0, menu_textures[footer_ico_cross_png_index].width * 3/4, menu_textures[footer_ico_cross_png_index].height * 3/4, 0xFFFFFF00 | alpha);
 				break;
 			case APP_OPTION_LIST:
 				SetFontAlign(FONT_ALIGN_CENTER);
-				DrawFormatString(OPTION_ITEM_OFF - 18, y_off, "< %s >", menu_options[ind].options[*menu_options[ind].value]);
+				DrawFormatString(OPTION_ITEM_OFF, y_off, "\xe2\x97\x80 %s \xe2\x96\xb6", menu_options[ind].options[*menu_options[ind].value]);
 				SetFontAlign(FONT_ALIGN_LEFT);
 				break;
 			case APP_OPTION_INC:
 				SetFontAlign(FONT_ALIGN_CENTER);
-				DrawFormatString(OPTION_ITEM_OFF - 18, y_off, "- %d +", *menu_options[ind].value);
+				DrawFormatString(OPTION_ITEM_OFF, y_off, "- %d +", *menu_options[ind].value);
 				SetFontAlign(FONT_ALIGN_LEFT);
 				break;
 		}

@@ -11,8 +11,8 @@
 #define APOLLO_UPDATE_URL		"https://api.github.com/repos/bucanero/apollo-vita/releases/latest"
 
 #define MAX_USB_DEVICES         5
-#define USB0_PATH               "ux0:data/"
-#define USB1_PATH               "uma0:data/"
+#define UMA0_PATH               "uma0:data/"
+#define IMC0_PATH               "imc0:data/"
 #define USB_PATH                "%s:data/savegames/"
 #define USER_PATH_HDD           "ur0:shell/db/app.db"
 
@@ -24,31 +24,27 @@
 #define PS3_LICENSE_PATH        "exdata/"
 #define PSV_ICONS_PATH_HDD      "ur0:appmeta/%s"
 #define PS2_SAVES_PATH_HDD      "ps2emu2_savedata/"
-#define PSP_SAVES_PATH_HDD      "minis_savedata/"
+#define PSP_SAVES_PATH_HDD      "ux0:pspemu/" PSP_SAVES_PATH_USB
 
 #define PS1_IMP_PATH_USB        "PS1/SAVEDATA/"
 #define PS2_IMP_PATH_USB        "PS2/SAVEDATA/"
 
-#define SAVES_PATH_USB0         USB0_PATH PSV_SAVES_PATH_USB
-#define SAVES_PATH_USB1         USB1_PATH PSV_SAVES_PATH_USB
+#define SAVES_PATH_UMA0         UMA0_PATH PSV_SAVES_PATH_USB
+#define SAVES_PATH_IMC0         IMC0_PATH PSV_SAVES_PATH_USB
 
-#define TROPHY_PATH_USB0        USB0_PATH TROPHIES_PATH_USB
-#define TROPHY_PATH_USB1        USB1_PATH TROPHIES_PATH_USB
+#define TROPHY_PATH_USB0        UMA0_PATH TROPHIES_PATH_USB
+#define TROPHY_PATH_USB1        IMC0_PATH TROPHIES_PATH_USB
 #define TROPHY_PATH_HDD         "ur0:/user/00/trophy/db/trophy_local.db"
 
 #define EXDATA_PATH_HDD			USER_PATH_HDD PS3_LICENSE_PATH
 
-#define EXPORT_PATH_USB0        USB0_PATH "savegames/EXPORT/"
-#define EXPORT_PATH_USB1        USB1_PATH "savegames/EXPORT/"
+#define EXPORT_PATH_UMA0        UMA0_PATH "savegames/EXPORT/"
+#define EXPORT_PATH_IMC0        IMC0_PATH "savegames/EXPORT/"
 #define EXPORT_RAP_PATH_USB     USB_PATH PS3_LICENSE_PATH
 #define EXPORT_RAP_PATH_HDD     "/dev_hdd0/" PS3_LICENSE_PATH
 
-#define EXP_PSV_PATH_USB0       USB0_PATH PSV_SAVES_PATH_USB
-#define EXP_PSV_PATH_USB1       USB1_PATH PSV_SAVES_PATH_USB
-
-#define EXP_PS2_PATH_USB0       USB0_PATH "PS2/VMC/"
-#define EXP_PS2_PATH_USB1       USB1_PATH "PS2/VMC/"
-#define EXP_PS2_PATH_HDD        "/dev_hdd0/savedata/vmc/"
+#define EXP_PSP_PATH_UMA0       UMA0_PATH PSP_SAVES_PATH_USB
+#define EXP_PSP_PATH_IMC0       IMC0_PATH PSP_SAVES_PATH_USB
 
 #define IMP_PS2VMC_PATH_USB     USB_PATH "PS2/VMC/"
 #define IMPORT_RAP_PATH_USB     USB_PATH PS3_LICENSE_PATH
