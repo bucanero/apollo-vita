@@ -549,7 +549,7 @@ static void EncryptSavedata(uint8_t* buf, int size, uint8_t *key, uint8_t *hash,
 	free(tmpbuf);
 }
 
-void GenerateSavedataHash(uint8_t *data, int size, int mode, uint8_t* key, uint8_t *hash) {
+static void GenerateSavedataHash(uint8_t *data, int size, int mode, uint8_t* key, uint8_t *hash) {
 	_SD_Ctx1 ctx1;
 	memset(&ctx1,0,sizeof(ctx1));
 
@@ -562,7 +562,7 @@ void GenerateSavedataHash(uint8_t *data, int size, int mode, uint8_t* key, uint8
 	//return hash;
 }
 
-void UpdateSavedataHashes(uint8_t* savedataParams, uint8_t* data, int size) {
+static void UpdateSavedataHashes(uint8_t* savedataParams, uint8_t* data, int size) {
 	// Setup the params, hashes, modes and key (empty).
 	uint8_t key[0x10];
 	memset(key,0,sizeof(key));
@@ -609,8 +609,15 @@ void UpdateSavedataHashes(uint8_t* savedataParams, uint8_t* data, int size) {
 	}
 }
 
-static void read_game_key(const uint8_t* inbuf, size_t size, uint8_t* key)
+int read_psp_game_key(const char* fkey, uint8_t* key)
 {
+	uint8_t* inbuf;
+	size_t size;
+
+	LOG("Loading key %s", fkey);
+	if (read_buffer(fkey, &inbuf, &size) != 0)
+		return 0;
+
 	switch (size)
 	{
 	case 0x10:
@@ -627,6 +634,9 @@ static void read_game_key(const uint8_t* inbuf, size_t size, uint8_t* key)
 		memset(key, 0, 0x10);
 		break;
 	}
+
+	free(inbuf);
+	return 1;
 }
 
 static uint8_t* find_sfo_parameter(uint8_t* p, const char* name)
@@ -642,24 +652,32 @@ static uint8_t* find_sfo_parameter(uint8_t* p, const char* name)
 	return NULL;
 }
 
-int psp_EncryptSavedata(const char* fname, const char* fkey, const char* fsfo)
+/* Find the named file inside the FILE_LIST, and return
+   an absolute pointer to it. */
+static uint8_t* find_sfo_datafile(uint8_t *filelist, const char *name)
+{
+    /* Process all files */
+    for (int i = 0; (i + 0x0d) <= 0xC60; i += 0x20)
+        /* Check if this is the filename we want */
+        if (strcmp((char *)filelist + i, name) == 0)
+            return (filelist+i);
+
+    /* File was not found if it makes it here */
+    return NULL;
+}
+
+int psp_EncryptSavedata(const char* fpath, const char* fname, uint8_t* key)
 {
 	uint8_t* sfo;
 	uint8_t* inbuf;
-	uint8_t key[16];
+	char path[256];
 	size_t size, sfosize;
 
 	kirk_init();
 
-	LOG("Loading key %s", fkey);
-	if (read_buffer(fkey, &inbuf, &size) != 0)
-		return 0;
-
-	read_game_key(inbuf, size, key);
-	free(inbuf);
-
-	LOG("Loading file %s", fname);
-	FILE *f = fopen(fname, "rb");
+	snprintf(path, sizeof(path), "%s%s", fpath, fname);
+	LOG("Loading file %s", path);
+	FILE *f = fopen(path, "rb");
 	fseek(f, 0, SEEK_END);
 	size = ftell(f);
 	fseek(f, 0, SEEK_SET);
@@ -667,8 +685,9 @@ int psp_EncryptSavedata(const char* fname, const char* fkey, const char* fsfo)
 	fread(inbuf, 1, size, f);
 	fclose(f);
 
-	LOG("Loading file %s", fsfo);
-	if (read_buffer(fsfo, &sfo, &sfosize) != 0)
+	snprintf(path, sizeof(path), "%sPARAM.SFO", fpath);
+	LOG("Loading file %s", path);
+	if (read_buffer(path, &sfo, &sfosize) != 0)
 	{
 		free(inbuf);
 		return 0;
@@ -683,18 +702,20 @@ int psp_EncryptSavedata(const char* fname, const char* fkey, const char* fsfo)
 
 	uint8_t* sd_param = find_sfo_parameter(sfo, "SAVEDATA_PARAMS");
 	uint8_t* sd_flist = find_sfo_parameter(sfo, "SAVEDATA_FILE_LIST");
+	sd_flist = find_sfo_datafile(sd_flist, fname);
 
 	EncryptSavedata(inbuf, size, key, sd_flist + 0x0d, (uint8_t*)"bucanero.com.ar");
 
 	//This hash is different from original one, but PSP somehow accepts it...
 	UpdateSavedataHashes(sd_param, sfo, sfosize);
 
-	LOG("Saving updated file %s", fsfo);
-	if (write_buffer(fsfo, sfo, sfosize) != 0)
+	LOG("Saving updated file %s", path);
+	if (write_buffer(path, sfo, sfosize) != 0)
 		return 0;
 
-	LOG("Saving encrypted file %s", fname);
-	if (write_buffer(fname, inbuf, size+0x10) != 0)
+	snprintf(path, sizeof(path), "%s%s", fpath, fname);
+	LOG("Saving encrypted file %s", path);
+	if (write_buffer(path, inbuf, size+0x10) != 0)
 		return 0;
 
 	free(inbuf);
@@ -702,20 +723,12 @@ int psp_EncryptSavedata(const char* fname, const char* fkey, const char* fsfo)
 	return 1;
 }
 
-int psp_DecryptSavedata(const char* fname, const char* fkey)
+int psp_DecryptSavedata(const char* fname, uint8_t* key)
 {
 	uint8_t* inbuf;
-	uint8_t key[16];
 	size_t size;
 
 	kirk_init();
-
-	LOG("Loading key %s", fkey);
-	if (read_buffer(fkey, &inbuf, &size) != 0)
-		return 0;
-
-	read_game_key(inbuf, size, key);
-	free(inbuf);
 
 	LOG("Loading file %s", fname);
 	if (read_buffer(fname, &inbuf, &size) != 0)

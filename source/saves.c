@@ -271,7 +271,9 @@ static void _walk_dir_list(const char* startdir, const char* inputdir, const cha
 
 	while ((dirp = readdir(dp)) != NULL)
 	{
-		if ((strcmp(dirp->d_name, ".")  == 0) || (strcmp(dirp->d_name, "..") == 0) || (strcmp(dirp->d_name, "sce_sys") == 0))
+		if ((strcmp(dirp->d_name, ".")  == 0) || (strcmp(dirp->d_name, "..") == 0) || (strcmp(dirp->d_name, "sce_sys") == 0) ||
+			(strcmp(dirp->d_name, "ICON0.PNG") == 0) || (strcmp(dirp->d_name, "PARAM.SFO") == 0) || (strcmp(dirp->d_name,"PIC1.PNG") == 0) ||
+			(strcmp(dirp->d_name, "ICON1.PMF") == 0) || (strcmp(dirp->d_name, "SND0.AT3") == 0))
 			continue;
 
 		snprintf(fullname, sizeof(fullname), "%s%s", inputdir, dirp->d_name);
@@ -480,7 +482,6 @@ int ReadCodes(save_entry_t * save)
 	long bufferLen;
 	char * buffer = NULL;
 	char mount[32];
-	char *tmp;
 
 	if (save->flags & SAVE_FLAG_LOCKED)
 		return set_pfs_codes(save);
@@ -495,8 +496,6 @@ int ReadCodes(save_entry_t * save)
 			list_append(save->codes, code);
 			return list_count(save->codes);
 		}
-		tmp = save->path;
-		asprintf(&save->path, APOLLO_SANDBOX_PATH, mount);
 	}
 
 	_addBackupCommands(save);
@@ -519,11 +518,8 @@ int ReadCodes(save_entry_t * save)
 
 skip_end:
 	if (save->flags & SAVE_FLAG_HDD)
-	{
 		vita_SaveUmount(mount);
-		free(save->path);
-		save->path = tmp;
-	}
+
 	LOG("Loaded %ld codes", list_count(save->codes));
 
 	return list_count(save->codes);
@@ -1107,10 +1103,10 @@ static void read_hdd_savegames(const char* userPath, list_t *list)
 	{
 		item = _createSaveEntry(SAVE_FLAG_PSV | SAVE_FLAG_HDD, (const char*) sqlite3_column_text(res, 2));
 		item->type = FILE_TYPE_PSV;
-		item->path = strdup(userPath);
 		item->dir_name = strdup((const char*) sqlite3_column_text(res, 1));
 		item->title_id = strdup((const char*) sqlite3_column_text(res, 0));
 		item->blocks = 1; //sqlite3_column_int(res, 3);
+		asprintf(&item->path, APOLLO_SANDBOX_PATH, item->dir_name);
 
 		sfo_context_t* sfo = sfo_alloc();
 		snprintf(sfoPath, sizeof(sfoPath), APOLLO_SANDBOX_PATH "sce_sys/param.sfo", item->dir_name);
@@ -1489,9 +1485,9 @@ int get_save_details(const save_entry_t* save, char **details)
 	}
 
 	if(save->flags & SAVE_FLAG_HDD)
-		snprintf(sfoPath, sizeof(sfoPath), APOLLO_SANDBOX_PATH "sce_sys/param.sfo", save->dir_name);
-	else
-		snprintf(sfoPath, sizeof(sfoPath), "%s" "sce_sys/param.sfo", save->path);
+		vita_SaveMount(save, mount);
+
+	snprintf(sfoPath, sizeof(sfoPath), "%ssce_sys/param.sfo", save->path);
 	LOG("Save Details :: Reading %s...", sfoPath);
 
 	sfo_context_t* sfo = sfo_alloc();
@@ -1501,23 +1497,46 @@ int get_save_details(const save_entry_t* save, char **details)
 		return 0;
 	}
 
+	strcpy(strrchr(sfoPath, '/'), "/sdslot.dat");
+	LOG("Save Details :: Reading %s...", sfoPath);
+	if (read_buffer(sfoPath, (uint8_t**) &sdslot, &size) != SUCCESS) {
+		LOG("Unable to read from '%s'", sfoPath);
+		sfo_free(sfo);
+		return 0;
+	}
+
+	if (sdslot->header.magic == 0x4C534453)
+		memcpy(sfoPath, sdslot->header.active_slots, sizeof(sfoPath));
+	else
+		memset(sfoPath, 0, sizeof(sfoPath));
+
+	char* out = *details = (char*) sdslot;
 	char* detail = (char*) sfo_get_param_value(sfo, "DETAIL");
 	uint64_t* account_id = (uint64_t*) sfo_get_param_value(sfo, "ACCOUNT_ID");
-	sfo_params_ids_t* param_ids = (sfo_params_ids_t*) sfo_get_param_value(sfo, "PARAMS");
 
-	asprintf(details, "%s\n\n"
+	out += sprintf(out, "%s\n----- Save -----\n"
 		"Title: %s\n"
-		"Detail: %s\n"
+		"Title ID: %s\n"
 		"Dir Name: %s\n"
-		"Blocks: %d\n"
-		"User ID: %08x\n"
 		"Account ID: %016llx\n",
 		save->path, save->name,
-		detail,
+		save->title_id,
 		save->dir_name,
-		save->blocks,
-		param_ids->user_id,
 		*account_id);
+
+	for (int i = 0; sfoPath[i] && (i < 256); i++)
+	{
+		out += sprintf(out, "----- Slot %03d -----\n"
+			"Title: %s\n"
+			"Subtitle: %s\n"
+			"Detail: %s\n",
+			i, sdslot->slots[i].title,
+			sdslot->slots[i].subtitle,
+			sdslot->slots[i].description);
+	}
+
+	if(save->flags & SAVE_FLAG_HDD)
+		vita_SaveUmount(mount);
 
 	sfo_free(sfo);
 	return 1;

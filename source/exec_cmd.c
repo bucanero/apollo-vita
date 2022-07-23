@@ -170,7 +170,7 @@ static int _copy_save_hdd(const save_entry_t* save)
 	if (!vita_SaveMount(save, mount))
 		return 0;
 
-	snprintf(copy_path, sizeof(copy_path), APOLLO_SANDBOX_PATH, mount);
+	snprintf(copy_path, sizeof(copy_path), APOLLO_SANDBOX_PATH, save->dir_name);
 
 	LOG("Copying <%s> to %s...", save->path, copy_path);
 	copy_directory(save->path, save->path, copy_path);
@@ -356,18 +356,13 @@ static void dumpAllFingerprints(const save_entry_t* save)
 		if (item->type != FILE_TYPE_PSV || (item->flags & SAVE_FLAG_LOCKED))
 			continue;
 
-		if (item->flags & SAVE_FLAG_HDD)
-		{
+		if (item->flags & SAVE_FLAG_PSV && item->flags & SAVE_FLAG_HDD)
 			if (!vita_SaveMount(item, mount))
 				continue;
 
-			free(item->path);
-			asprintf(&item->path, APOLLO_SANDBOX_PATH, mount);
-		}
-
 		exportFingerprint(item, 1);
 
-		if (item->flags & SAVE_FLAG_HDD)
+		if (item->flags & SAVE_FLAG_PSV && item->flags & SAVE_FLAG_HDD)
 			vita_SaveUmount(mount);
 	}
 
@@ -498,21 +493,21 @@ static int webReqHandler(const dWebRequest_t* req, char* outfile)
 		int i = 0;
 		for (node = list_head(list); (item = list_get(node)); node = list_next(node), i++)
 		{
-			if (item->type == FILE_TYPE_MENU || !(item->flags & SAVE_FLAG_PSV) || item->flags & SAVE_FLAG_LOCKED)
+			if (item->type == FILE_TYPE_MENU || !(item->flags & (SAVE_FLAG_PSV|SAVE_FLAG_PSP)) || item->flags & SAVE_FLAG_LOCKED)
 				continue;
 
 			fprintf(f, "<tr><td><a href=\"/zip/%08x/%s_%s.zip\">%s</a></td>", i, item->title_id, item->dir_name, item->name);
 			fprintf(f, "<td><img class=\"lazy\" data-src=\"");
 
 			if (item->flags & SAVE_FLAG_PSP)
-				fprintf(f, "/icon/%s/icon0.png", item->title_id);
+				fprintf(f, "/icon/%08x/ICON0.PNG\" width=\"144\" height=\"80", i);
 			else
-				fprintf(f, "/icon/%s/icon0.png", item->title_id);
+				fprintf(f, "/icon/%s/icon0.png\" width=\"128\" height=\"128", item->title_id);
 
-			fprintf(f, "\" alt=\"%s\" width=\"128\" height=\"128\"></td>", item->name);
+			fprintf(f, "\" alt=\"%s\"></td>", item->name);
 			fprintf(f, "<td>%s</td>", item->title_id);
 			fprintf(f, "<td>%s</td>", item->dir_name);
-			fprintf(f, "<td>%s</td></tr>", selected_entry->path[1] == 'r' ? "USB":"HDD");
+			fprintf(f, "<td>%.4s</td></tr>", item->path);
 		}
 
 		fprintf(f, "</tbody></table></body></html>");
@@ -531,25 +526,17 @@ static int webReqHandler(const dWebRequest_t* req, char* outfile)
 		sscanf(req->resource + 5, "%08x", &id);
 		item = list_get_item(list, id);
 
-		if (item->flags & SAVE_FLAG_HDD)
-		{
+		if (item->flags & SAVE_FLAG_PSV && item->flags & SAVE_FLAG_HDD)
 			if (!vita_SaveMount(item, mount))
 				return 0;
 
-			asprintf(&path, APOLLO_SANDBOX_PATH, mount);
-			asprintf(&base, APOLLO_SANDBOX_PATH, "");
-			*strrchr(base, '/') = 0;
-		}
-		else
-		{
-			base = strdup(item->path);
-			path = strdup(item->path);
-			*strrchr(base, '/') = 0;
-		}
+		base = strdup(item->path);
+		path = strdup(item->path);
+		*strrchr(base, '/') = 0;
 		*strrchr(base, '/') = 0;
 
 		id = zip_directory(base, path, outfile);
-		if (item->flags & SAVE_FLAG_HDD)
+		if (item->flags & SAVE_FLAG_PSV && item->flags & SAVE_FLAG_HDD)
 			vita_SaveUmount(mount);
 
 		free(base);
@@ -558,9 +545,14 @@ static int webReqHandler(const dWebRequest_t* req, char* outfile)
 	}
 
 	// http://ps3-ip:8080/icon/CUSA12345-DIR-NAME/sce_sys/icon0.png
-	if (wildcard_match(req->resource, "/icon/*/sce_sys/icon0.png"))
+	if (wildcard_match(req->resource, "/icon/\?\?\?\?\?\?\?\?/ICON0.PNG"))
 	{
-		snprintf(outfile, BUFSIZ, "%sAPOLLO/%s", selected_entry->path, req->resource + 6);
+		int id = 0;
+
+		sscanf(req->resource + 6, "%08x", &id);
+		item = list_get_item(list, id);
+		snprintf(outfile, BUFSIZ, "%sICON0.PNG", item->path);
+
 		return (file_exists(outfile) == SUCCESS);
 	}
 
@@ -611,7 +603,7 @@ static void copyAllSavesUSB(const save_entry_t* save, const char* dst_path, int 
 		if (item->type != FILE_TYPE_PSV || !(all || item->flags & SAVE_FLAG_SELECTED) || !vita_SaveMount(item, mount))
 			continue;
 
-		snprintf(save_path, sizeof(save_path), APOLLO_SANDBOX_PATH, mount);
+		snprintf(save_path, sizeof(save_path), APOLLO_SANDBOX_PATH, item->dir_name);
 		snprintf(copy_path, sizeof(copy_path), "%s%08x_%s_%s/", dst_path, apollo_config.user_id, item->title_id, item->dir_name);
 
 		LOG("Copying <%s> to %s...", save_path, copy_path);
@@ -729,6 +721,9 @@ static int apply_sfo_patches(sfo_patch_t* patch)
     u8 tmp_psid[SFO_PSID_SIZE];
     list_node_t* node;
 
+    if (selected_entry->flags & SAVE_FLAG_PSP)
+        return 1;
+
     for (node = list_head(selected_entry->codes); (code = list_get(node)); node = list_next(node))
     {
         if (!code->activated || code->type != PATCH_SFO)
@@ -783,6 +778,25 @@ static int apply_sfo_patches(sfo_patch_t* patch)
 	LOG("Applying SFO patches '%s'...", in_file_path);
 
 	return (patch_sfo(in_file_path, patch) == SUCCESS);
+}
+
+static int psp_is_decrypted(list_t* list, const char* fname)
+{
+	list_node_t *node;
+
+	for (node = list_head(list); node; node = list_next(node))
+		if (strcmp(list_get(node), fname) == 0)
+			return 1;
+
+	return 0;
+}
+
+static int get_psp_save_key(const save_entry_t* entry, uint8_t* key)
+{
+	char path[256];
+
+	snprintf(path, sizeof(path), "ux0:pspemu/PSP/SAVEPLAIN/%s/%s.bin", entry->dir_name, entry->title_id);
+	return (read_psp_game_key(path, key));
 }
 
 static int apply_cheat_patches()
@@ -996,62 +1010,81 @@ static int _copy_save_file(const char* src_path, const char* dst_path, const cha
 	return (copy_file(src, dst) == SUCCESS);
 }
 
-static void decryptSaveFile(const char* filename)
+static void decryptSaveFile(const save_entry_t* entry, const char* filename)
 {
 	char path[256];
+	uint8_t key[16];
 
-	snprintf(path, sizeof(path), APOLLO_USER_PATH "%s/", apollo_config.user_id, selected_entry->title_id);
+	if (entry->flags & SAVE_FLAG_PSP && !get_psp_save_key(entry, key))
+	{
+		show_message("Error! No game decryption key available for %s", entry->title_id);
+		return;
+	}
+
+	snprintf(path, sizeof(path), APOLLO_USER_PATH "%s/", apollo_config.user_id, entry->dir_name);
 	mkdirs(path);
 
-	LOG("Decrypt '%s%s' to '%s'...", selected_entry->path, filename, path);
+	LOG("Decrypt '%s%s' to '%s'...", entry->path, filename, path);
 
-	if (_copy_save_file(selected_entry->path, path, filename))
-		show_message("File successfully exported to:\n%s%s", path, filename);
+	if (_copy_save_file(entry->path, path, filename))
+	{
+		strlcat(path, filename, sizeof(path));
+		if (entry->flags & SAVE_FLAG_PSP && !psp_DecryptSavedata(path, key))
+			show_message("Error! File %s couldn't be exported", filename);
+
+		show_message("File successfully exported to:\n%s", path);
+	}
 	else
 		show_message("Error! File %s couldn't be exported", filename);
 }
 
-static void encryptSaveFile(const char* filename)
+static void encryptSaveFile(const save_entry_t* entry, const char* filename)
 {
 	char path[256];
+	uint8_t key[16];
 
-	snprintf(path, sizeof(path), APOLLO_USER_PATH "%s/%s", apollo_config.user_id, selected_entry->title_id, filename);
+	if (entry->flags & SAVE_FLAG_PSP && !get_psp_save_key(entry, key))
+	{
+		show_message("Error! No game decryption key available for %s", entry->title_id);
+		return;
+	}
 
+	snprintf(path, sizeof(path), APOLLO_USER_PATH "%s/%s", apollo_config.user_id, entry->dir_name, filename);
 	if (file_exists(path) != SUCCESS)
 	{
 		show_message("Error! Can't find decrypted save-game file:\n%s", path);
 		return;
 	}
-	snprintf(path, sizeof(path), APOLLO_USER_PATH "%s/", apollo_config.user_id, selected_entry->title_id);
+	strrchr(path, '/')[1] = 0;
 
-	LOG("Encrypt '%s%s' to '%s'...", path, filename, selected_entry->path);
+	LOG("Encrypt '%s%s' to '%s'...", path, filename, entry->path);
 
-	if (_copy_save_file(path, selected_entry->path, filename))
-		show_message("File successfully imported to:\n%s%s", selected_entry->path, filename);
+	if (_copy_save_file(path, entry->path, filename))
+	{
+		if (entry->flags & SAVE_FLAG_PSP && !psp_EncryptSavedata(entry->path, filename, key))
+			show_message("Error! File %s couldn't be imported", filename);
+
+		show_message("File successfully imported to:\n%s%s", entry->path, filename);
+	}
 	else
 		show_message("Error! File %s couldn't be imported", filename);
 }
 
 void execCodeCommand(code_entry_t* code, const char* codecmd)
 {
-	char *tmp, mount[32];
+	char mount[32];
 
-	if (selected_entry->flags & SAVE_FLAG_HDD)
-	{
+	if (selected_entry->flags & SAVE_FLAG_PSV && selected_entry->flags & SAVE_FLAG_HDD)
 		if (!vita_SaveMount(selected_entry, mount))
 		{
 			LOG("Error Mounting Save! Check Save Mount Patches");
 			return;
 		}
 
-		tmp = selected_entry->path;
-		asprintf(&selected_entry->path, APOLLO_SANDBOX_PATH, mount);
-	}
-
 	switch (codecmd[0])
 	{
 		case CMD_DECRYPT_FILE:
-			decryptSaveFile(code->options[0].name[code->options[0].sel]);
+			decryptSaveFile(selected_entry, code->options[0].name[code->options[0].sel]);
 			code->activated = 0;
 			break;
 
@@ -1163,7 +1196,7 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			break;
 
 		case CMD_IMPORT_DATA_FILE:
-			encryptSaveFile(code->options[0].name[code->options[0].sel]);
+			encryptSaveFile(selected_entry, code->options[0].name[code->options[0].sel]);
 			code->activated = 0;
 			break;
 
@@ -1181,12 +1214,8 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			break;
 	}
 
-	if (selected_entry->flags & SAVE_FLAG_HDD)
-	{
+	if (selected_entry->flags & SAVE_FLAG_PSV && selected_entry->flags & SAVE_FLAG_HDD)
 		vita_SaveUmount(mount);
-		free(selected_entry->path);
-		selected_entry->path = tmp;
-	}
 
 	return;
 }
