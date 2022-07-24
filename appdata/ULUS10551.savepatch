@@ -2,9 +2,9 @@
 ; Ys VII
 ; ULUS-10551
 
-:STRIP.BIN
+:*
 
-Possession money 99999999
+[Possession money 99999999]
 2000113C FFE0F505
 
 [Tools 99 (Iko's medicine, Salimera's medicine, Myrrh incense, Kamika's elixir, Alp's medicine, Chiguru's elixir, Ryuki no Shizuku)]

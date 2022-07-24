@@ -2,7 +2,7 @@
 ; ClaDun x2
 ; NPUH-10114
 
-:STRIP.BIN
+:*
 
 ;Since the amount of save data is large, it takes time to modify
 

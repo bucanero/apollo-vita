@@ -2,7 +2,7 @@
 ; Valhalla Knights 2 
 ; ULUS-10366
 
-:STRIP.BIN
+:*
 
 [Possession money 999999G]
 20000008 3F420F00

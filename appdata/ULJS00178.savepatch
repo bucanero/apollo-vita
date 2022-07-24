@@ -2,7 +2,7 @@
 ; title
 ; ULJS-00178
 
-:STRIP.BIN
+:*
 
 [Funds 10485XX]
 10000AD7 0000FFFF

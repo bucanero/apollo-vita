@@ -2,7 +2,7 @@
 ; Castlevania Dracula X Chronicle
 ; ULUS-10277
 
-:STRIP.BIN
+:*
 
 [Remaining Machine 99]
 00000257 00000063
@@ -22,12 +22,12 @@
 
 [HP 9999 (* Applicable to numbers over 10000, but the display will be corrupted)]
 10000F3F 00000F27
-10000F43 00000F27 MP
+10000F43 00000F27
 
-[999]
+[MP 999]
 10000F4F 0000E703
 
-[9999 (* Applicable to numbers over 10000, but the display is corrupted)]
+[MP 9999 (* Applicable to numbers over 10000, but the display is corrupted)]
 10000F4F 00000F27
 10000F53 00000F27
 

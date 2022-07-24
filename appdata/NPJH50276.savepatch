@@ -2,7 +2,7 @@
 ; Ys vs. Sora no Kiseki
 ; NPJH-50276
 
-:STRIP.BIN
+:*
 
 [Possession money 99999999]
 20002714 FFE0F505

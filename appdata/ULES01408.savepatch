@@ -2,7 +2,7 @@
 ; Ace Combat X2 Joint Assault
 ; ULES-01408
 
-:STRIP.BIN
+:*
 
 [Possession money 99999999]
 200060AC FFE0F505

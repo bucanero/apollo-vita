@@ -2,7 +2,7 @@
 ; Gundam Memories ~ Memories of Battle
 ; NPJH-50437
 
-:STRIP.BIN
+:*
 
 [POINTS 9999999]
 20000008 7F969800

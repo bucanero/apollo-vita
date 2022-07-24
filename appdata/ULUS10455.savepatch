@@ -2,7 +2,7 @@
 ; Assassin's Creed Bloodline
 ; ULUS10455
 
-:STRIP.BIN
+:*
 
 [Possession money 9999 (copper coin)]
 

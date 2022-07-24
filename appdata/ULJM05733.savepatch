@@ -2,7 +2,7 @@
 ; The Legend of Heroes: Zero no Kiseki
 ; ULJM-05733
 
-:STRIP.BIN
+:*
 
 [Possession 99999999 Mira]
 20001BB4 FFE0F505

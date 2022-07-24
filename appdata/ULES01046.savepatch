@@ -3,7 +3,7 @@
 ; ULES-01046
 ; Simplified by @Officialahmed
 
-:STRIP.BIN
+:*
 
 [Item 1 99]
 00000D5A 00000063

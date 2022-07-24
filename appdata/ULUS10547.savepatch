@@ -2,7 +2,7 @@
 ; Ys I & II
 ; ULUS-10547
 
-:STRIP.BIN
+:*
 
 [Possession money 999999]
 2000017C 3F420F00
