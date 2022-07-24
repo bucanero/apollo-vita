@@ -1,0 +1,176 @@
+; PSP
+; Crisis Core: FINAL FANTASY VII
+; ULES-01046
+; Simplified by @Officialahmed
+
+:*
+
+[Item 1 99]
+00000D5A 00000063
+
+[Item 2-10 99]
+00000D5E 00000063
+00000D62 00000063 
+00000D66 00000063
+00000D6A 00000063 
+00000D6E 00000063 
+00000D72 00000063
+00000D76 00000063
+00000D7A 00000063
+00000D7E 00000063
+
+
+[Item 1 - Potion]
+10000D58 00000020
+
+[Item 1 - High Potion]
+10000D58 00000120
+
+[Item 1 - Expo]
+10000D58 00000220
+
+[Item 1 - Ether]
+10000D58 00000320
+
+[Item 1 - Soma]
+10000D58 00000420
+
+[Item 1 - Universal Medicine]
+10000D58 00000520
+
+
+[Item 2 - Potion]
+10000D5C 00000020
+
+[Item 2 - High Potion]
+10000D5C 00000120
+
+[Item 2 - Expo]
+10000D5C 00000220
+
+[Item 2 - Ether]
+10000D5C 00000320
+
+[Item 2 - Soma]
+10000D5C 00000420
+
+[Item 2 - Universal Medicine]
+10000D5C 00000520
+
+
+
+[Item 3 - Potion]
+10000D60 00000020
+
+[Item 3 - High Potion]
+10000D60 00000120
+
+[Item 3 - Expo]
+10000D60 00000220
+
+[Item 3 - Ether]
+10000D60 00000320
+
+[Item 3 - Soma]
+10000D60 00000420
+
+[Item 3 - Universal Medicine]
+10000D60 00000520
+
+
+[Item 4 - Potion]
+10000D64 00000020
+
+[Item 4 - High Potion]
+10000D64 00000120
+
+[Item 4 - Expo]
+10000D64 00000220
+
+[Item 4 - Ether]
+10000D64 00000320
+
+[Item 4 - Soma]
+10000D64 00000420
+
+[Item 4 - Universal Medicine]
+10000D64 00000520
+
+
+[Item 5 - Potion]
+10000D68 00000020
+
+[Item 5 - High Potion]
+10000D68 00000120
+
+[Item 5 - Expo]
+10000D68 00000220
+
+[Item 5 - Ether]
+10000D68 00000320
+
+[Item 5 - Soma]
+10000D68 00000420
+
+[Item 5 - Universal Medicine]
+10000D68 00000520
+
+
+
+[Item 6 - Potion]
+10000D6C 00000020
+
+[Item 6 - High Potion]
+10000D6C 00000120
+
+[Item 6 - Expo]
+10000D6C 00000220
+
+[Item 6 - Ether]
+10000D6C 00000320
+
+[Item 6 - Soma]
+10000D6C 00000420
+
+[Item 6 - Universal Medicine]
+10000D6C 00000520
+
+
+
+[Item 7 - Potion]
+10000D70 00000020
+
+[Item 7 - High Potion]
+10000D70 00000120
+
+[Item 7 - Expo]
+10000D70 00000220
+
+[Item 7 - Ether]
+10000D70 00000320
+
+[Item 7 - Soma]
+10000D70 00000420
+
+[Item 7 - Universal Medicine]
+10000D70 00000520
+
+
+
+[Item 8 - Potion]
+10000D78 00000020
+
+[Item 8 - High Potion]
+10000D78 00000120
+
+[Item 8 - Expo]
+10000D78 00000220
+
+[Item 8 - Ether]
+10000D78 00000320
+
+[Item 8 - Soma]
+10000D78 00000420
+
+[Item 8 - Universal Medicine]
+10000D78 00000520

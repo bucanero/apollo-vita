@@ -1,0 +1,26 @@
+; PSP
+; Valhalla Knights 2 Battle Stance
+; NPUH-10041
+
+:*
+
+[Possession money 999999G]
+20000008 3F420F00
+
+[Status All 99 (Physical strength Wisdom Resistance Vitality Quickness Dexterity Luck)]
+40000063 00000063
+40070001 00000000
+
+;Occupation Lv99
+
+[Fi (Fighter)]
+00000074 00000063
+
+[Ma (Mage)]
+00000075 00000063
+
+[Pr (Priest)]
+00000076 00000063
+
+[Th Mo (Monk)]
+00000078 00000063

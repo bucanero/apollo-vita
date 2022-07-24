@@ -1,0 +1,12 @@
+; PSP
+; Ace Combat X2 Joint Assault
+; ULES-01408
+
+:*
+
+[Possession money 99999999]
+200060AC FFE0F505
+
+[All aircraft and weapons release]
+420060C0 F33F807F
+402C0004 00000000
