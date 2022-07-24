@@ -1,0 +1,14 @@
+; PSP
+; Kingdom hearts Birth by sleep
+; ULUS-10505
+
+:STRIP.BIN
+
+
+;Final mix version is not supported
+[munnies 99999]
+20005658 9F860100
+
+[Experience value MAX (Lv99)]
+20005654 FEE0F505
+

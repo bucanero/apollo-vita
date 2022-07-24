@@ -1,0 +1,13 @@
+; PSP
+; Mobile Suit Gundam New Gillen's Ambition
+; NPJH-50441
+
+:STRIP.BIN
+
+[Total funds +6553X or more]
+700067D3 00000001
+340067D5 00000001
+
+[Total resources +6553X or more]
+700067D7 00000001
+340067D9 00000001

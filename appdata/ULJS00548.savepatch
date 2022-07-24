@@ -1,0 +1,8 @@
+; PSP
+; Round table student The Eternal Legend
+; ULJS-00548
+
+:STRIP.BIN
+
+[Possession money 99999999 GP]
+20000138 FFE0F505

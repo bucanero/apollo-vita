@@ -1,0 +1,9 @@
+; PSP
+; Armored Core Silent Line Portable
+; NPUH-10025
+
+:STRIP.BIN
+
+[CREDIT 99999999c]
+
+20007B44 FFE0F505
