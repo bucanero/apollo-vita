@@ -7,7 +7,7 @@
 
 The `apollo-vita` homebrew app allows to download, unlock, patch and resign save-game files directly on your Vita.
 
-![image](./docs/screenshots/screenshot-main.jpg)
+![image](./screenshots/screenshot-main.jpg)
 
 **Comments, ideas, suggestions?** You can contact [me](https://github.com/bucanero/) on [Twitter](https://twitter.com/dparrino) and on [my website](http://www.bucanero.com.ar/).
 
