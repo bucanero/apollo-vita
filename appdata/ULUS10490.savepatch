@@ -2,7 +2,7 @@
 ; GTA Chinatown Wars
 ; ULUS-10490
 
-:*
+:DATA.BIN
 
 [Possession money $99999999]
 20000040 FFE0F505
