@@ -6,7 +6,7 @@
 :*
 
 [Possession money 999999G]
-20000008 3F420F00
+20000008 000F423F
 
 [Status All 99 (Physical strength Wisdom Resistance Vitality Quickness Dexterity Luck)]
 40000063 00000063
@@ -25,4 +25,5 @@
 
 [Th Mo (Monk)]
 00000078 00000063
+
 

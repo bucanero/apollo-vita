@@ -8,4 +8,5 @@
 ;Since the amount of save data is large, it takes time to modify
 
 [Possession money 999999]
-2000087C 3F420F00
+2000087C 000F423F
+

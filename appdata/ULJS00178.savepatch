@@ -10,10 +10,10 @@
 
 [Resources 99999XX]
 00000AD9 000000F9
-10000ADA 00008967
+10000ADA 00006789
 
 [Strategy Phase Number of turns 1 (+ 80h per turn)]
-10000222 00000001
+10000222 00000100
 
 ;Difficulty change
 

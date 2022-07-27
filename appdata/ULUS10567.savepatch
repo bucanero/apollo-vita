@@ -6,13 +6,13 @@
 :3RDDATA.BIN
 
 [BP 999999999]
-200018B4 FFC99A3B
+200018B4 3B9AC9FF
 
 ;* Please modify the 3RDDATA.BIN file.
 
 :SYSDATA.BIN
 
 [Release all costumes]
-10000618 0000FF07
+10000618 000007FF
 
 ;* Please modify the system data (SYSDATA.BIN file in the ULJM05798SYSDATA folder).

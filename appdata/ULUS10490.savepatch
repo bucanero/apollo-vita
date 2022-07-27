@@ -6,7 +6,8 @@
 :DATA.BIN
 
 [Possession money $99999999]
-20000040 FFE0F505
+20000040 05F5E0FF
 
 ;* Please modify by selecting ULJM05604L0 as the folder name and DATA.BIN as the file name. If the folder name is ULJM05604LA, it cannot be modified.
+
 
