@@ -1,0 +1,12 @@
+; PSP
+; Genso Suikoden: Tsumugareshi Hyakunen no Toki
+; NPJH-50535
+; http://web.save-editor.com/bbs/patchcode/psp/bbs.cgi?list=pickup&num=2925#
+
+:*
+
+[Possession 9999999 Potch]
+2000101C 7F969800
+
+[Experience MAX (LV99)]
+100008D8 00005BC1

@@ -1,0 +1,20 @@
+; PSP
+; Samurai Dou 2 Portable
+; ULJS-00217
+; http://web.save-editor.com/bbs/patchcode/psp/bbs.cgi?list=pickup&num=2957#
+
+:*
+
+[money 9999 sentence]
+1000010A 00000F27
+
+[Physical strength 2000]
+10000112 0000D007
+10000114 0000D007 
+
+[Ki 20]
+​​0000010C 00000014
+0000010E 00000014
+
+[Hardness 6]
+000001E4 00000006

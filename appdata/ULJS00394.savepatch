@@ -1,0 +1,9 @@
+; PSP
+; Grand Knights History
+; ULJS-00394
+; http://web.save-editor.com/bbs/patchcode/psp/bbs.cgi?list=pickup&num=2305#
+
+:SYSDATA.BIN
+
+[Possession money 9999999 G]
+2000003C 7F969800

@@ -1,0 +1,15 @@
+; PSP
+; Goku Makai-Mura Kai 
+; ULJM-05265
+; https://web.save-editor.com/bbs/patchcode/psp/bbs.cgi?list=pickup&num=3321
+
+:*
+
+
+[Ultimate Ghosts'n Gorgeous Remaining Machine 99]
+0000017C 00000063
+
+[Remaining Machine ∞ (Infinite)]
+0000017C 00000064
+
+;* Operation check with LIFESTOCK TYPE A (I think it can be modified with other TYPEs)
