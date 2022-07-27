@@ -41,6 +41,35 @@ All notable changes to the `apollo-vita` project will be documented in this file
 * Custom checksum support
   - BlazBlue: Continuum Shift Extend
   - BlazBlue: Chronophantasma Extend
+* PSP cheat codes
+  - R-TYPE Tactics II
+  - Ys vs. Sora no Kiseki
+  - Gundam Memories - Memories of Battle
+  - Mobile Suit Gundam New Gillen's Ambition
+  - Akiba's Trip
+  - Mobile Suit Gundam AGE Cosmic Drive
+  - Armored Core 3 Portable
+  - Armored Core Last Raven Portable
+  - Armored Core Silent Line Portable
+  - Valhalla Knights 2 Battle Stance
+  - ClaDun x2
+  - The Legend of Heroes: Trails in the Sky
+  - Crisis Core: FINAL FANTASY VII
+  - Ace Combat X2 Joint Assault
+  - The Legend of Heroes: Zero no Kiseki
+  - Gundam Assault Survive
+  - Another Century's Episode Portable
+  - SD Gundam G GENERATION WORLD
+  - Onechanbara SPECIAL
+  - Valhalla Knights 2
+  - Students of Round: The Eternal Legend
+  - Ace Combat X Skies of Deception
+  - Castlevania Dracula X Chronicles
+  - Assassin's Creed Bloodline
+  - Kingdom hearts Birth by sleep
+  - R-TYPE Tactics
+  - Ys: The Oath in Felghana
+  - Ys VII
 
 ### Misc
 

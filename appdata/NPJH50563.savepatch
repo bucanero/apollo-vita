@@ -1,17 +1,18 @@
 ; PSP
 ; AKIBA'S TRIP
 ; NPJH-50563
+; http://web.save-editor.com/bbs/patchcode/psp/bbs.cgi?list=pickup&num=2017#
 
 :STRIP.BIN
 
 [Money 9999999]
 20000A38 7F969800
 
-[Strength 99999999]
+[Experience 99999999]
 20000A3C FFE0F505
 
-[Mind 9999]
+[Strength 9999]
 10000B80 00000F27
 
-[Commitment 9999]
-10001030 00000F27
+[Mind 9999]
+10000B7E 00000F27
