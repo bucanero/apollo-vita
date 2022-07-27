@@ -1,0 +1,11 @@
+; PSP
+; Genso Suikoden: Tsumugareshi Hyakunen no Toki
+; NPJH-50535
+
+:*
+
+[Possession 9999999 Potch]
+2000 101C 7F969800 Murat
+
+[Experience MAX (LV99)]
+100008D8 00005BC1

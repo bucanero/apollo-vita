@@ -1,0 +1,15 @@
+; PSP
+; The 3rd Birthday
+; ULUS-10567
+
+:*
+
+[BP 999999999]
+200018B4 FFC99A3B
+
+;* Please modify the 3RDDATA.BIN file.
+
+[Release all costumes]
+10000618 0000FF07
+
+;* Please modify the system data (SYSDATA.BIN file in the ULJM05798SYSDATA folder).

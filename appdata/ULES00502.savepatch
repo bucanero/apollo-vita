@@ -1,0 +1,9 @@
+; PSP
+; Grand Theft Auto: Vice City Stories
+; ULES-00502
+
+:*
+
+[Possession $ 99999999]
+
+2000FA48 FFE0F505

@@ -1,0 +1,9 @@
+; PSP
+; Grand Theft Auto: Liberty City Stories
+; ULUS-10041
+
+:*
+
+[Possession $ 99999999]
+
+20011B1C FFE0F505

@@ -1,0 +1,8 @@
+; PSP
+; Summon Night 3
+; NPJH-50380
+
+:*
+
+[Possession MAX (9999999)]
+20026BE0 7F969800

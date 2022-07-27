@@ -1,0 +1,11 @@
+; PSP
+; GTA Chinatown Wars
+; ULUS-10490
+
+:*
+
+[Possession money $99999999]
+20000040 FFE0F505
+
+;* Please modify by selecting ULJM05604L0 as the folder name and DATA.BIN as the file name. If the folder name is ULJM05604LA, it cannot be modified.
+

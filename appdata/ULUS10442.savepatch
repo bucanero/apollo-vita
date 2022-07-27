@@ -1,0 +1,14 @@
+; PSP
+; Kenka Bancho: Badass Rumble
+; ULUS-10442
+
+:*
+
+[Possession money 99999999]
+20000148 FFE0F505
+
+[Physical strength 2000]
+100001F6 0000D007
+
+[Stamina 2000]
+10000250 0000D007
