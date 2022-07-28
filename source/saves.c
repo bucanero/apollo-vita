@@ -208,7 +208,9 @@ char * readTextFile(const char * path, long* size)
 	fclose(f);
 
 	string[fsize] = 0;
-	*size = fsize;
+	if (size)
+		*size = fsize;
+
 	return string;
 }
 
@@ -483,7 +485,6 @@ int ReadCodes(save_entry_t * save)
 {
 	code_entry_t * code;
 	char filePath[256];
-	long bufferLen;
 	char * buffer = NULL;
 	char mount[32];
 
@@ -511,7 +512,7 @@ int ReadCodes(save_entry_t * save)
 	list_append(save->codes, code);
 
 	LOG("Loading BSD codes '%s'...", filePath);
-	buffer = readTextFile(filePath, &bufferLen);
+	buffer = readTextFile(filePath, NULL);
 	load_patch_code_list(buffer, save->codes, &get_file_entries, save->path);
 	free (buffer);
 
