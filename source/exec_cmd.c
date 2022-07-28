@@ -139,11 +139,18 @@ static int _copy_save_hdd(const save_entry_t* save)
 	LOG("Copying <%s> to %s...", save->path, copy_path);
 	copy_directory(save->path, save->path, copy_path);
 
-//	snprintf(copy_path, sizeof(copy_path), "%s" "sce_sys/", save->path);
-//	_update_save_details(copy_path, mount);
-
 	vita_SaveUmount(mount);
 	return 1;
+}
+
+static int _copy_save_psp(const save_entry_t* save)
+{
+	char copy_path[256];
+
+	snprintf(copy_path, sizeof(copy_path), PSP_SAVES_PATH_HDD "%s/", save->dir_name);
+
+	LOG("Copying <%s> to %s...", save->path, copy_path);
+	return (copy_directory(save->path, save->path, copy_path) == SUCCESS);
 }
 
 static void copySaveHDD(const save_entry_t* save)
@@ -156,7 +163,7 @@ static void copySaveHDD(const save_entry_t* save)
 	}
 
 	init_loading_screen("Copying save game...");
-	int ret = _copy_save_hdd(save);
+	int ret = (save->flags & SAVE_FLAG_PSP) ? _copy_save_psp(save) : _copy_save_hdd(save);
 	stop_loading_screen();
 
 	if (ret)
@@ -333,7 +340,7 @@ static void pspExportKey(const save_entry_t* save)
 		return;
 	}
 
-	snprintf(fpath, sizeof(fpath), APOLLO_USER_PATH "%s/%s.bin", apollo_config.user_id, save->title_id, save->title_id);
+	snprintf(fpath, sizeof(fpath), APOLLO_USER_PATH "%s/%s.bin", apollo_config.user_id, save->dir_name, save->title_id);
 	mkdirs(fpath);
 
 	if (write_buffer(fpath, buffer, sizeof(buffer)) == SUCCESS)

@@ -345,7 +345,7 @@ static void _addBackupCommands(save_entry_t* item)
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy save game", CMD_CODE_NULL);
 	cmd->options_count = 1;
 	cmd->options = _createOptions(3, "Copy Save to Backup Storage", CMD_COPY_SAVE_USB);
-	asprintf(&cmd->options->name[2], "Copy Save to User Storage (ux0:data/)");
+	asprintf(&cmd->options->name[2], "Copy Save to User Storage (ux0:%s/)", (item->flags & SAVE_FLAG_PSP) ? "pspemu":"user");
 	asprintf(&cmd->options->value[2], "%c", CMD_COPY_SAVE_HDD);
 	list_append(item->codes, cmd);
 
@@ -1402,7 +1402,7 @@ int get_save_details(const save_entry_t* save, char **details)
 			return 0;
 		}
 
-		asprintf(details, "%s\n\n"
+		asprintf(details, "%s\n----- PSP Save -----\n"
 			"Game: %s\n"
 			"Title ID: %s\n"
 			"Folder: %s\n"
