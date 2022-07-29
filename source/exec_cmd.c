@@ -11,17 +11,44 @@
 #include "sfo.h"
 
 
-static void downloadSave(const char* file, const char* path)
+static int _set_dest_path(int dest, char* path)
 {
+	switch (dest)
+	{
+	case STORAGE_UMA0:
+		strcpy(path, SAVES_PATH_UMA0);
+		break;
+
+	case STORAGE_IMC0:
+		strcpy(path, SAVES_PATH_IMC0);
+		break;
+
+	case STORAGE_UX0:
+		strcpy(path, UX0_PATH PSV_SAVES_PATH_USB);
+		break;
+
+	default:
+		path[0] = 0;
+		return 0;
+	}
+
+	return 1;
+}
+
+static void downloadSave(const save_entry_t* entry, const char* file, int dst)
+{
+	char path[256];
+
+	_set_dest_path(dst, path);
 	if (mkdirs(path) != SUCCESS)
 	{
 		show_message("Error! Export folder is not available:\n%s", path);
 		return;
 	}
 
-	if (!http_download(selected_entry->path, file, APOLLO_LOCAL_CACHE "tmpsave.zip", 1))
+	if (!http_download(entry->path, file, APOLLO_LOCAL_CACHE "tmpsave.zip", 1))
 	{
-		show_message("Error downloading save game from:\n%s%s", selected_entry->path, file);
+		show_message("Error downloading save game from:\n%s%s", entry->path, file);
 		return;
 	}
 
@@ -1123,7 +1150,7 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			break;
 
 		case CMD_DOWNLOAD_USB:
-			downloadSave(code->file, codecmd[1] ? SAVES_PATH_IMC0 : SAVES_PATH_UMA0);
+			downloadSave(selected_entry, code->file, codecmd[1]);
 			code->activated = 0;
 			break;
 

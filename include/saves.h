@@ -11,6 +11,7 @@
 #define APOLLO_UPDATE_URL		"https://api.github.com/repos/bucanero/apollo-vita/releases/latest"
 
 #define MAX_USB_DEVICES         5
+#define UX0_PATH                "ux0:data/"
 #define UMA0_PATH               "uma0:data/"
 #define IMC0_PATH               "imc0:data/"
 #define USB_PATH                "%s:data/savegames/"
@@ -53,6 +54,13 @@
 #define ONLINE_CACHE_TIMEOUT    24*3600     // 1-day local cache
 
 #define OWNER_XML_FILE          "owners.xml"
+
+enum storage_enum
+{
+    STORAGE_UMA0,
+    STORAGE_IMC0,
+    STORAGE_UX0,
+};
 
 enum cmd_code_enum
 {
