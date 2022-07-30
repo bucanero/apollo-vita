@@ -1,0 +1,22 @@
+; PSP
+; BlazBlue: Calamity Trigger Portable
+; ULUS10519
+
+:SYSTEM.DAT
+
+;by bucanero
+[Unlock All Gallery]
+41000160 00000101
+40580002 00000000
+00000210 00000001
+
+[9999999 shop credits]
+2002B80C 0098967F
+
+[Update WADD for SYSTEM.DAT (Required)]
+set [csum]:0
+carry(2)
+set pointer:eof+1
+set [csum]:wadd(0x000004,pointer)
+set [csum]:xor:FFFF
+write at 0x000000:[csum]

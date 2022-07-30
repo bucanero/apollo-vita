@@ -4,6 +4,35 @@ All notable changes to the `apollo-vita` project will be documented in this file
 
 ## [Unreleased]()
 
+## [v1.0.2](https://github.com/bucanero/apollo-vita/releases/tag/v1.0.2) - 2022-07-30
+
+### Added
+
+* Download Online DB saves to `ux0`
+* New PSP cheat codes
+  - BlazBlue: Calamity Trigger Portable
+  - Criminal Girls
+  - Summon Night 3
+  - Summon Night 4
+  - Genso Suikoden: Tsumugareshi Hyakunen no Toki
+  - Grand Theft Auto: Vice City Stories
+  - The 3rd Birthday
+  - Goku Makai-Mura Kai
+  - Growlanser IV: Over Reloaded
+  - Samurai Dou 2 Portable
+  - Grand Knights History
+  - Kenka Bancho: Badass Rumble
+  - Grand Theft Auto: Liberty City Stories
+  - Grand Theft Auto: Chinatown Wars
+* Custom checksum support
+  - BlazBlue: Calamity Trigger Portable
+
+### Fixed
+
+* Fix PSP save copying to User Storage (`ux0:pspemu/`)
+* Fix bug with "Raw Patch file" view
+* Fix PSP cheat code values
+
 ## [v1.0.0](https://github.com/bucanero/apollo-vita/releases/tag/v1.0.0) - 2022-07-24
 
 ### Added

@@ -987,7 +987,7 @@ static void read_usb_encrypted_saves(const char* userPath, list_t *list, uint64_
 	closedir(d);
 }
 
-static void read_psp_savegames(const char* userPath, list_t *list)
+static void read_psp_savegames(const char* userPath, list_t *list, int flags)
 {
 	DIR *d;
 	struct dirent *dir;
@@ -1016,7 +1016,7 @@ static void read_psp_savegames(const char* userPath, list_t *list)
 			continue;
 		}
 
-		item = _createSaveEntry(SAVE_FLAG_PSP, (char*) sfo_get_param_value(sfo, "TITLE"));
+		item = _createSaveEntry(SAVE_FLAG_PSP | flags, (char*) sfo_get_param_value(sfo, "TITLE"));
 		item->type = FILE_TYPE_PSP;
 		item->dir_name = strdup((char*) sfo_get_param_value(sfo, "SAVEDATA_DIRECTORY"));
 		asprintf(&item->title_id, "%.9s", item->dir_name);
@@ -1178,7 +1178,7 @@ list_t * ReadUsbList(const char* userPath)
 
 	appdb = open_sqlite_db(USER_PATH_HDD);
 	read_usb_savegames(userPath, list, appdb);
-	read_psp_savegames(userPath, list);
+	read_psp_savegames(userPath, list, 0);
 	sqlite3_close(appdb);
 
 	return list;
@@ -1221,7 +1221,7 @@ list_t * ReadUserList(const char* userPath)
 	list_append(list, item);
 
 	read_hdd_savegames(userPath, list);
-	read_psp_savegames(PSP_SAVES_PATH_HDD, list);
+	read_psp_savegames(PSP_SAVES_PATH_HDD, list, SAVE_FLAG_HDD);
 
 	return list;
 }
