@@ -975,7 +975,7 @@ static void read_usb_encrypted_saves(const char* userPath, list_t *list, uint64_
 			get_file_size(savePath, &size);
 //			item->blocks = size / ORBIS_SAVE_DATA_BLOCK_SIZE;
 
-			LOG("[%s] F(%d) name '%s'", item->title_id, item->flags, item->name);
+			LOG("[%s] F(%X) name '%s'", item->title_id, item->flags, item->name);
 			list_append(list, item);
 
 		}
@@ -1021,7 +1021,7 @@ static void read_psp_savegames(const char* userPath, list_t *list, int flags)
 		asprintf(&item->path, "%s%s/", userPath, dir->d_name);
 
 		sfo_free(sfo);
-		LOG("[%s] F(%d) name '%s'", item->title_id, item->flags, item->name);
+		LOG("[%s] F(%X) name '%s'", item->title_id, item->flags, item->name);
 		list_append(list, item);
 	}
 
@@ -1073,7 +1073,7 @@ static void read_usb_savegames(const char* userPath, list_t *list, sqlite3 *db)
 
 		sfo_free(sfo);
 			
-		LOG("[%s] F(%d) name '%s'", item->title_id, item->flags, item->name);
+		LOG("[%s] F(%X) name '%s'", item->title_id, item->flags, item->name);
 		list_append(list, item);
 	}
 
@@ -1118,7 +1118,7 @@ static void read_hdd_savegames(const char* userPath, list_t *list)
 		}
 		sfo_free(sfo);
 
-		LOG("[%s] F(%d) {%d} '%s'", item->title_id, item->flags, item->blocks, item->name);
+		LOG("[%s] F(%X) {%d} '%s'", item->title_id, item->flags, item->blocks, item->name);
 		list_append(list, item);
 	}
 
@@ -1371,7 +1371,7 @@ list_t * ReadTrophyList(const char* userPath)
 		item->title_id = strdup((const char*) sqlite3_column_text(res, 1));
 		item->type = FILE_TYPE_TRP;
 
-		LOG("[%s] F(%d) name '%s'", item->title_id, item->flags, item->name);
+		LOG("[%s] F(%X) name '%s'", item->title_id, item->flags, item->name);
 		list_append(list, item);
 	}
 

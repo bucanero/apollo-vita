@@ -303,7 +303,7 @@ static void AES_CMAC(aes_context *ctx, u8 *input, int length, u8 *mac)
   for ( i=0; i<n-1; i++ ) 
   {
     xor_128(X,&input[16*i],Y); /* Y := Mi (+) X  */
-	aes_crypt_ecb(ctx, AES_ENCRYPT, Y, X); /* X := AES-128(KEY, Y); */ 
+    aes_crypt_ecb(ctx, AES_ENCRYPT, Y, X); /* X := AES-128(KEY, Y); */
   }
 
   xor_128(X,M_last,Y);
@@ -569,8 +569,6 @@ static u8* kirk_4_7_get_key(int key_type)
 
 int sceUtilsBufferCopyWithRange(u8* outbuff, int outsize, u8* inbuff, int insize, int cmd)
 {
-//  dbglogger_log("BufCopy %d - %d (%d)", outsize, insize, cmd);
-
   switch(cmd)
   {
     case KIRK_CMD_ENCRYPT_PRIVATE: return kirk_CMD0(outbuff, inbuff, insize, 1); break;

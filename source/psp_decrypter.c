@@ -30,13 +30,13 @@
 #define read32(X) *(uint32_t*)(X)
 #define arraycopy(src,srcPos,dest,destPos,len) memmove((dest)+(destPos),(src)+(srcPos),(len))
 
-static int sdHashKey1[] = {0x40, 0xE6, 0x53, 0x3F, 0x05, 0x11, 0x3A, 0x4E, 0xA1, 0x4B, 0xDA, 0xD6, 0x72, 0x7C, 0x53, 0x4C};
-static int sdHashKey2[] = {0xFA, 0xAA, 0x50, 0xEC, 0x2F, 0xDE, 0x54, 0x93, 0xAD, 0x14, 0xB2, 0xCE, 0xA5, 0x30, 0x05, 0xDF};
-static int sdHashKey3[] = {0x36, 0xA5, 0x3E, 0xAC, 0xC5, 0x26, 0x9E, 0xA3, 0x83, 0xD9, 0xEC, 0x25, 0x6C, 0x48, 0x48, 0x72};
-static int sdHashKey4[] = {0xD8, 0xC0, 0xB0, 0xF3, 0x3E, 0x6B, 0x76, 0x85, 0xFD, 0xFB, 0x4D, 0x7D, 0x45, 0x1E, 0x92, 0x03};
-static int sdHashKey5[] = {0xCB, 0x15, 0xF4, 0x07, 0xF9, 0x6A, 0x52, 0x3C, 0x04, 0xB9, 0xB2, 0xEE, 0x5C, 0x53, 0xFA, 0x86};
-static int sdHashKey6[] = {0x70, 0x44, 0xA3, 0xAE, 0xEF, 0x5D, 0xA5, 0xF2, 0x85, 0x7F, 0xF2, 0xD6, 0x94, 0xF5, 0x36, 0x3B};
-static int sdHashKey7[] = {0xEC, 0x6D, 0x29, 0x59, 0x26, 0x35, 0xA5, 0x7F, 0x97, 0x2A, 0x0D, 0xBC, 0xA3, 0x26, 0x33, 0x00};
+static uint8_t sdHashKey1[] = {0x40, 0xE6, 0x53, 0x3F, 0x05, 0x11, 0x3A, 0x4E, 0xA1, 0x4B, 0xDA, 0xD6, 0x72, 0x7C, 0x53, 0x4C};
+static uint8_t sdHashKey2[] = {0xFA, 0xAA, 0x50, 0xEC, 0x2F, 0xDE, 0x54, 0x93, 0xAD, 0x14, 0xB2, 0xCE, 0xA5, 0x30, 0x05, 0xDF};
+static uint8_t sdHashKey3[] = {0x36, 0xA5, 0x3E, 0xAC, 0xC5, 0x26, 0x9E, 0xA3, 0x83, 0xD9, 0xEC, 0x25, 0x6C, 0x48, 0x48, 0x72};
+static uint8_t sdHashKey4[] = {0xD8, 0xC0, 0xB0, 0xF3, 0x3E, 0x6B, 0x76, 0x85, 0xFD, 0xFB, 0x4D, 0x7D, 0x45, 0x1E, 0x92, 0x03};
+static uint8_t sdHashKey5[] = {0xCB, 0x15, 0xF4, 0x07, 0xF9, 0x6A, 0x52, 0x3C, 0x04, 0xB9, 0xB2, 0xEE, 0x5C, 0x53, 0xFA, 0x86};
+static uint8_t sdHashKey6[] = {0x70, 0x44, 0xA3, 0xAE, 0xEF, 0x5D, 0xA5, 0xF2, 0x85, 0x7F, 0xF2, 0xD6, 0x94, 0xF5, 0x36, 0x3B};
+static uint8_t sdHashKey7[] = {0xEC, 0x6D, 0x29, 0x59, 0x26, 0x35, 0xA5, 0x7F, 0x97, 0x2A, 0x0D, 0xBC, 0xA3, 0x26, 0x33, 0x00};
 
 typedef struct{
 		int mode;
@@ -62,13 +62,7 @@ static int isNullKey(uint8_t* key) {
 	return 1;
 }
 
-static void xorHash(uint8_t* dest, int dest_offset, int* src, int src_offset, int size) {
-	for (int i=0; i < size; i++) {
-		dest[dest_offset + i] = (uint8_t) (dest[dest_offset + i] ^ src[src_offset + i]);
-	}
-}
-
-static void xorKey(uint8_t* dest, int dest_offset, uint8_t* src, int src_offset, int size) {
+static void xorKey(uint8_t* dest, int dest_offset, const uint8_t* src, int src_offset, int size) {
 	for (int i=0; i < size; i++) {
 		dest[dest_offset + i] = (uint8_t) (dest[dest_offset + i] ^ src[src_offset + i]);
 	}
@@ -137,11 +131,17 @@ static void cryptMember(SD_Ctx2 ctx, uint8_t* data, int data_offset, int length)
 		// Decryption mode 0x01: decrypt the hash directly with KIRK CMD7.
 		ScrambleSD(dataBuf, 0x10, 0x4, KIRK_MODE_DECRYPT_CBC, KIRK_CMD_DECRYPT_IV_0);
 		finalSeed = 0x53;
+	} else if (ctx->mode == 0x3) {
+		// Decryption mode 0x03: XOR the hash with SD keys and decrypt with KIRK CMD7.
+		xorKey(dataBuf, 0x14, sdHashKey4, 0, 0x10);
+		ScrambleSD(dataBuf, 0x10, 0xE, KIRK_MODE_DECRYPT_CBC, KIRK_CMD_DECRYPT_IV_0);
+		xorKey(dataBuf, 0, sdHashKey3, 0, 0x10);
+		finalSeed = 0x57;
 	} else if (ctx->mode == 0x5) {
 		// Decryption mode 0x05: XOR the hash with new SD keys and decrypt with KIRK CMD7.
-		xorHash(dataBuf, 0x14, sdHashKey7, 0, 0x10);
+		xorKey(dataBuf, 0x14, sdHashKey7, 0, 0x10);
 		ScrambleSD(dataBuf, 0x10, 0x12, KIRK_MODE_DECRYPT_CBC, KIRK_CMD_DECRYPT_IV_0);
-		xorHash(dataBuf, 0, sdHashKey6, 0, 0x10);
+		xorKey(dataBuf, 0, sdHashKey6, 0, 0x10);
 		finalSeed = 0x64;
 	} else {
 		// unsupported mode
@@ -211,7 +211,6 @@ static int hleSdCreateList(SD_Ctx2 ctx, int encMode, int genMode, uint8_t* data,
 		uint8_t seed[0x14];
 
 		// Generate SHA-1 to act as seed for encryption.
-		//ByteBuffer bSeed = ByteBuffer.wrap(seed);
 		sceUtilsBufferCopyWithRange(seed, 0x14, NULL, 0, KIRK_CMD_PRNG);
 		
 		// Propagate SHA-1 in kirk header.
@@ -228,10 +227,21 @@ static int hleSdCreateList(SD_Ctx2 ctx, int encMode, int genMode, uint8_t* data,
 				xorKey(ctx->buf, 0, key, 0, 0x10);
 			}
 			return 0;
+		} else if (ctx->mode == 0x3) { // Encryption mode 0x3: XOR with SD keys, encrypt with KIRK CMD4 and XOR with the given key.
+			xorKey(header, 0x14, sdHashKey3, 0, 0x10);
+			ScrambleSD(header, 0x10, 0xE, KIRK_MODE_ENCRYPT_CBC, KIRK_CMD_ENCRYPT_IV_0);
+			xorKey(header, 0, sdHashKey4, 0, 0x10);
+			arraycopy(header, 0, ctx->buf, 0, 0x10);
+			arraycopy(header, 0, data, 0, 0x10);
+			// If the key is not null, XOR the hash with it.
+			if (!isNullKey(key)) {
+				xorKey(ctx->buf, 0, key, 0, 0x10);
+			}
+			return 0;
 		} else if (ctx->mode == 0x5) { // Encryption mode 0x5: XOR with new SD keys, encrypt with KIRK CMD4 and XOR with the given key.
-			xorHash(header, 0x14, sdHashKey6, 0, 0x10);
+			xorKey(header, 0x14, sdHashKey6, 0, 0x10);
 			ScrambleSD(header, 0x10, 0x12, KIRK_MODE_ENCRYPT_CBC, KIRK_CMD_ENCRYPT_IV_0);
-			xorHash(header, 0, sdHashKey7, 0, 0x10);
+			xorKey(header, 0, sdHashKey7, 0, 0x10);
 			arraycopy(header, 0, ctx->buf, 0, 0x10);
 			arraycopy(header, 0, data, 0, 0x10);
 			// If the key is not null, XOR the hash with it.
@@ -380,9 +390,9 @@ static int hleSdGetLastIndex(SD_Ctx1 ctx, uint8_t *hash, uint8_t *key) {
 
 	// If ctx.mode is new mode 0x5 or 0x6, XOR with the new hash key 5, else, XOR with hash key 2.
 	if ((ctx->mode == 0x5) || (ctx->mode == 0x6)) {
-		xorHash(resultBuf, 0, sdHashKey5, 0, 0x10);
+		xorKey(resultBuf, 0, sdHashKey5, 0, 0x10);
 	} else if ((ctx->mode == 0x3) || (ctx->mode == 0x4)) {
-		xorHash(resultBuf, 0, sdHashKey2, 0, 0x10);
+		xorKey(resultBuf, 0, sdHashKey2, 0, 0x10);
 	}
 
 	// If mode is 2, 4 or 6, encrypt again with KIRK CMD 5 and then KIRK CMD 4.
@@ -435,9 +445,8 @@ static int hleSdSetMember(SD_Ctx2 ctx, uint8_t* data, int length) {
 	return 0;
 }
 
-static void DecryptSavedata(uint8_t *buf, int size, uint8_t *key) {
+static void DecryptSavedata(uint8_t *buf, int size, uint8_t *key, int sdDecMode) {
 	// Initialize the context structs.
-	int sdDecMode;
 	_SD_Ctx1 ctx1;
 	_SD_Ctx2 ctx2;
 	memset(&ctx1,0,sizeof(ctx1));
@@ -446,18 +455,18 @@ static void DecryptSavedata(uint8_t *buf, int size, uint8_t *key) {
 	// Setup the buffers.
 	int alignedSize = ((size + 0xF) >> 4) << 4;
 	uint8_t *tmpbuf = malloc(alignedSize);
-	//uint8_t hash[0x10];
 
 	// Set the decryption mode.
 	if (isNullKey(key)) {
 		sdDecMode = 1;
-	} else {
+	} else if (sdDecMode & 0x20) {
+		sdDecMode = 3;
+	} else if (sdDecMode & 0x40) {
 		// After firmware version 2.5.2 the decryption mode used is 5.
-		//if (Emulator.getInstance().getFirmwareVersion() > 252) {
 		sdDecMode = 5;
-		//} else {
-		//	sdDecMode = 3;
-		//}
+	} else {
+		// unsupported mode
+		LOG("Error: unsupported DecMode %X", sdDecMode);
 	}
 
 	// Perform the decryption.
@@ -467,7 +476,6 @@ static void DecryptSavedata(uint8_t *buf, int size, uint8_t *key) {
 
 	arraycopy(buf, 0x10, tmpbuf, 0, size - 0x10);
 	hleSdRemoveValue(&ctx1, tmpbuf, alignedSize);
-
 	hleSdSetMember(&ctx2, tmpbuf, alignedSize);
 
 	// Clear context 2.
@@ -481,9 +489,9 @@ static void DecryptSavedata(uint8_t *buf, int size, uint8_t *key) {
 	free(tmpbuf);
 }
 
-static void EncryptSavedata(uint8_t* buf, int size, uint8_t *key, uint8_t *hash, uint8_t *iv) {
+static void EncryptSavedata(uint8_t* buf, int size, uint8_t *key, uint8_t *hash, int sdEncMode) {
 	// Initialize the context structs.
-	int sdEncMode;
+	uint8_t iv[16] = "bucanero.com.ar";
 	_SD_Ctx1 ctx1;
 	_SD_Ctx2 ctx2;
 	memset(&ctx1,0,sizeof(ctx1));
@@ -503,13 +511,14 @@ static void EncryptSavedata(uint8_t* buf, int size, uint8_t *key, uint8_t *hash,
 	// Set the encryption mode.
 	if (isNullKey(key)) {
 		sdEncMode = 1;
-	} else {
+	} else if (sdEncMode & 0x20) {
+		sdEncMode = 3;
+	} else if (sdEncMode & 0x40) {
 		// After firmware version 2.5.2 the encryption mode used is 5.
-		//if (Emulator.getInstance().getFirmwareVersion() > 252) {
 		sdEncMode = 5;
-		//} else {
-			//sdEncMode = 3;
-		//}
+	} else {
+		// unsupported mode
+		LOG("Error: unsupported EncMode %X", sdEncMode);
 	}
 
 	// Generate the encryption IV (first 0x10 bytes).
@@ -526,7 +535,6 @@ static void EncryptSavedata(uint8_t* buf, int size, uint8_t *key, uint8_t *hash,
 	}
 	hleSdSetIndex(&ctx1, sdEncMode);
 	hleSdRemoveValue(&ctx1, header, 0x10);
-
 	hleSdSetMember(&ctx2, tmpbuf, alignedSize);
 
 	// Clear extra bytes.
@@ -558,8 +566,6 @@ static void GenerateSavedataHash(uint8_t *data, int size, int mode, uint8_t* key
 	hleSdRemoveValue(&ctx1, data, size);
 	if(hleSdGetLastIndex(&ctx1, hash, NULL)<0)
 		memset(hash,1,0x10);
-
-	//return hash;
 }
 
 static void UpdateSavedataHashes(uint8_t* savedataParams, uint8_t* data, int size) {
@@ -567,19 +573,11 @@ static void UpdateSavedataHashes(uint8_t* savedataParams, uint8_t* data, int siz
 	uint8_t key[0x10];
 	memset(key,0,sizeof(key));
 
-	int mode = 2;
-	int check_bit = 1;
-
 	// Check for previous SAVEDATA_PARAMS data in the file.
-	//Object savedataParamsOld = psf.get("SAVEDATA_PARAMS");
-	//if (savedataParamsOld != null) {
-		// Extract the mode setup from the already existing data.
-		//byte[] savedataParamsOldArray = (byte[]) savedataParamsOld;
-	mode = ((savedataParams[0] >> 4) & 0xF);
-	check_bit = ((savedataParams[0]) & 0xF);
-	//}
+	int mode = ((savedataParams[0] >> 4) & 0xF);
+	int check_bit = ((savedataParams[0]) & 0xF);
+
 	memset(savedataParams,0,0x80);
-	//if((mode&0x4)==0x4)mode=2;
 
 	if ((mode & 0x4) == 0x4) {
 		// Generate a type 6 hash.
@@ -704,7 +702,15 @@ int psp_EncryptSavedata(const char* fpath, const char* fname, uint8_t* key)
 	uint8_t* sd_flist = find_sfo_parameter(sfo, "SAVEDATA_FILE_LIST");
 	sd_flist = find_sfo_datafile(sd_flist, fname);
 
-	EncryptSavedata(inbuf, size, key, sd_flist + 0x0d, (uint8_t*)"bucanero.com.ar");
+	if (!sd_flist)
+	{
+		LOG("PARAM.SFO Error: file '%s' not found", fname);
+		free(inbuf);
+		free(sfo);
+		return 0;
+	}
+
+	EncryptSavedata(inbuf, size, key, sd_flist + 0x0d, sd_param[0]);
 
 	//This hash is different from original one, but PSP somehow accepts it...
 	UpdateSavedataHashes(sd_param, sfo, sfosize);
@@ -723,18 +729,36 @@ int psp_EncryptSavedata(const char* fpath, const char* fname, uint8_t* key)
 	return 1;
 }
 
-int psp_DecryptSavedata(const char* fname, uint8_t* key)
+int psp_DecryptSavedata(const char* fpath, const char* fname, uint8_t* key)
 {
+	uint8_t* sfo;
 	uint8_t* inbuf;
 	size_t size;
+	char path[256];
+	int dmode;
 
 	kirk_init();
+
+	snprintf(path, sizeof(path), "%sPARAM.SFO", fpath);
+	LOG("Loading file %s", path);
+	if (read_buffer(path, &sfo, &size) != 0)
+		return 0;
+
+	if(read32(sfo) != 0x46535000 || read32(sfo+4) != 0x00000101)
+	{
+		free(sfo);
+		return 0;
+	}
+
+	inbuf = find_sfo_parameter(sfo, "SAVEDATA_PARAMS");
+	dmode = inbuf[0];
+	free(sfo);
 
 	LOG("Loading file %s", fname);
 	if (read_buffer(fname, &inbuf, &size) != 0)
 		return 0;
 
-	DecryptSavedata(inbuf, size, key);
+	DecryptSavedata(inbuf, size, key, dmode);
 
 	LOG("Saving decrypted file %s", fname);
 	if (write_buffer(fname, inbuf, size-0x10) != 0)

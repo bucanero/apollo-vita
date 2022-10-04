@@ -863,7 +863,7 @@ static int apply_cheat_patches(const save_entry_t* entry)
 
 			if (entry->flags & SAVE_FLAG_PSP && !psp_is_decrypted(decrypted_files, filename))
 			{
-				if (get_psp_save_key(entry, key) && psp_DecryptSavedata(tmpfile, key))
+				if (get_psp_save_key(entry, key) && psp_DecryptSavedata(entry->path, filename, key))
 				{
 					LOG("Decrypted PSP file '%s'", filename);
 					list_append(decrypted_files, strdup(filename));
@@ -1090,7 +1090,7 @@ static void decryptSaveFile(const save_entry_t* entry, const char* filename)
 	if (_copy_save_file(entry->path, path, filename))
 	{
 		strlcat(path, filename, sizeof(path));
-		if (entry->flags & SAVE_FLAG_PSP && !psp_DecryptSavedata(path, key))
+		if (entry->flags & SAVE_FLAG_PSP && !psp_DecryptSavedata(entry->path, path, key))
 			show_message("Error! File %s couldn't be exported", filename);
 
 		show_message("File successfully exported to:\n%s", path);
