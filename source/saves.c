@@ -14,8 +14,6 @@
 #include "sqlite3.h"
 #include "vitashell_user.h"
 
-#define UTF8_CHAR_GROUP		"\xe2\x97\x86"
-#define UTF8_CHAR_ITEM		"\xe2\x94\x97"
 #define UTF8_CHAR_STAR		"\xE2\x98\x85"
 
 #define CHAR_ICON_ZIP		"\x0C"
@@ -1525,10 +1523,13 @@ int get_save_details(const save_entry_t* save, char **details)
 	for (int i = 0; (i < 256) && sfoPath[i]; i++)
 	{
 		out += sprintf(out, "----- Slot %03d -----\n"
+			"Date: %d/%02d/%02d %02d:%02d:%02d\n"
 			"Title: %s\n"
 			"Subtitle: %s\n"
-			"Detail: %s\n",
-			i, sdslot->slots[i].title,
+			"Details: %s\n",
+			(i+1), sdslot->slots[i].year, sdslot->slots[i].month, sdslot->slots[i].day,
+			sdslot->slots[i].hour, sdslot->slots[i].min, sdslot->slots[i].sec,
+			sdslot->slots[i].title,
 			sdslot->slots[i].subtitle,
 			sdslot->slots[i].description);
 	}

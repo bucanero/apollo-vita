@@ -50,7 +50,13 @@ typedef struct sdslot_item
     char subtitle[0x80];
     char description[0x200];    
     char icon[0x48];
-    uint8_t datetime[0x10];
+    uint16_t year;
+    uint16_t month;
+    uint16_t day;
+    uint16_t hour;
+    uint16_t min;
+    uint16_t sec;
+    uint8_t dt_unk[4];
     uint8_t unk2[0xE4];         // 0
 } sdslot_item_t;
 

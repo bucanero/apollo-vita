@@ -7,6 +7,11 @@
 #include "menu_gui.h"
 #include "libfont.h"
 
+#define UTF8_CHAR_GROUP     "\xE2\x97\x86"
+#define UTF8_CHAR_ITEM      "\xE2\x94\x97"
+#define UTF8_CHAR_STAR      "\xE2\x98\x85"
+#define CHAR_ICON_WARN      "\x0F"
+
 void DrawScrollBar(int selIndex, int max, int y_inc, int xOff, u8 alpha)
 {
     int game_y = help_png_y;
@@ -53,7 +58,7 @@ void DrawOptions(option_entry_t* option, u8 alpha, int y_inc, int selIndex)
     if (!option->name || !option->value)
         return;
     
-    int c = 0, yOff = 80, cIndex = 0;
+    int c = 0, yOff = 80;
     
     int maxPerPage = (SCREEN_HEIGHT - (yOff * 2)) / y_inc;
     int startDrawX = selIndex - (maxPerPage / 2);
@@ -75,8 +80,6 @@ void DrawOptions(option_entry_t* option, u8 alpha, int y_inc, int selIndex)
             {
                 DrawTexture(&menu_textures[mark_line_png_index], MENU_SPLIT_OFF, yOff, 0, SCREEN_WIDTH - MENU_SPLIT_OFF, menu_textures[mark_line_png_index].height * 3/2, 0xFFFFFF00 | alpha);
             }
-            
-            cIndex++;
         }
         yOff += y_inc;
     }
@@ -348,7 +351,7 @@ void DrawGameList(int selIndex, list_t * games, u8 alpha)
 				DrawString((SCREEN_WIDTH - 40) - (MENU_ICON_OFF * 5), game_y, item->title_id);
 
 			if (item->flags & SAVE_FLAG_SELECTED)
-                DrawString(MENU_ICON_OFF + MENU_TITLE_OFF - 30, game_y, "\xE2\x98\x85");
+				DrawString(MENU_ICON_OFF + MENU_TITLE_OFF - 30, game_y, UTF8_CHAR_STAR);
 
 			tmp[0] = ' ';
 			if (item->flags & SAVE_FLAG_PS2) tmp[0] = CHAR_TAG_PS2;
@@ -396,19 +399,22 @@ void DrawCheatsList(int selIndex, save_entry_t* game, u8 alpha)
 
     for (; x < max; x++)
     {
-        int xo = 0; //(((selIndex - x) < 0) ? -(selIndex - x) : (selIndex - x));
-        
         if (x >= 0 && node)
         {
 			code = list_get(node);
-            //u32 color = game.codes[x].activated ? 0x4040C000 : 0x00000000;
 			u8 a = (u8)((alpha * CalculateAlphaList(x, selIndex, maxPerPage)) / 0xFF);
 
             if (!a)
                 goto skip_code;
 
             SetFontColor(APP_FONT_COLOR | a, 0);
-            float dx = DrawString(MENU_ICON_OFF + (MENU_TITLE_OFF * 3) - xo, game_y, code->name);
+
+            const char *group = "";
+            if (code->flags & APOLLO_CODE_FLAG_PARENT) group = UTF8_CHAR_GROUP " ";
+            if (code->flags & APOLLO_CODE_FLAG_CHILD)  group = " " UTF8_CHAR_ITEM " ";
+            const char *alert = (code->flags & APOLLO_CODE_FLAG_ALERT) ? CHAR_ICON_WARN : "";
+
+            float dx = DrawFormatString(MENU_ICON_OFF + (MENU_TITLE_OFF * 3), game_y, "%s%s%s", group, alert, code->name);
             
             if (code->activated)
             {
@@ -423,8 +429,7 @@ void DrawCheatsList(int selIndex, save_entry_t* game, u8 alpha)
                 
                 if (code->options_count > 0 && code->options)
                 {
-                    int od = 0;
-                    for (od = 0; od < code->options_count; od++)
+                    for (int od = 0; od < code->options_count; od++)
                     {
                         if (code->options[od].sel >= 0 && code->options[od].name && code->options[od].name[code->options[od].sel])
                         {
@@ -465,8 +470,7 @@ skip_code:
 
 void Draw_CheatsMenu_Selection_Ani()
 {
-    int ani = 0;
-    for (ani = 0; ani < MENU_ANI_MAX; ani++)
+    for (int ani = 0; ani < MENU_ANI_MAX; ani++)
     {
         SDL_RenderClear(renderer);
         DrawBackground2D(0xFFFFFFFF);
