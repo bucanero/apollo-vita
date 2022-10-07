@@ -761,7 +761,7 @@ int ReadBackupCodes(save_entry_t * bup)
 	{
 	case FILE_TYPE_ZIP:
 		break;
-
+/*
 	case FILE_TYPE_ACT:
 		bup->codes = list_alloc();
 
@@ -794,7 +794,7 @@ int ReadBackupCodes(save_entry_t * bup)
 		}
 
 		return list_count(bup->codes);
-
+*/
 	default:
 		return 0;
 	}

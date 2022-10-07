@@ -557,7 +557,7 @@ static void EncryptSavedata(uint8_t* buf, int size, uint8_t *key, uint8_t *hash,
 	free(tmpbuf);
 }
 
-static void GenerateSavedataHash(uint8_t *data, int size, int mode, uint8_t* key, uint8_t *hash) {
+static void GenerateSavedataHash(uint8_t *data, int size, int mode, uint8_t *hash) {
 	_SD_Ctx1 ctx1;
 	memset(&ctx1,0,sizeof(ctx1));
 
@@ -569,10 +569,6 @@ static void GenerateSavedataHash(uint8_t *data, int size, int mode, uint8_t* key
 }
 
 static void UpdateSavedataHashes(uint8_t* savedataParams, uint8_t* data, int size) {
-	// Setup the params, hashes, modes and key (empty).
-	uint8_t key[0x10];
-	memset(key,0,sizeof(key));
-
 	// Check for previous SAVEDATA_PARAMS data in the file.
 	int mode = ((savedataParams[0] >> 4) & 0xF);
 	int check_bit = ((savedataParams[0]) & 0xF);
@@ -581,29 +577,27 @@ static void UpdateSavedataHashes(uint8_t* savedataParams, uint8_t* data, int siz
 
 	if ((mode & 0x4) == 0x4) {
 		// Generate a type 6 hash.
-		GenerateSavedataHash(data, size, 6, key, savedataParams+0x20);
-		savedataParams[0]|=0x01;
+		GenerateSavedataHash(data, size, 6, savedataParams+0x20);
+		savedataParams[0]|=0x41;
 
-		savedataParams[0]|=0x40;
 		// Generate a type 5 hash.
-		GenerateSavedataHash(data, size, 5, key, savedataParams+0x70);
+		GenerateSavedataHash(data, size, 5, savedataParams+0x70);
 	} else if((mode & 0x2) == 0x2) {
 		// Generate a type 4 hash.
-		GenerateSavedataHash(data, size, 4, key, savedataParams+0x20);
-		savedataParams[0]|=0x01;
+		GenerateSavedataHash(data, size, 4, savedataParams+0x20);
+		savedataParams[0]|=0x21;
 
-		savedataParams[0]|=0x20;
 		// Generate a type 3 hash.
-		GenerateSavedataHash(data, size, 3, key, savedataParams+0x70);
+		GenerateSavedataHash(data, size, 3, savedataParams+0x70);
 	} else {
 		// Generate a type 2 hash.
-		GenerateSavedataHash(data, size, 2, key, savedataParams+0x20);
+		GenerateSavedataHash(data, size, 2, savedataParams+0x20);
 		savedataParams[0]|=0x01;
 	}
 
 	if ((check_bit & 0x1) == 0x1) {
 		// Generate a type 1 hash.
-		GenerateSavedataHash(data, size, 1, key, savedataParams+0x10);
+		GenerateSavedataHash(data, size, 1, savedataParams+0x10);
 	}
 }
 
@@ -673,27 +667,13 @@ int psp_EncryptSavedata(const char* fpath, const char* fname, uint8_t* key)
 
 	kirk_init();
 
-	snprintf(path, sizeof(path), "%s%s", fpath, fname);
-	LOG("Loading file %s", path);
-	FILE *f = fopen(path, "rb");
-	fseek(f, 0, SEEK_END);
-	size = ftell(f);
-	fseek(f, 0, SEEK_SET);
-	inbuf = calloc(1, size + 0x10);
-	fread(inbuf, 1, size, f);
-	fclose(f);
-
 	snprintf(path, sizeof(path), "%sPARAM.SFO", fpath);
 	LOG("Loading file %s", path);
 	if (read_buffer(path, &sfo, &sfosize) != 0)
-	{
-		free(inbuf);
 		return 0;
-	}
 
 	if(read32(sfo) != 0x46535000 || read32(sfo+4) != 0x00000101)
 	{
-		free(inbuf);
 		free(sfo);
 		return 0;
 	}
@@ -705,23 +685,32 @@ int psp_EncryptSavedata(const char* fpath, const char* fname, uint8_t* key)
 	if (!sd_flist)
 	{
 		LOG("PARAM.SFO Error: file '%s' not found", fname);
-		free(inbuf);
 		free(sfo);
 		return 0;
 	}
+
+	snprintf(path, sizeof(path), "%s%s", fpath, fname);
+	LOG("Loading file %s", path);
+	FILE *f = fopen(path, "rb");
+	fseek(f, 0, SEEK_END);
+	size = ftell(f);
+	fseek(f, 0, SEEK_SET);
+	inbuf = calloc(1, size + 0x10);
+	fread(inbuf, 1, size, f);
+	fclose(f);
 
 	EncryptSavedata(inbuf, size, key, sd_flist + 0x0d, sd_param[0]);
 
 	//This hash is different from original one, but PSP somehow accepts it...
 	UpdateSavedataHashes(sd_param, sfo, sfosize);
 
-	LOG("Saving updated file %s", path);
-	if (write_buffer(path, sfo, sfosize) != 0)
-		return 0;
-
-	snprintf(path, sizeof(path), "%s%s", fpath, fname);
 	LOG("Saving encrypted file %s", path);
 	if (write_buffer(path, inbuf, size+0x10) != 0)
+		return 0;
+
+	snprintf(path, sizeof(path), "%sPARAM.SFO", fpath);
+	LOG("Saving updated file %s", path);
+	if (write_buffer(path, sfo, sfosize) != 0)
 		return 0;
 
 	free(inbuf);
