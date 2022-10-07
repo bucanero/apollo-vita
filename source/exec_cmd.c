@@ -406,7 +406,7 @@ static void dumpAllFingerprints(const save_entry_t* save)
 	end_progress_bar();
 	show_message("All fingerprints dumped to:\n%sfingerprints.txt", APOLLO_PATH);
 }
-
+/*
 static void activateAccount(int user, const char* value)
 {
 	uint64_t account = 0;
@@ -425,7 +425,7 @@ static void activateAccount(int user, const char* value)
 
 	show_message("Account successfully activated!\nA system reboot might be required");
 }
-
+*/
 static void copySavePFS(const save_entry_t* save)
 {
 	char src_path[256];
@@ -957,110 +957,47 @@ static void resignAllSaves(const save_entry_t* save, int all)
 	else
 		show_message("All saves successfully resigned!");
 }
-/*
-int apply_trophy_account()
+
+static void import_mcr2vmp(const save_entry_t* save, const char* src, int dst_id)
 {
-	char sfoPath[256];
-	char account_id[SFO_ACCOUNT_ID_SIZE+1];
+	char mcrPath[256], vmpPath[256];
 
-	snprintf(account_id, sizeof(account_id), "%*lx", SFO_ACCOUNT_ID_SIZE, apollo_config.account_id);
-	if (!apollo_config.account_id)
-		memset(account_id, 0, SFO_ACCOUNT_ID_SIZE);
+	snprintf(mcrPath, sizeof(mcrPath), PS1_SAVES_PATH_HDD "%s/%s", save->title_id, src);
+	snprintf(vmpPath, sizeof(vmpPath), "%sSCEVMC%d.VMP", save->path, dst_id);
 
-	snprintf(sfoPath, sizeof(sfoPath), "%s" "PARAM.SFO", selected_entry->path);
-
-	patch_sfo_trophy(sfoPath, account_id);
-//	patch_trophy_account(selected_entry->path, account_id);
-
-	return 1;
+	if (ps1_mcr2vmp(mcrPath, vmpPath))
+		show_message("Memory card successfully imported to:\n%s", vmpPath);
+	else
+		show_message("Error importing memory card:\n%s", mcrPath);
 }
 
-int apply_trophy_patches()
+static void export_vmp2mcr(const save_entry_t* save, const char* src_vmp)
 {
-	int ret = 1;
-	uint32_t trophy_id;
-	code_entry_t* code;
-	list_node_t* node;
+	char mcrPath[256], vmpPath[256];
 
-	init_loading_screen("Applying changes...");
+	snprintf(vmpPath, sizeof(vmpPath), "%s%s", save->path, src_vmp);
+	snprintf(mcrPath, sizeof(mcrPath), PS1_SAVES_PATH_HDD "%s/%s", save->title_id, src_vmp);
+	strcpy(strrchr(mcrPath, '.'), ".MCR");
+	mkdirs(mcrPath);
 
-	for (node = list_head(selected_entry->codes); (code = list_get(node)); node = list_next(node))
-	{
-		if (!code->activated || (code->type != PATCH_TROP_UNLOCK && code->type != PATCH_TROP_LOCK))
-			continue;
-
-		trophy_id = *(uint32_t*)(code->file);
-    	LOG("Active code: [%d] '%s'", trophy_id, code->name);
-
-if (0)
-//		if (!apply_trophy_patch(selected_entry->path, trophy_id, (code->type == PATCH_TROP_UNLOCK)))
-		{
-			LOG("Error: failed to apply (%s)", code->name);
-			ret = 0;
-		}
-
-		if (code->type == PATCH_TROP_UNLOCK)
-		{
-			code->type = PATCH_TROP_LOCK;
-			code->name[1] = ' ';
-		}
-		else
-		{
-			code->type = PATCH_TROP_UNLOCK;
-			code->name[1] = CHAR_TAG_LOCKED;
-		}
-
-		code->activated = 0;
-	}
-
-	stop_loading_screen();
-
-	return ret;
+	if (ps1_vmp2mcr(vmpPath, mcrPath))
+		show_message("Memory card successfully exported to:\n%s", mcrPath);
+	else
+		show_message("Error exporting memory card:\n%s", vmpPath);
 }
 
-void resignTrophy()
+static void resignVMP(const save_entry_t* save, const char* src_vmp)
 {
-	LOG("Decrypting TROPTRNS.DAT ...");
-if (0)
-//	if (!decrypt_trophy_trns(selected_entry->path))
-	{
-		LOG("Error: failed to decrypt TROPTRNS.DAT");
-		return;
-	}
+	char vmpPath[256];
 
-    if (!apply_trophy_account())
-        show_message("Error! Account changes couldn't be applied");
+	snprintf(vmpPath, sizeof(vmpPath), "%s%s", save->path, src_vmp);
 
-    LOG("Applying trophy changes to '%s'...", selected_entry->name);
-    if (!apply_trophy_patches())
-        show_message("Error! Trophy changes couldn't be applied");
-
-	LOG("Encrypting TROPTRNS.DAT ...");
-if (0)
-//	if (!encrypt_trophy_trns(selected_entry->path))
-	{
-		LOG("Error: failed to encrypt TROPTRNS.DAT");
-		return;
-	}
-
-    LOG("Resigning trophy '%s'...", selected_entry->name);
-
-if (0)
-//    if (!pfd_util_init((u8*) apollo_config.idps, apollo_config.user_id, selected_entry->title_id, selected_entry->path) ||
-//        (pfd_util_process(PFD_CMD_UPDATE, 0) != SUCCESS))
-        show_message("Error! Trophy %s couldn't be resigned", selected_entry->title_id);
-    else
-        show_message("Trophy %s successfully modified!", selected_entry->title_id);
-
-//    pfd_util_end();
-
-	if ((file_exists("/dev_hdd0/mms/db.err") != SUCCESS) && show_dialog(1, "Schedule Database rebuild on next boot?"))
-	{
-		LOG("Creating db.err file for database rebuild...");
-		write_buffer("/dev_hdd0/mms/db.err", (u8*) "\x00\x00\x03\xE9", 4);
-	}
+	if (vmp_resign(vmpPath))
+		show_message("Memory card successfully resigned:\n%s", vmpPath);
+	else
+		show_message("Error resigning memory card:\n%s", vmpPath);
 }
-*/
+
 static int _copy_save_file(const char* src_path, const char* dst_path, const char* filename)
 {
 	char src[256], dst[256];
@@ -1135,12 +1072,11 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 {
 	char mount[32];
 
-	if (selected_entry->flags & SAVE_FLAG_PSV && selected_entry->flags & SAVE_FLAG_HDD)
-		if (!vita_SaveMount(selected_entry, mount))
-		{
-			LOG("Error Mounting Save! Check Save Mount Patches");
-			return;
-		}
+	if (selected_entry->flags & SAVE_FLAG_PSV && selected_entry->flags & SAVE_FLAG_HDD && !vita_SaveMount(selected_entry, mount))
+	{
+		LOG("Error Mounting Save! Check Save Mount Patches");
+		return;
+	}
 
 	switch (codecmd[0])
 	{
@@ -1187,6 +1123,22 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 
 		case CMD_DUMP_PSPKEY:
 			pspDumpKey(selected_entry);
+			code->activated = 0;
+			break;
+
+		case CMD_IMP_MCR2VMP0:
+		case CMD_IMP_MCR2VMP1:
+			import_mcr2vmp(selected_entry, code->options[0].name[code->options[0].sel], codecmd[0] == CMD_IMP_MCR2VMP1);
+			code->activated = 0;
+			break;
+
+		case CMD_EXP_VMP2MCR:
+			export_vmp2mcr(selected_entry, code->options[0].name[code->options[0].sel]);
+			code->activated = 0;
+			break;
+
+		case CMD_RESIGN_VMP:
+			resignVMP(selected_entry, code->options[0].name[code->options[0].sel]);
 			code->activated = 0;
 			break;
 /*

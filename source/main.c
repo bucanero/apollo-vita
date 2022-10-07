@@ -663,6 +663,9 @@ void SetMenu(int id)
 
 				if (selected_entry->flags & SAVE_FLAG_PSP && file_exists(iconfile) != SUCCESS)
 					http_download(selected_entry->path, "ICON0.PNG", iconfile, 0);
+
+				if (selected_entry->flags & SAVE_FLAG_PSV && file_exists(iconfile) != SUCCESS)
+					http_download(selected_entry->path, "icon0.png", iconfile, 0);
 			}
 			else if (selected_entry->flags & SAVE_FLAG_PSP)
 				snprintf(iconfile, sizeof(iconfile), "%sICON0.PNG", selected_entry->path);

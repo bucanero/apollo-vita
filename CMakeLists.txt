@@ -80,6 +80,7 @@ add_executable(${PROJECT_NAME}
   source/zip_util.c
   source/kirk_engine.c
   source/psp_decrypter.c
+  source/vmp_resign.c
 )
 
 target_link_libraries(${PROJECT_NAME}

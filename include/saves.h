@@ -24,7 +24,7 @@
 
 #define PS3_LICENSE_PATH        "exdata/"
 #define PSV_ICONS_PATH_HDD      "ur0:appmeta/%s"
-#define PS2_SAVES_PATH_HDD      "ps2emu2_savedata/"
+#define PS1_SAVES_PATH_HDD      APOLLO_PATH "PS1/"
 #define PSP_SAVES_PATH_HDD      "ux0:pspemu/" PSP_SAVES_PATH_USB
 
 #define PS1_IMP_PATH_USB        "PS1/SAVEDATA/"
@@ -83,7 +83,7 @@ enum cmd_code_enum
     CMD_EXPORT_ZIP_HDD,
     CMD_VIEW_DETAILS,
     CMD_VIEW_RAW_PATCH,
-    CMD_RESIGN_PSV,
+    CMD_RESIGN_VMP,
     CMD_EXP_FINGERPRINT,
     CMD_CONVERT_TO_PSV,
     CMD_COPY_PFS,
@@ -102,13 +102,14 @@ enum cmd_code_enum
 // Export commands
     CMD_EXP_KEYSTONE,
     CMD_EXP_LICS_RAPS,
-    CMD_EXP_FLASH2_USB,
+    CMD_EXP_VMP2MCR,
     CMD_EXP_PSPKEY,
     CMD_DUMP_PSPKEY,
 
 // Import commands
     CMD_IMP_KEYSTONE,
-    CMD_CREATE_ACT_DAT,
+    CMD_IMP_MCR2VMP0,
+    CMD_IMP_MCR2VMP1,
     CMD_EXTRACT_ARCHIVE,
 
 // SFO patches
@@ -268,3 +269,7 @@ int orbis_UpdateSaveParams(const char* mountPath, const char* title, const char*
 int read_psp_game_key(const char* fkey, uint8_t* key);
 int psp_DecryptSavedata(const char* fpath, const char* fname, uint8_t* key);
 int psp_EncryptSavedata(const char* fpath, const char* fname, uint8_t* key);
+
+int vmp_resign(const char *src_vmp);
+int ps1_mcr2vmp(const char* mcrfile, const char* vmp_path);
+int ps1_vmp2mcr(const char* vmpfile, const char* mcr_path);

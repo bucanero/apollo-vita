@@ -300,13 +300,18 @@ static option_entry_t* _getFileOptions(const char* save_path, const char* mask, 
 	int i = 0;
 	option_entry_t* opt;
 
-	if (dir_exists(save_path) != SUCCESS)
-		return NULL;
-
 	LOG("Loading filenames {%s} from '%s'...", mask, save_path);
 
 	file_list = list_alloc();
 	_walk_dir_list(save_path, save_path, mask, file_list);
+
+	if (!list_count(file_list))
+	{
+		is_cmd = 0;
+		asprintf(&filename, CHAR_ICON_WARN " --- %s%s --- " CHAR_ICON_WARN, save_path, mask);
+		list_append(file_list, filename);
+	}
+
 	opt = _initOptions(list_count(file_list));
 
 	for (node = list_head(file_list); (filename = list_get(node)); node = list_next(node))
@@ -402,7 +407,7 @@ static option_entry_t* _getSaveTitleIDs(const char* title_id)
 	return opt;
 }
 
-static void _addSfoCommands(save_entry_t* save)
+static void addVitaCommands(save_entry_t* save)
 {
 	code_entry_t* cmd;
 
@@ -419,33 +424,38 @@ static void _addSfoCommands(save_entry_t* save)
 	list_append(save->codes, cmd);
 
 	return;
-/*
-	cmd = _createCmdCode(PATCH_NULL, "----- " UTF8_CHAR_STAR " SFO Patches " UTF8_CHAR_STAR " -----", CMD_CODE_NULL);
+}
+
+static void add_ps1_commands(save_entry_t* save)
+{
+	char path[256];
+	code_entry_t* cmd;
+
+	cmd = _createCmdCode(PATCH_NULL, "----- " UTF8_CHAR_STAR " VMP Memory Cards " UTF8_CHAR_STAR " -----", CMD_CODE_NULL);
 	list_append(save->codes, cmd);
 
-	cmd = _createCmdCode(PATCH_SFO, CHAR_ICON_USER " Change Account ID", SFO_CHANGE_ACCOUNT_ID);
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_SIGN " Resign Memory Card", CMD_CODE_NULL);
 	cmd->options_count = 1;
-	cmd->options = _initOptions(2);
-	cmd->options->name[0] = strdup("Remove ID/Offline");
-	cmd->options->value[0] = calloc(1, SFO_ACCOUNT_ID_SIZE);
-	cmd->options->name[1] = strdup("Fake Owner");
-	cmd->options->value[1] = strdup("ffffffffffffffff");
+	cmd->options = _getFileOptions(save->path, "*.VMP", CMD_RESIGN_VMP);
 	list_append(save->codes, cmd);
 
-	cmd = _createCmdCode(PATCH_SFO, CHAR_ICON_USER " Remove Console ID", SFO_REMOVE_PSID);
-	list_append(save->codes, cmd);
-
-	if (save->flags & SAVE_FLAG_LOCKED)
-	{
-		cmd = _createCmdCode(PATCH_SFO, CHAR_ICON_LOCK " Remove copy protection", SFO_UNLOCK_COPY);
-		list_append(save->codes, cmd);
-	}
-
-	cmd = _createCmdCode(PATCH_SFO, CHAR_ICON_USER " Change Region Title ID", SFO_CHANGE_TITLE_ID);
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Export Memory Card to .MCR", CMD_CODE_NULL);
 	cmd->options_count = 1;
-	cmd->options = _getSaveTitleIDs(save->title_id);
+	cmd->options = _getFileOptions(save->path, "*.VMP", CMD_EXP_VMP2MCR);
 	list_append(save->codes, cmd);
-*/
+
+	snprintf(path, sizeof(path), PS1_SAVES_PATH_HDD "%s/", save->title_id);
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Import .MCR files to SCEVMC0.VMP", CMD_CODE_NULL);
+	cmd->options_count = 1;
+	cmd->options = _getFileOptions(path, "*.MCR", CMD_IMP_MCR2VMP0);
+	list_append(save->codes, cmd);
+
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Import .MCR files to SCEVMC1.VMP", CMD_CODE_NULL);
+	cmd->options_count = 1;
+	cmd->options = _getFileOptions(path, "*.MCR", CMD_IMP_MCR2VMP1);
+	list_append(save->codes, cmd);
+
+	return;
 }
 
 static void add_psp_commands(save_entry_t* item)
@@ -488,16 +498,21 @@ int ReadCodes(save_entry_t * save)
 
 	save->codes = list_alloc();
 
-	if (save->flags & SAVE_FLAG_PSV && save->flags & SAVE_FLAG_HDD)
-		if (!vita_SaveMount(save, mount))
-		{
-			code = _createCmdCode(PATCH_NULL, CHAR_ICON_WARN " --- Error Mounting Save! Check Save Mount Patches --- " CHAR_ICON_WARN, CMD_CODE_NULL);
-			list_append(save->codes, code);
-			return list_count(save->codes);
-		}
+	if (save->flags & SAVE_FLAG_PSV && save->flags & SAVE_FLAG_HDD && !vita_SaveMount(save, mount))
+	{
+		code = _createCmdCode(PATCH_NULL, CHAR_ICON_WARN " --- Error Mounting Save! Check Save Mount Patches --- " CHAR_ICON_WARN, CMD_CODE_NULL);
+		list_append(save->codes, code);
+		return list_count(save->codes);
+	}
 
 	_addBackupCommands(save);
-	(save->flags & SAVE_FLAG_PSP) ? add_psp_commands(save) : _addSfoCommands(save);
+
+	if (save->flags & SAVE_FLAG_PSP)
+		add_psp_commands(save);
+	else if (save->flags & SAVE_FLAG_PS1)
+		add_ps1_commands(save);
+	else
+		addVitaCommands(save);
 
 	snprintf(filePath, sizeof(filePath), APOLLO_DATA_PATH "%s.savepatch", save->title_id);
 	if (file_exists(filePath) != SUCCESS)
@@ -1020,6 +1035,13 @@ static void read_psp_savegames(const char* userPath, list_t *list, int flags)
 		asprintf(&item->title_id, "%.9s", item->dir_name);
 		asprintf(&item->path, "%s%s/", userPath, dir->d_name);
 
+		if (strcmp((char*) sfo_get_param_value(sfo, "SAVEDATA_FILE_LIST"), "CONFIG.BIN") == 0)
+		{
+			snprintf(sfoPath, sizeof(sfoPath), "%s%s/SCEVMC0.VMP", userPath, dir->d_name);
+			if (file_exists(sfoPath) == SUCCESS)
+				item->flags ^= (SAVE_FLAG_PS1 | SAVE_FLAG_PSP);
+		}
+
 		sfo_free(sfo);
 		LOG("[%s] F(%X) name '%s'", item->title_id, item->flags, item->name);
 		list_append(list, item);
@@ -1390,7 +1412,7 @@ int get_save_details(const save_entry_t* save, char **details)
 	sdslot_dat_t* sdslot;
 	size_t size;
 
-	if (save->flags & SAVE_FLAG_PSP)
+	if (save->flags & SAVE_FLAG_PSP || save->flags & SAVE_FLAG_PS1)
 	{
 		snprintf(sfoPath, sizeof(sfoPath), "%sPARAM.SFO", save->path);
 		LOG("Save Details :: Reading %s...", sfoPath);
