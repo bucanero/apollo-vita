@@ -200,9 +200,11 @@ int save_app_settings(app_config_t* config)
 	save_entry_t se = {
 		.dir_name = title,
 		.title_id = title,
+		.path = filePath,
 	};
 
-	if (!vita_SaveMount(&se, filePath)) {
+	snprintf(filePath, sizeof(filePath), APOLLO_SANDBOX_PATH, title);
+	if (!vita_SaveMount(&se)) {
 		LOG("sceSaveDataMount2 ERROR");
 		return 0;
 	}
@@ -224,6 +226,7 @@ int load_app_settings(app_config_t* config)
 	save_entry_t se = {
 		.dir_name = title,
 		.title_id = title,
+		.path = filePath,
 	};
 
 	config->user_id = 0;
@@ -237,7 +240,8 @@ int load_app_settings(app_config_t* config)
 	config->idps[0] = ES64(config->idps[0]);
 	config->idps[1] = ES64(config->idps[1]);
 
-	if (vita_SaveMount(&se, filePath) < 0) {
+	snprintf(filePath, sizeof(filePath), APOLLO_SANDBOX_PATH, title);
+	if (vita_SaveMount(&se) < 0) {
 		LOG("sceSaveDataMount2 ERROR");
 		return 0;
 	}

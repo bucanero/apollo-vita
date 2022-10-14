@@ -134,7 +134,7 @@ static void copySave(const save_entry_t* save, const char* exp_path)
 
 	init_loading_screen("Copying files...");
 
-	asprintf(&copy_path, "%s%08x_%s_%s/", exp_path, apollo_config.user_id, save->title_id, save->dir_name);
+	asprintf(&copy_path, "%s%02x_%s_%s/", exp_path, apollo_config.user_id, save->title_id, save->dir_name);
 
 	LOG("Copying <%s> to %s...", save->path, copy_path);
 	copy_directory(save->path, save->path, copy_path);
@@ -156,9 +156,8 @@ static int get_psp_save_key(const save_entry_t* entry, uint8_t* key)
 static int _copy_save_hdd(const save_entry_t* save)
 {
 	char copy_path[256];
-	char mount[32];
 
-	if (!vita_SaveMount(save, mount))
+	if (!vita_SaveMount(save))
 		return 0;
 
 	snprintf(copy_path, sizeof(copy_path), APOLLO_SANDBOX_PATH, save->dir_name);
@@ -166,7 +165,7 @@ static int _copy_save_hdd(const save_entry_t* save)
 	LOG("Copying <%s> to %s...", save->path, copy_path);
 	copy_directory(save->path, save->path, copy_path);
 
-	vita_SaveUmount(mount);
+	vita_SaveUmount();
 	return 1;
 }
 
@@ -378,7 +377,6 @@ static void pspExportKey(const save_entry_t* save)
 
 static void dumpAllFingerprints(const save_entry_t* save)
 {
-	char mount[32];
 	uint64_t progress = 0;
 	list_node_t *node;
 	save_entry_t *item;
@@ -393,14 +391,13 @@ static void dumpAllFingerprints(const save_entry_t* save)
 		if (item->type != FILE_TYPE_PSV || (item->flags & SAVE_FLAG_LOCKED))
 			continue;
 
-		if (item->flags & SAVE_FLAG_PSV && item->flags & SAVE_FLAG_HDD)
-			if (!vita_SaveMount(item, mount))
-				continue;
+		if (item->flags & SAVE_FLAG_PSV && item->flags & SAVE_FLAG_HDD && !vita_SaveMount(item))
+			continue;
 
 		exportFingerprint(item, 1);
 
 		if (item->flags & SAVE_FLAG_PSV && item->flags & SAVE_FLAG_HDD)
-			vita_SaveUmount(mount);
+			vita_SaveUmount();
 	}
 
 	end_progress_bar();
@@ -425,7 +422,7 @@ static void activateAccount(int user, const char* value)
 
 	show_message("Account successfully activated!\nA system reboot might be required");
 }
-*/
+
 static void copySavePFS(const save_entry_t* save)
 {
 	char src_path[256];
@@ -479,7 +476,7 @@ static void copySavePFS(const save_entry_t* save)
 	show_message("Encrypted save copied successfully!\n%s/%s", save->title_id, save->dir_name);
 	return;
 }
-
+*/
 static void copyKeystone(int import)
 {
 	char path_data[256];
@@ -555,7 +552,6 @@ static int webReqHandler(const dWebRequest_t* req, char* outfile)
 	// http://ps3-ip:8080/zip/00000000/CUSA12345_DIR-NAME.zip
 	if (wildcard_match(req->resource, "/zip/\?\?\?\?\?\?\?\?/\?\?\?\?\?\?\?\?\?_*.zip"))
 	{
-		char mount[32];
 		char *base, *path;
 		int id = 0;
 
@@ -563,9 +559,8 @@ static int webReqHandler(const dWebRequest_t* req, char* outfile)
 		sscanf(req->resource + 5, "%08x", &id);
 		item = list_get_item(list, id);
 
-		if (item->flags & SAVE_FLAG_PSV && item->flags & SAVE_FLAG_HDD)
-			if (!vita_SaveMount(item, mount))
-				return 0;
+		if (item->flags & SAVE_FLAG_PSV && item->flags & SAVE_FLAG_HDD && !vita_SaveMount(item))
+			return 0;
 
 		base = strdup(item->path);
 		path = strdup(item->path);
@@ -574,7 +569,7 @@ static int webReqHandler(const dWebRequest_t* req, char* outfile)
 
 		id = zip_directory(base, path, outfile);
 		if (item->flags & SAVE_FLAG_PSV && item->flags & SAVE_FLAG_HDD)
-			vita_SaveUmount(mount);
+			vita_SaveUmount();
 
 		free(base);
 		free(path);
@@ -619,7 +614,6 @@ static void copyAllSavesUSB(const save_entry_t* save, const char* dst_path, int 
 {
 	char copy_path[256];
 	char save_path[256];
-	char mount[32];
 	uint64_t progress = 0;
 	list_node_t *node;
 	save_entry_t *item;
@@ -637,16 +631,16 @@ static void copyAllSavesUSB(const save_entry_t* save, const char* dst_path, int 
 	for (node = list_head(list); (item = list_get(node)); node = list_next(node))
 	{
 		update_progress_bar(progress++, list_count(list), item->name);
-		if (item->type != FILE_TYPE_PSV || !(all || item->flags & SAVE_FLAG_SELECTED) || !vita_SaveMount(item, mount))
+		if (item->type != FILE_TYPE_PSV || !(all || item->flags & SAVE_FLAG_SELECTED) || !vita_SaveMount(item))
 			continue;
 
 		snprintf(save_path, sizeof(save_path), APOLLO_SANDBOX_PATH, item->dir_name);
-		snprintf(copy_path, sizeof(copy_path), "%s%08x_%s_%s/", dst_path, apollo_config.user_id, item->title_id, item->dir_name);
+		snprintf(copy_path, sizeof(copy_path), "%s%02x_%s_%s/", dst_path, apollo_config.user_id, item->title_id, item->dir_name);
 
 		LOG("Copying <%s> to %s...", save_path, copy_path);
 		copy_directory(save_path, save_path, copy_path);
 
-		vita_SaveUmount(mount);
+		vita_SaveUmount();
 	}
 
 	end_progress_bar();
@@ -1070,9 +1064,7 @@ static void encryptSaveFile(const save_entry_t* entry, const char* filename)
 
 void execCodeCommand(code_entry_t* code, const char* codecmd)
 {
-	char mount[32];
-
-	if (selected_entry->flags & SAVE_FLAG_PSV && selected_entry->flags & SAVE_FLAG_HDD && !vita_SaveMount(selected_entry, mount))
+	if (selected_entry->flags & SAVE_FLAG_PSV && selected_entry->flags & SAVE_FLAG_HDD && !vita_SaveMount(selected_entry))
 	{
 		LOG("Error Mounting Save! Check Save Mount Patches");
 		return;
@@ -1209,12 +1201,12 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			encryptSaveFile(selected_entry, code->options[0].name[code->options[0].sel]);
 			code->activated = 0;
 			break;
-
+/*
 		case CMD_COPY_PFS:
 			copySavePFS(selected_entry);
 			code->activated = 0;
 			break;
-
+*/
 		case CMD_EXTRACT_ARCHIVE:
 			extractArchive(code->file);
 			code->activated = 0;
@@ -1225,7 +1217,7 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 	}
 
 	if (selected_entry->flags & SAVE_FLAG_PSV && selected_entry->flags & SAVE_FLAG_HDD)
-		vita_SaveUmount(mount);
+		vita_SaveUmount();
 
 	return;
 }

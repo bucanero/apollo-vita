@@ -492,7 +492,7 @@ void update_hdd_path(char* path)
 
 void update_trophy_path(char* path)
 {
-	sprintf(path, TROPHY_PATH_HDD, apollo_config.user_id);
+	sprintf(path, TROPHY_PATH_HDD "db/trophy_local.db", apollo_config.user_id);
 }
 
 int ReloadUserSaves(save_list_t* save_list)

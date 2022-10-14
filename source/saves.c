@@ -73,7 +73,7 @@ static int get_appdb_title(sqlite3* db, const char* titleid, char* name)
 	return 1;
 }
 
-int vita_SaveUmount(const char* mount)
+int vita_SaveUmount()
 {
 	if (pfs_mount_point[0] == 0)
 		return 0;
@@ -90,18 +90,15 @@ int vita_SaveUmount(const char* mount)
 	return (umountErrorCode == SUCCESS);
 }
 
-int vita_SaveMount(const save_entry_t *save, char* mount)
+int vita_SaveMount(const save_entry_t *save)
 {
-	char path[0x100];
 	char klicensee[0x10];
 	ShellMountIdArgs args;
 
 	memset(klicensee, 0, sizeof(klicensee));
-	snprintf(path, sizeof(path), "ux0:user/00/savedata/%s", save->dir_name);
-	strcpy(mount, save->dir_name);
 
 	args.process_titleid = "NP0APOLLO";
-	args.path = path;
+	args.path = save->path;
 	args.desired_mount_point = NULL;
 	args.klicensee = klicensee;
 	args.mount_point = pfs_mount_point;
@@ -112,18 +109,18 @@ int vita_SaveMount(const save_entry_t *save, char* mount)
 		if (shellUserMountById(&args) < 0)
 			continue;
 
-		LOG("[%s] '%s' mounted (%s)", save->title_id, pfs_mount_point, path);
+		LOG("[%s] '%s' mounted (%s)", save->title_id, pfs_mount_point, save->path);
 		return 1;
 	}
 
-	int mountErrorCode = sceAppMgrGameDataMount(path, 0, 0, pfs_mount_point);
+	int mountErrorCode = sceAppMgrGameDataMount(save->path, 0, 0, pfs_mount_point);
 	if (mountErrorCode < 0)
 	{
 		LOG("ERROR (%X): can't mount '%s/%s'", mountErrorCode, save->title_id, save->dir_name);
 		return 0;
 	}
 
-	LOG("[%s] '/%s' mounted (%s)", save->title_id, pfs_mount_point, path);
+	LOG("[%s] '/%s' mounted (%s)", save->title_id, pfs_mount_point, save->path);
 	return 1;
 }
 
@@ -494,11 +491,10 @@ int ReadCodes(save_entry_t * save)
 	code_entry_t * code;
 	char filePath[256];
 	char * buffer = NULL;
-	char mount[32];
 
 	save->codes = list_alloc();
 
-	if (save->flags & SAVE_FLAG_PSV && save->flags & SAVE_FLAG_HDD && !vita_SaveMount(save, mount))
+	if (save->flags & SAVE_FLAG_PSV && save->flags & SAVE_FLAG_HDD && !vita_SaveMount(save))
 	{
 		code = _createCmdCode(PATCH_NULL, CHAR_ICON_WARN " --- Error Mounting Save! Check Save Mount Patches --- " CHAR_ICON_WARN, CMD_CODE_NULL);
 		list_append(save->codes, code);
@@ -531,7 +527,7 @@ int ReadCodes(save_entry_t * save)
 
 skip_end:
 	if (save->flags & SAVE_FLAG_PSV && save->flags & SAVE_FLAG_HDD)
-		vita_SaveUmount(mount);
+		vita_SaveUmount();
 
 	LOG("Loaded %ld codes", list_count(save->codes));
 
@@ -1387,10 +1383,10 @@ list_t * ReadTrophyList(const char* userPath)
 
 	while (sqlite3_step(res) == SQLITE_ROW)
 	{
-		item = _createSaveEntry(SAVE_FLAG_PSV | SAVE_FLAG_TROPHY, (const char*) sqlite3_column_text(res, 2));
+		item = _createSaveEntry(SAVE_FLAG_PSV | SAVE_FLAG_TROPHY | SAVE_FLAG_HDD, (const char*) sqlite3_column_text(res, 2));
 		item->blocks = sqlite3_column_int(res, 0);
-		item->path = strdup(userPath);
 		item->title_id = strdup((const char*) sqlite3_column_text(res, 1));
+		asprintf(&item->path, TROPHY_PATH_HDD "data/%s/", apollo_config.user_id, item->title_id);
 		item->type = FILE_TYPE_TRP;
 
 		LOG("[%s] F(%X) name '%s'", item->title_id, item->flags, item->name);
@@ -1504,7 +1500,7 @@ int get_save_details(const save_entry_t* save, char **details)
 	}
 
 	if(save->flags & SAVE_FLAG_HDD)
-		vita_SaveMount(save, mount);
+		vita_SaveMount(save);
 
 	snprintf(sfoPath, sizeof(sfoPath), "%ssce_sys/param.sfo", save->path);
 	LOG("Save Details :: Reading %s...", sfoPath);
@@ -1557,7 +1553,7 @@ int get_save_details(const save_entry_t* save, char **details)
 	}
 
 	if(save->flags & SAVE_FLAG_HDD)
-		vita_SaveUmount(mount);
+		vita_SaveUmount();
 
 	sfo_free(sfo);
 	return 1;

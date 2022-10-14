@@ -20,7 +20,7 @@
 #define PS2_SAVES_PATH_USB      "PS3/EXPORT/PS2SD/"
 #define PSP_SAVES_PATH_USB      "PSP/SAVEDATA/"
 #define PSV_SAVES_PATH_USB      "savegames/"
-#define TROPHIES_PATH_USB       "PS4/EXPORT/TROPHY/"
+#define TROPHIES_PATH_USB       "trophies/"
 
 #define PS3_LICENSE_PATH        "exdata/"
 #define PSV_ICONS_PATH_HDD      "ur0:appmeta/%s"
@@ -33,9 +33,9 @@
 #define SAVES_PATH_UMA0         UMA0_PATH PSV_SAVES_PATH_USB
 #define SAVES_PATH_IMC0         IMC0_PATH PSV_SAVES_PATH_USB
 
-#define TROPHY_PATH_USB0        UMA0_PATH TROPHIES_PATH_USB
-#define TROPHY_PATH_USB1        IMC0_PATH TROPHIES_PATH_USB
-#define TROPHY_PATH_HDD         "ur0:/user/00/trophy/db/trophy_local.db"
+#define TROPHY_PATH_UMA0        UMA0_PATH TROPHIES_PATH_USB
+#define TROPHY_PATH_IMC0        IMC0_PATH TROPHIES_PATH_USB
+#define TROPHY_PATH_HDD         "ur0:/user/%02x/trophy/"
 
 #define EXDATA_PATH_HDD			USER_PATH_HDD PS3_LICENSE_PATH
 
@@ -263,7 +263,7 @@ int regMgr_SetAccountId(int userNumber, uint64_t* psnAccountId);
 int create_savegame_folder(const char* folder);
 int get_save_details(const save_entry_t *save, char** details);
 int vita_SaveUmount();
-int vita_SaveMount(const save_entry_t *save, char* mountPath);
+int vita_SaveMount(const save_entry_t *save);
 int orbis_UpdateSaveParams(const char* mountPath, const char* title, const char* subtitle, const char* details);
 
 int read_psp_game_key(const char* fkey, uint8_t* key);
