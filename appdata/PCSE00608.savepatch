@@ -1,0 +1,38 @@
+;-- Resident Evil: Revelations 2 (USA)
+;-- Credits: Bucanero
+; PCSE00608
+
+:data/data0000.bin
+
+[Decompress data0000.bin (Required)]
+Decompress data/data0000.bin
+
+:~extracted\00000000.dat
+
+; cheats go here
+
+[Update DWADD checksum (Required)]
+set [csum]:0
+set [csum]:dwadd_le(0x000010,0x1279AF)
+set [csum]:endian_swap
+write at 0x000008:[csum]
+
+[Update SHA1 hash (Required)]
+;set range:0x000010,0x1279AF
+;set [hash]:SHA1
+;write at 0x127590:[hash]
+set pointer:eof-0x1F
+set range:0x0010,pointer
+set [hash]:SHA1
+write next (0):[hash]
+set range:pointer,pointer+0x14
+endian_swap(4)
+
+
+:data/data0000.bin
+
+[Fix Compression (Required)]
+delete at 0x00:0x4000
+
+[Compress data0000.bin (Required)]
+Compress data/data0000.bin,-w 15

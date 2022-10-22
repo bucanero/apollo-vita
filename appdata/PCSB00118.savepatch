@@ -1,0 +1,93 @@
+; PCSB00118
+; Metal Gear Solid 2 HD
+; Metal Gear Solid 3 HD
+; by bucanero
+
+[-- Metal Gear Solid 2 HD --]
+[Group:Decrypt MGS2]
+
+:*MASTER.BIN
+
+[Decode MASTER.BIN (Required)]
+set range:0x0000,0x001F
+DECRYPT mgs_base64
+
+:*DATA.BIN
+
+[Decrypt DATA.BIN (Required)]
+set range:0x000004,0x0071a9
+DECRYPT mgs("2MetalOfSolidSonsLibertyGear")
+; decrypt 2nd layer
+set range:0x000004,0x00159B
+DECRYPT mgs(0x00)
+set range:0x0015aa,0x0031A9
+DECRYPT mgs(0x00)
+set range:0x0031aa,0x0071A9
+DECRYPT mgs(0x00)
+
+; MGS2 cheats should go here
+
+[Group:Encrypt MGS2]
+
+[Update Custom Checksum (Required)]
+set range:0x000004,0x00159B
+set [crc1]:mgs2_checksum
+set range:0x0015aa,0x0031A9
+set [crc2]:mgs2_checksum
+set [crc1]:xor:[crc2]
+set [crc1]:endian_swap
+write at 0x0015a6:[crc1]
+
+[Encrypt DATA.BIN (Required)]
+; encrypt 2nd layer
+set range:0x000004,0x00159B
+ENCRYPT mgs(0x00)
+set range:0x0015aa,0x0031A9
+ENCRYPT mgs(0x00)
+set range:0x0031aa,0x0071A9
+ENCRYPT mgs(0x00)
+set range:0x000004,0x0071a9
+set [master_hash]:CRC32
+ENCRYPT mgs("2MetalOfSolidSonsLibertyGear")
+
+;BLES01419_MGS2/BLES01419_MGS2*/
+:*MASTER.BIN
+
+[Encode MASTER.BIN (Required)]
+write at 0x0010:[master_hash]
+set range:0x0000,0x001F
+ENCRYPT mgs_base64
+
+[Group:\]
+[-- Metal Gear Solid 3 HD --]
+[Group:Decrypt MGS3]
+
+;BLES01419_MGS3/BLES01419_MGS3*/
+:*MASTER.BIN
+
+[Decode MASTER.BIN (Required)]
+set range:0x0000,0x001F
+DECRYPT mgs_base64
+
+:*DATA.BIN
+
+[Decrypt DATA.BIN (Required)]
+set range:0x000000,0x00497B
+DECRYPT mgs("3MetalSolidSnakeEaterGear")
+
+; MGS3 cheats should go here
+
+[Group:Encrypt MGS3]
+
+[Encrypt DATA.BIN (Required)]
+set range:0x000000,0x00497B
+set [master_hash]:CRC32
+ENCRYPT mgs("3MetalSolidSnakeEaterGear")
+
+:*MASTER.BIN
+
+[Encode MASTER.BIN (Required)]
+write at 0x0008:[master_hash]
+write at 0x0010:[master_hash]
+set range:0x0000,0x001F
+ENCRYPT mgs_base64

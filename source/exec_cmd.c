@@ -150,6 +150,10 @@ static int get_psp_save_key(const save_entry_t* entry, uint8_t* key)
 	char path[256];
 
 	snprintf(path, sizeof(path), "ux0:pspemu/PSP/SAVEPLAIN/%s/%s.bin", entry->dir_name, entry->title_id);
+	if (read_psp_game_key(path, key))
+		return 1;
+
+	snprintf(path, sizeof(path), "ux0:pspemu/PSP/SAVEPLAIN/%s/%s.bin", entry->title_id, entry->title_id);
 	return (read_psp_game_key(path, key));
 }
 

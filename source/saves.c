@@ -660,7 +660,7 @@ int ReadOnlineSaves(save_entry_t * game)
 	char *data = readTextFile(path, &fsize);
 	
 	char *ptr = data;
-	char *end = data + fsize + 1;
+	char *end = data + fsize;
 
 	game->codes = list_alloc();
 
@@ -700,6 +700,7 @@ int ReadOnlineSaves(save_entry_t * game)
 	}
 
 	if (data) free(data);
+	LOG("Loaded %d saves", list_count(game->codes));
 
 	return (list_count(game->codes));
 }
@@ -1276,7 +1277,7 @@ static void _ReadOnlineListEx(const char* urlPath, uint16_t flag, list_t *list)
 	char *data = readTextFile(path, &fsize);
 	
 	char *ptr = data;
-	char *end = data + fsize + 1;
+	char *end = data + fsize;
 
 	while (ptr < end && *ptr)
 	{

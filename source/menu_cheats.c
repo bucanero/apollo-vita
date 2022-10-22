@@ -203,7 +203,7 @@ int DrawCodes(code_entry_t* code, u8 alpha, int y_inc, int xOff, int selIndex)
     SetFontSize(APP_FONT_SIZE_SELECTION);
 
     if (code->file && (code->type == PATCH_BSD || code->type == PATCH_GAMEGENIE))
-        DrawFormatString(xOff + MENU_ICON_OFF + 20, 880, "Target File: %s", code->file);
+        DrawFormatString(xOff + MENU_ICON_OFF + 20, 440, "Target File: %s", code->file);
 
     for (c = startDrawX; c < max; c++)
     {
@@ -348,7 +348,7 @@ void DrawGameList(int selIndex, list_t * games, u8 alpha)
 				free(nBuffer);
 			}
 			if (item->title_id)
-				DrawString((SCREEN_WIDTH - 40) - (MENU_ICON_OFF * 5), game_y, item->title_id);
+				DrawString((SCREEN_WIDTH - 40) - (MENU_ICON_OFF * 4), game_y, item->title_id);
 
 			if (item->flags & SAVE_FLAG_SELECTED)
 				DrawString(MENU_ICON_OFF + MENU_TITLE_OFF - 30, game_y, UTF8_CHAR_STAR);
@@ -361,7 +361,7 @@ void DrawGameList(int selIndex, list_t * games, u8 alpha)
 			tmp[1] = (item->flags & SAVE_FLAG_OWNER) ? CHAR_TAG_OWNER : ' ';
 			tmp[2] = (item->flags & SAVE_FLAG_LOCKED) ? CHAR_TAG_LOCKED : ' ';
 
-			DrawString(SCREEN_WIDTH - (MENU_ICON_OFF * 3), game_y, tmp);
+			DrawString(SCREEN_WIDTH - (MENU_ICON_OFF * 2), game_y, tmp);
 skip_draw:
 			node = list_next(node);
         }

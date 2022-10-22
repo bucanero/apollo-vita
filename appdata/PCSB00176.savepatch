@@ -1,0 +1,36 @@
+; PCSB00176
+; Metal Gear Solid 3 HD
+; by bucanero
+
+[Group:Decrypt MGS3]
+
+;BLES01419_MGS3/BLES01419_MGS3*/
+:*MASTER.BIN
+
+[Decode MASTER.BIN (Required)]
+set range:0x0000,0x001F
+DECRYPT mgs_base64
+
+:*DATA.BIN
+
+[Decrypt DATA.BIN (Required)]
+set range:0x000000,0x00497B
+DECRYPT mgs("3MetalSolidSnakeEaterGear")
+
+[Group:\]
+; MGS3 cheats should go here
+
+[Group:Encrypt MGS3]
+
+[Encrypt DATA.BIN (Required)]
+set range:0x000000,0x00497B
+set [master_hash]:CRC32
+ENCRYPT mgs("3MetalSolidSnakeEaterGear")
+
+:*MASTER.BIN
+
+[Encode MASTER.BIN (Required)]
+write at 0x0008:[master_hash]
+write at 0x0010:[master_hash]
+set range:0x0000,0x001F
+ENCRYPT mgs_base64
