@@ -302,11 +302,11 @@ static void exportFingerprint(const save_entry_t* save, int silent)
 
 	if (!silent) show_message("%s fingerprint successfully saved to:\n%s", save->title_id, fpath);
 }
-/*
-void exportTrophiesZip(const char* exp_path)
+
+void exportTrophyZip(const save_entry_t *trop, const char* exp_path)
 {
+	char trp_path[256];
 	char* export_file;
-	char* trp_path;
 	char* tmp;
 
 	if (mkdirs(exp_path) != SUCCESS)
@@ -315,27 +315,29 @@ void exportTrophiesZip(const char* exp_path)
 		return;
 	}
 
-	init_loading_screen("Exporting Trophies ...");
+	init_loading_screen("Exporting Trophy...");
 
-	asprintf(&export_file, "%s" "trophies_%08d.zip", exp_path, apollo_config.user_id);
-	asprintf(&trp_path, TROPHY_PATH_HDD, apollo_config.user_id);
+	asprintf(&export_file, "%strophy_%s.zip", exp_path, trop->title_id);
+	snprintf(trp_path, sizeof(trp_path), TROPHY_PATH_HDD, apollo_config.user_id);
 
 	tmp = strdup(trp_path);
 	*strrchr(tmp, '/') = 0;
+	zip_directory(tmp, trop->path, export_file);
 
-	zip_directory(tmp, trp_path, export_file);
+	snprintf(trp_path, sizeof(trp_path), TROPHY_PATH_HDD "conf/%s/", apollo_config.user_id, trop->title_id);
+	zip_append_directory(tmp, trp_path, export_file);
 
-	sprintf(export_file, "%s" OWNER_XML_FILE, exp_path);
-	_saveOwnerData(export_file);
+	trp_path[1] = 'x';
+	sprintf(tmp, "%.12s", trp_path);
+	zip_append_directory(tmp, trp_path, export_file);
 
 	free(export_file);
-	free(trp_path);
 	free(tmp);
 
 	stop_loading_screen();
-	show_message("Trophies successfully saved to:\n%strophies_%08d.zip", exp_path, apollo_config.user_id);
+	show_message("Trophy Set successfully exported to:\n%strophy_%s.zip", exp_path, trop->title_id);
 }
-*/
+
 static void pspDumpKey(const save_entry_t* save)
 {
 	char fpath[256];

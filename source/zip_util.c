@@ -57,10 +57,8 @@ void walk_zip_directory(const char* startdir, const char* inputdir, struct zip_t
 	closedir(dp);
 }
 
-int zip_directory(const char* basedir, const char* inputdir, const char* output_filename)
+static int zip_dir_ex(struct zip_t* archive, const char* basedir, const char* inputdir, const char* output_filename)
 {
-    struct zip_t *archive = zip_open(output_filename, ZIP_DEFAULT_COMPRESSION_LEVEL, 'w');
-
     if (!archive) {
         LOG("Failed to open output file '%s'", output_filename);
         return 0;
@@ -71,6 +69,20 @@ int zip_directory(const char* basedir, const char* inputdir, const char* output_
     zip_close(archive);
 
     return (file_exists(output_filename) == SUCCESS);
+};
+
+int zip_directory(const char* basedir, const char* inputdir, const char* output_filename)
+{
+	struct zip_t *archive = zip_open(output_filename, ZIP_DEFAULT_COMPRESSION_LEVEL, 'w');
+
+	return (zip_dir_ex(archive, basedir, inputdir, output_filename));
+}
+
+int zip_append_directory(const char* basedir, const char* inputdir, const char* output_filename)
+{
+	struct zip_t *archive = zip_open(output_filename, ZIP_DEFAULT_COMPRESSION_LEVEL, 'a');
+
+	return (zip_dir_ex(archive, basedir, inputdir, output_filename));
 }
 
 int on_extract_entry(const char *filename, void *arg)

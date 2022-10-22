@@ -239,6 +239,7 @@ int extract_7zip(const char* zip_file, const char* dest_path);
 int extract_rar(const char* rar_file, const char* dest_path);
 int extract_zip(const char* zip_file, const char* dest_path);
 int zip_directory(const char* basedir, const char* inputdir, const char* output_zipfile);
+int zip_append_directory(const char* basedir, const char* inputdir, const char* output_filename);
 
 int show_dialog(int dialog_type, const char * format, ...);
 void init_progress_bar(const char* msg);

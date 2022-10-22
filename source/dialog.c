@@ -3,6 +3,7 @@
 #include <string.h>
 #include <psp2/message_dialog.h>
 #include <psp2/notificationutil.h>
+#include <SDL2/SDL.h>
 
 #define SCE_NOTIFICATION_UTIL_TEXT_MAX                     (0x3F)
 
@@ -51,6 +52,17 @@ int show_dialog(int tdialog, const char * format, ...)
     return (result.buttonId == SCE_MSG_DIALOG_BUTTON_ID_YES);
 }
 
+static int running = 0;
+
+static int update_screen_thread(void* user_data)
+{
+    while (running == 1)
+        drawDialogBackground();
+
+    running = -1;
+    return (0);
+}
+
 void init_progress_bar(const char* msg)
 {
     SceMsgDialogParam param;
@@ -67,7 +79,9 @@ void init_progress_bar(const char* msg)
     if (sceMsgDialogInit(&param) < 0)
         return;
 
-    drawDialogBackground();
+    running = 1;
+    SDL_Thread* tid = SDL_CreateThread(&update_screen_thread, "progress_bar", NULL);
+    SDL_DetachThread(tid);
 }
 
 void end_progress_bar(void)
@@ -82,10 +96,10 @@ void end_progress_bar(void)
         if(stat == SCE_COMMON_DIALOG_STATUS_RUNNING)
             sceMsgDialogClose();
 
-        drawDialogBackground();
     } while (stat != SCE_COMMON_DIALOG_STATUS_FINISHED);
     
     sceMsgDialogTerm();
+    running = 0;
 }
 
 void update_progress_bar(uint64_t progress, const uint64_t total_size, const char* msg)
@@ -97,8 +111,6 @@ void update_progress_bar(uint64_t progress, const uint64_t total_size, const cha
         sceMsgDialogProgressBarSetMsg(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, (SceChar8*) msg);
         sceMsgDialogProgressBarSetValue(SCE_MSG_DIALOG_PROGRESSBAR_TARGET_BAR_DEFAULT, (SceUInt32) bar_value);
     }
-
-    drawDialogBackground();
 }
 
 void strWChar16ncpy(SceWChar16* out, const char* str2, int len)
