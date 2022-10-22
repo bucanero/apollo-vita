@@ -542,26 +542,27 @@ int ReadTrophies(save_entry_t * game)
 	sqlite3 *db;
 	sqlite3_stmt *res;
 
-	if ((db = open_sqlite_db(game->path)) == NULL)
+	snprintf(query, sizeof(query), TROPHY_PATH_HDD "db/trophy_local.db", apollo_config.user_id);
+	if ((db = open_sqlite_db(query)) == NULL)
 		return 0;
 
 	game->codes = list_alloc();
 /*
 	trophy = _createCmdCode(PATCH_COMMAND, CHAR_ICON_SIGN " Apply Changes & Resign Trophy Set", CMD_RESIGN_TROPHY);
 	list_append(game->codes, trophy);
-
-	trophy = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Backup Trophy Set to USB", CMD_CODE_NULL);
+*/
+	trophy = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Backup Trophy Set to Backup Storage", CMD_CODE_NULL);
 	trophy->file = strdup(game->path);
 	trophy->options_count = 1;
-	trophy->options = _createOptions(2, "Copy Trophy to USB", CMD_EXP_TROPHY_USB);
+	trophy->options = _createOptions(2, "Copy Trophy to Backup Storage", CMD_EXP_TROPHY_USB);
 	list_append(game->codes, trophy);
 
 	trophy = _createCmdCode(PATCH_COMMAND, CHAR_ICON_ZIP " Export Trophy Set to Zip", CMD_CODE_NULL);
 	trophy->file = strdup(game->path);
 	trophy->options_count = 1;
-	trophy->options = _createOptions(2, "Save .Zip to USB", CMD_EXPORT_ZIP_USB);
+	trophy->options = _createOptions(2, "Save .Zip to Backup Storage", CMD_ZIP_TROPHY_USB);
 	list_append(game->codes, trophy);
-*/
+
 	trophy = _createCmdCode(PATCH_NULL, "----- " UTF8_CHAR_STAR " Trophies " UTF8_CHAR_STAR " -----", CMD_CODE_NULL);
 	list_append(game->codes, trophy);
 
@@ -1358,21 +1359,25 @@ list_t * ReadTrophyList(const char* userPath)
 		return NULL;
 
 	list = list_alloc();
-/*
-	item = _createSaveEntry(SAVE_FLAG_PS4, CHAR_ICON_COPY " Export Trophies");
+
+	item = _createSaveEntry(SAVE_FLAG_PSV, CHAR_ICON_COPY " Bulk Trophy Management");
 	item->type = FILE_TYPE_MENU;
 	item->path = strdup(userPath);
 	item->codes = list_alloc();
-	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Backup Trophies to USB", CMD_CODE_NULL);
+	//bulk management hack
+	item->dir_name = malloc(sizeof(void**));
+	((void**)item->dir_name)[0] = list;
+
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Backup selected Trophies to Backup Storage", CMD_CODE_NULL);
 	cmd->options_count = 1;
-	cmd->options = _createOptions(2, "Save Trophies to USB", CMD_COPY_TROPHIES_USB);
+	cmd->options = _createOptions(2, "Copy Trophies to Backup Storage", CMD_COPY_TROPHIES_USB);
 	list_append(item->codes, cmd);
-	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_ZIP " Export Trophies to .Zip", CMD_CODE_NULL);
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Backup all Trophies to Backup Storage", CMD_CODE_NULL);
 	cmd->options_count = 1;
-	cmd->options = _createOptions(2, "Save .Zip to USB", CMD_ZIP_TROPHY_USB);
+	cmd->options = _createOptions(2, "Copy Trophies to Backup Storage", CMD_COPY_ALL_TROP_USB);
 	list_append(item->codes, cmd);
 	list_append(list, item);
-*/
+
 	sqlite3_create_collation(db, "trophy_collator", SQLITE_UTF8, NULL, &sqlite_trophy_collate);
 	int rc = sqlite3_prepare_v2(db, "SELECT id, npcommid, title FROM tbl_trophy_title WHERE status = 0", -1, &res, NULL);
 	if (rc != SQLITE_OK)

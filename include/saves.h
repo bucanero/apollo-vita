@@ -67,7 +67,7 @@ enum cmd_code_enum
     CMD_CODE_NULL,
 
 // Trophy commands
-    CMD_RESIGN_TROPHY,
+    CMD_COPY_ALL_TROP_USB,
     CMD_EXP_TROPHY_USB,
     CMD_COPY_TROPHIES_USB,
     CMD_ZIP_TROPHY_USB,

@@ -160,11 +160,14 @@ static int get_psp_save_key(const save_entry_t* entry, uint8_t* key)
 static int _copy_save_hdd(const save_entry_t* save)
 {
 	char copy_path[256];
-
-	if (!vita_SaveMount(save))
-		return 0;
+	save_entry_t entry = {
+		.title_id = save->title_id,
+		.path = copy_path,
+	};
 
 	snprintf(copy_path, sizeof(copy_path), APOLLO_SANDBOX_PATH, save->dir_name);
+	if (!vita_SaveMount(&entry))
+		return 0;
 
 	LOG("Copying <%s> to %s...", save->path, copy_path);
 	copy_directory(save->path, save->path, copy_path);
@@ -204,7 +207,7 @@ static void copySaveHDD(const save_entry_t* save)
 
 static void copyAllSavesHDD(const save_entry_t* save, int all)
 {
-	int err_count = 0;
+	int done = 0, err_count = 0;
 	list_node_t *node;
 	save_entry_t *item;
 	uint64_t progress = 0;
@@ -216,16 +219,19 @@ static void copyAllSavesHDD(const save_entry_t* save, int all)
 	for (node = list_head(list); (item = list_get(node)); node = list_next(node))
 	{
 		update_progress_bar(progress++, list_count(list), item->name);
-		if (item->type == FILE_TYPE_PSV && !(item->flags & SAVE_FLAG_LOCKED) && (all || item->flags & SAVE_FLAG_SELECTED))
-			err_count += ! _copy_save_hdd(item);
+		if (!all && !(item->flags & SAVE_FLAG_SELECTED))
+			continue;
+
+		if (item->type == FILE_TYPE_PSV && !(item->flags & SAVE_FLAG_LOCKED))
+			(_copy_save_hdd(item) ? done++ : err_count++);
+
+		if (item->type == FILE_TYPE_PSP)
+			(_copy_save_psp(item) ? done++ : err_count++);
 	}
 
 	end_progress_bar();
 
-	if (err_count)
-		show_message("Error: %d Saves couldn't be copied to Internal Storage", err_count);
-	else
-		show_message("All Saves copied to Internal Storage");
+	show_message("%d/%d Saves copied to Internal Storage", done, done+err_count);
 }
 
 static void extractArchive(const char* file_path)
@@ -618,6 +624,7 @@ static void copyAllSavesUSB(const save_entry_t* save, const char* dst_path, int 
 {
 	char copy_path[256];
 	char save_path[256];
+	int done = 0, err_count = 0;
 	uint64_t progress = 0;
 	list_node_t *node;
 	save_entry_t *item;
@@ -635,37 +642,97 @@ static void copyAllSavesUSB(const save_entry_t* save, const char* dst_path, int 
 	for (node = list_head(list); (item = list_get(node)); node = list_next(node))
 	{
 		update_progress_bar(progress++, list_count(list), item->name);
-		if (item->type != FILE_TYPE_PSV || !(all || item->flags & SAVE_FLAG_SELECTED) || !vita_SaveMount(item))
+		if (!all && !(item->flags & SAVE_FLAG_SELECTED))
 			continue;
 
-		snprintf(save_path, sizeof(save_path), APOLLO_SANDBOX_PATH, item->dir_name);
 		snprintf(copy_path, sizeof(copy_path), "%s%02x_%s_%s/", dst_path, apollo_config.user_id, item->title_id, item->dir_name);
+		LOG("Copying <%s> to %s...", item->path, copy_path);
 
-		LOG("Copying <%s> to %s...", save_path, copy_path);
-		copy_directory(save_path, save_path, copy_path);
+		if (item->type == FILE_TYPE_PSV && vita_SaveMount(item))
+		{
+			(copy_directory(item->path, item->path, copy_path) == SUCCESS) ? done++ : err_count++;
+			vita_SaveUmount();
+		}
 
-		vita_SaveUmount();
+		if (item->type == FILE_TYPE_PSP)
+			(copy_directory(item->path, item->path, copy_path) == SUCCESS) ? done++ : err_count++;
 	}
 
 	end_progress_bar();
-	show_message("All Saves copied to:\n%s", dst_path);
+	show_message("%d/%d Saves copied to:\n%s", done, done+err_count, dst_path);
 }
 
-static void exportFolder(const char* src_path, const char* exp_path, const char* msg)
+static int _copy_trophyset(const save_entry_t* trop, const char* out_path)
 {
+	char src_path[256];
+	char exp_path[256];
+
+	snprintf(exp_path, sizeof(exp_path), "%s%s/data/", out_path, trop->title_id);
+	if (mkdirs(exp_path) != SUCCESS)
+		return 0;
+
+	LOG("Copying <%s> to %s...", trop->path, exp_path);
+	copy_directory(trop->path, trop->path, exp_path);
+
+	snprintf(src_path, sizeof(src_path), TROPHY_PATH_HDD "conf/%s/", apollo_config.user_id, trop->title_id);
+	snprintf(exp_path, sizeof(exp_path), "%s%s/conf/", out_path, trop->title_id);
+	mkdirs(exp_path);
+	LOG("Copying <%s> to %s...", src_path, exp_path);
+	copy_directory(src_path, src_path, exp_path);
+
+	src_path[1] = 'x';
+	snprintf(exp_path, sizeof(exp_path), "%s%s/conf_ux0/", out_path, trop->title_id);
+	mkdirs(exp_path);
+	LOG("Copying <%s> to %s...", src_path, exp_path);
+	copy_directory(src_path, src_path, exp_path);
+
+	return 1;
+}
+
+static void copyTrophy(const save_entry_t* trop, const char* exp_path)
+{
+	int ret;
+
 	if (mkdirs(exp_path) != SUCCESS)
 	{
 		show_message("Error! Export folder is not available:\n%s", exp_path);
 		return;
 	}
 
-	init_loading_screen(msg);
-
-    LOG("Copying <%s> to %s...", src_path, exp_path);
-	copy_directory(src_path, src_path, exp_path);
-
+	init_loading_screen("Copying trophy...");
+	ret = _copy_trophyset(trop, exp_path);
 	stop_loading_screen();
-	show_message("Files successfully copied to:\n%s", exp_path);
+
+	if (ret)
+		show_message("Trophy Set successfully copied to:\n%s%s", exp_path, trop->title_id);
+	else
+		show_message("Error! Trophy Set %s not copied!", trop->title_id);
+}
+
+static void copyAllTrophies(const save_entry_t* save, const char* out_path, int all)
+{
+	int done = 0, err_count = 0;
+	list_node_t *node;
+	save_entry_t *item;
+	uint64_t progress = 0;
+	list_t *list = ((void**)save->dir_name)[0];
+
+	init_progress_bar("Copying trophies...");
+
+	LOG("Copying all trophies from '%s'...", save->path);
+	for (node = list_head(list); (item = list_get(node)); node = list_next(node))
+	{
+		update_progress_bar(progress++, list_count(list), item->name);
+		if (item->type != FILE_TYPE_TRP || !(all || item->flags & SAVE_FLAG_SELECTED) || !vita_SaveMount(item))
+			continue;
+
+		(_copy_trophyset(item, out_path) ? done++ : err_count++);
+		vita_SaveUmount();
+	}
+
+	end_progress_bar();
+
+	show_message("%d/%d Trophy Sets copied to:\n%s", done, done+err_count, out_path);
 }
 /*
 void exportLicensesRap(const char* fname, uint8_t dest)
@@ -1137,22 +1204,23 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			resignVMP(selected_entry, code->options[0].name[code->options[0].sel]);
 			code->activated = 0;
 			break;
-/*
+
 		case CMD_EXP_TROPHY_USB:
-			copySave(selected_entry, codecmd[1] ? TROPHY_PATH_USB1 : TROPHY_PATH_USB0);
+			copyTrophy(selected_entry, codecmd[1] ? TROPHY_PATH_IMC0 : TROPHY_PATH_UMA0);
 			code->activated = 0;
 			break;
 
 		case CMD_ZIP_TROPHY_USB:
-			exportTrophiesZip(codecmd[1] ? EXPORT_PATH_USB1 : EXPORT_PATH_USB0);
+			exportTrophyZip(selected_entry, codecmd[1] ? TROPHY_PATH_IMC0 : TROPHY_PATH_UMA0);
 			code->activated = 0;
 			break;
 
 		case CMD_COPY_TROPHIES_USB:
-			exportFolder(selected_entry->path, codecmd[1] ? TROPHY_PATH_USB1 : TROPHY_PATH_USB0, "Copying trophies...");
+		case CMD_COPY_ALL_TROP_USB:
+			copyAllTrophies(selected_entry, codecmd[1] ? TROPHY_PATH_IMC0 : TROPHY_PATH_UMA0, codecmd[0] == CMD_COPY_ALL_TROP_USB);
 			code->activated = 0;
 			break;
-*/
+
 		case CMD_COPY_SAVES_USB:
 		case CMD_COPY_ALL_SAVES_USB:
 			copyAllSavesUSB(selected_entry, codecmd[1] ? SAVES_PATH_IMC0 : SAVES_PATH_UMA0, codecmd[0] == CMD_COPY_ALL_SAVES_USB);
