@@ -4,6 +4,42 @@ All notable changes to the `apollo-vita` project will be documented in this file
 
 ## [Unreleased]()
 
+## [v1.1.0](https://github.com/bucanero/apollo-vita/releases/tag/v1.1.0) - 2022-10-23
+
+### Added
+
+* Support PSP save-game encryption `mode 3`
+* Bulk management for PSP saves
+* `VMP` PS1 memcard resigning
+* Export `VMP` PS1 memcard to `MCR`
+* Import `MCR` PS1 memcard to `VMP`
+* Trophy Set data backup
+  - Copy trophy folders to External storage
+  - Export trophy files to `.zip`
+* Online DB: new PSP saves for +300 games
+* New PS Vita save patch codes
+  - Metal Gear Solid 2 HD: custom encryption
+  - Metal Gear Solid 3 HD: custom encryption
+  - Resident Evil Revelations 2: unpack
+* Custom checksum support
+  - Metal Gear Solid 2 HD
+  - Metal Gear Solid 3 HD
+  - Resident Evil Revelations 2
+
+### Patch Engine
+
+* Updated Apollo patch engine v0.3.0
+* Improve patch error handling
+* Save Wizard / Game Genie
+  * Improve SW code types 9, A
+  * Add SW code types 3, 7, B, C, D
+* BSD scripts
+  * New commands: `copy`, `endian_swap`, `msgbox`
+  * New custom hash: `force_crc32`, `mgspw_checksum`
+  * Support initial value for `add/wadd/dwadd/wsub`
+  * Fix `md5_xor` custom hash
+  * Fix little-endian support for decrypters/hashes
+
 ## [v1.0.2](https://github.com/bucanero/apollo-vita/releases/tag/v1.0.2) - 2022-07-30
 
 ### Added

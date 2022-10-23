@@ -10,6 +10,8 @@
 #include <taihen.h>
 #include <psp2/ctrl.h>
 #include <psp2/appmgr.h>
+#include <psp2/apputil.h>
+#include <psp2/system_param.h>
 #include <psp2/sysmodule.h>
 #include <psp2/vshbridge.h>
 #include <psp2/audioout.h>
@@ -112,7 +114,7 @@ const char * menu_about_strings[] = { "Bucanero", "Developer",
 									"console", "details:",
 									NULL, NULL };
 
-char user_id_str[9] = "00000000";
+char user_id_str[SCE_SYSTEM_PARAM_USERNAME_MAXSIZE] = "Apollo";
 char psid_str[SFO_PSID_SIZE*2+2] = "0000000000000000 0000000000000000";
 char account_id_str[SFO_ACCOUNT_ID_SIZE*2+1] = "0000000000000000";
 
@@ -629,7 +631,6 @@ void SetMenu(int id)
 		case MENU_CREDITS: //About Menu
 			// set to display the PSID on the About menu
 			sprintf(psid_str, "%016llX %016llX", apollo_config.idps[0], apollo_config.idps[1]);
-			sprintf(user_id_str, "%08x", apollo_config.user_id);
 			sprintf(account_id_str, "%016llx", apollo_config.account_id);
 
 			if (apollo_config.doAni)
@@ -1248,6 +1249,24 @@ static int initInternal()
 	if (ret != SUCCESS) {
 		LOG("load module failed: NOTIFICATION (0x%08x)\n", ret);
 		return 0;
+	}
+
+	ret = sceSysmoduleLoadModule(SCE_SYSMODULE_APPUTIL);
+	if (ret != SUCCESS) {
+		LOG("load module failed: APPUTIL (0x%08x)\n", ret);
+		return 0;
+	}
+
+	SceAppUtilInitParam initParam;
+	SceAppUtilBootParam bootParam;
+
+	memset(&initParam, 0, sizeof(SceAppUtilInitParam));
+	memset(&bootParam, 0, sizeof(SceAppUtilBootParam));
+
+	/* Initialize the application utility library */
+	ret = sceAppUtilInit(&initParam, &bootParam);
+	if (ret == SUCCESS) {
+		sceAppUtilSystemParamGetString(SCE_SYSTEM_PARAM_ID_USERNAME, user_id_str, SCE_SYSTEM_PARAM_USERNAME_MAXSIZE);
 	}
 
 	return 1;

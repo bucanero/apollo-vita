@@ -1408,7 +1408,6 @@ list_t * ReadTrophyList(const char* userPath)
 int get_save_details(const save_entry_t* save, char **details)
 {
 	char sfoPath[256];
-	char mount[32] = "";
 	sqlite3 *db;
 	sqlite3_stmt *res;
 	sdslot_dat_t* sdslot;
@@ -1451,7 +1450,8 @@ int get_save_details(const save_entry_t* save, char **details)
 
 	if (save->flags & SAVE_FLAG_TROPHY)
 	{
-		if ((db = open_sqlite_db(save->path)) == NULL)
+		snprintf(sfoPath, sizeof(sfoPath), TROPHY_PATH_HDD "db/trophy_local.db", apollo_config.user_id);
+		if ((db = open_sqlite_db(sfoPath)) == NULL)
 			return 0;
 
 		char* query = sqlite3_mprintf("SELECT id, description, trophy_num, unlocked_trophy_num, progress,"
