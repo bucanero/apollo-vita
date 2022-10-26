@@ -11,20 +11,20 @@
 #include "sfo.h"
 
 
-static int _set_dest_path(int dest, char* path)
+static int _set_dest_path(char* path, int dest, const char* folder)
 {
 	switch (dest)
 	{
 	case STORAGE_UMA0:
-		strcpy(path, SAVES_PATH_UMA0);
+		sprintf(path, "%s%s", UMA0_PATH, folder);
 		break;
 
 	case STORAGE_IMC0:
-		strcpy(path, SAVES_PATH_IMC0);
+		sprintf(path, "%s%s", IMC0_PATH, folder);
 		break;
 
 	case STORAGE_UX0:
-		strcpy(path, UX0_PATH PSV_SAVES_PATH_USB);
+		sprintf(path, "%s%s", UX0_PATH, folder);
 		break;
 
 	default:
@@ -39,7 +39,7 @@ static void downloadSave(const save_entry_t* entry, const char* file, int dst)
 {
 	char path[256];
 
-	_set_dest_path(dst, path);
+	_set_dest_path(path, dst, PSV_SAVES_PATH_USB);
 	if (mkdirs(path) != SUCCESS)
 	{
 		show_message("Error! Export folder is not available:\n%s", path);
@@ -75,12 +75,14 @@ static uint32_t get_filename_id(const char* dir)
 	return tid;
 }
 
-static void zipSave(const save_entry_t* entry, const char* exp_path)
+static void zipSave(const save_entry_t* entry, int dst)
 {
+	char exp_path[256];
 	char* export_file;
 	char* tmp;
 	uint32_t fid;
 
+	_set_dest_path(exp_path, dst, EXPORT_PATH);
 	if (mkdirs(exp_path) != SUCCESS)
 	{
 		show_message("Error! Export folder is not available:\n%s", exp_path);
@@ -736,51 +738,23 @@ static void copyAllTrophies(const save_entry_t* save, const char* out_path, int 
 
 	show_message("%d/%d Trophy Sets copied to:\n%s", done, done+err_count, out_path);
 }
-/*
-void exportLicensesRap(const char* fname, uint8_t dest)
+
+void exportLicenseZRif(const char* fname, const char* exp_path)
 {
-	DIR *d;
-	struct dirent *dir;
-	char lic_path[256];
-	char exp_path[256];
-	char msg[128] = "Exporting user licenses...";
-
-	if (dest <= MAX_USB_DEVICES)
-		snprintf(exp_path, sizeof(exp_path), EXPORT_RAP_PATH_USB, dest);
-	else
-		snprintf(exp_path, sizeof(exp_path), EXPORT_RAP_PATH_HDD);
-
 	if (mkdirs(exp_path) != SUCCESS)
 	{
 		show_message("Error! Export folder is not available:\n%s", exp_path);
 		return;
 	}
 
-	snprintf(lic_path, sizeof(lic_path), EXDATA_PATH_HDD, apollo_config.user_id);
-	d = opendir(lic_path);
-	if (!d)
-		return;
+	LOG("Exporting zRIF from '%s'...", fname);
 
-    init_loading_screen(msg);
-
-	LOG("Exporting RAPs from folder '%s'...", lic_path);
-	while ((dir = readdir(d)) != NULL)
-	{
-		if (strcmp(dir->d_name, ".") != 0 && strcmp(dir->d_name, "..") != 0 &&
-			(!fname || (strcmp(dir->d_name, fname) == 0)) &&
-			strcmp(strrchr(dir->d_name, '.'), ".rif") == 0)
-		{
-			LOG("Exporting %s", dir->d_name);
-			snprintf(msg, sizeof(msg), "Exporting %.36s...", dir->d_name);
-//			rif2rap((u8*) apollo_config.idps, lic_path, dir->d_name, exp_path);
-		}
-	}
-	closedir(d);
-
-    stop_loading_screen();
-	show_message("Files successfully copied to:\n%s", exp_path);
+	if (make_key_zrif(fname, exp_path))
+		show_message("zRIF successfully exported to:\n%s", exp_path);
+	else
+		show_message("Error! zRIF not exported!");
 }
-
+/*
 void importLicenses(const char* fname, const char* exdata_path)
 {
 	DIR *d;
@@ -1163,12 +1137,7 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			break;
 
 		case CMD_EXPORT_ZIP_USB:
-			zipSave(selected_entry, codecmd[1] ? EXPORT_PATH_IMC0 : EXPORT_PATH_UMA0);
-			code->activated = 0;
-			break;
-
-		case CMD_EXPORT_ZIP_HDD:
-			zipSave(selected_entry, APOLLO_PATH);
+			zipSave(selected_entry, codecmd[1]);
 			code->activated = 0;
 			break;
 
@@ -1272,12 +1241,12 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			encryptSaveFile(selected_entry, code->options[0].name[code->options[0].sel]);
 			code->activated = 0;
 			break;
-/*
-		case CMD_COPY_PFS:
-			copySavePFS(selected_entry);
+
+		case CMD_EXP_LIC_ZRIF:
+			exportLicenseZRif(code->file, APOLLO_PATH "zrif/");
 			code->activated = 0;
 			break;
-*/
+
 		case CMD_EXTRACT_ARCHIVE:
 			extractArchive(code->file);
 			code->activated = 0;

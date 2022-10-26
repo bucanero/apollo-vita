@@ -353,7 +353,7 @@ static void _addBackupCommands(save_entry_t* item)
 	cmd->options_count = 1;
 	cmd->options = _createOptions(3, "Export Zip to Backup Storage", CMD_EXPORT_ZIP_USB);
 	asprintf(&cmd->options->name[2], "Export Zip to User Storage (ux0:data/)");
-	asprintf(&cmd->options->value[2], "%c", CMD_EXPORT_ZIP_HDD);
+	asprintf(&cmd->options->value[2], "%c%c", CMD_EXPORT_ZIP_USB, STORAGE_UX0);
 	list_append(item->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Export decrypted save files", CMD_CODE_NULL);
@@ -740,40 +740,36 @@ int ReadBackupCodes(save_entry_t * bup)
 	{
 	case FILE_TYPE_ZIP:
 		break;
-/*
-	case FILE_TYPE_ACT:
+
+	case FILE_TYPE_RIF:
 		bup->codes = list_alloc();
 
-		LOG("Getting Users...");
-		for (int i = 1; i <= 16; i++)
+		LOG("Getting .rifs from '%s'...", bup->path);
+
+		char* filename;
+		list_t* file_list = list_alloc();
+		_walk_dir_list("", bup->path, "*.rif", file_list);
+
+		if (!list_count(file_list))
 		{
-			uint64_t account;
-			char userName[0x20];
-
-//			regMgr_GetUserName(i, userName);
-			if (!userName[0])
-				continue;
-
-//			regMgr_GetAccountId(i, &account);
-			snprintf(tmp, sizeof(tmp), "%c Activate Offline Account %s (%016lx)", account ? CHAR_TAG_LOCKED : CHAR_TAG_OWNER, userName, account);
-			cmd = _createCmdCode(account ? PATCH_NULL : PATCH_COMMAND, tmp, CMD_CODE_NULL); //CMD_CREATE_ACT_DAT
-
-			if (!account)
-			{
-				cmd->options_count = 1;
-				cmd->options = calloc(1, sizeof(option_entry_t));
-				cmd->options->sel = -1;
-//				cmd->options->size = get_xml_owners(APOLLO_PATH OWNER_XML_FILE, CMD_CREATE_ACT_DAT, &cmd->options->name, &cmd->options->value);
-				cmd->file = malloc(1);
-				cmd->file[0] = i;
-			}
-			list_append(bup->codes, cmd);
-
-			LOG("ID %d = '%s' (%lx)", i, userName, account);
+			asprintf(&filename, "%s --- No .rif licenses found ---", bup->path);
+			list_append(file_list, filename);
 		}
 
+		for (list_node_t* node = list_head(file_list); (filename = list_get(node)); node = list_next(node))
+		{
+			snprintf(tmp, sizeof(tmp), CHAR_ICON_USER " %s", filename + strlen(bup->path));
+			*strrchr(tmp, '/') = 0;
+			cmd = _createCmdCode(PATCH_COMMAND, tmp, CMD_EXP_LIC_ZRIF);
+			cmd->file = filename;
+			list_append(bup->codes, cmd);
+
+			LOG("[%s] name '%s'", cmd->file, cmd->name);
+		}
+
+		list_free(file_list);
 		return list_count(bup->codes);
-*/
+
 	default:
 		return 0;
 	}

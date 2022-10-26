@@ -37,8 +37,7 @@
 #define TROPHY_PATH_IMC0        IMC0_PATH TROPHIES_PATH_USB
 #define TROPHY_PATH_HDD         "ur0:/user/%02x/trophy/"
 
-#define EXPORT_PATH_UMA0        UMA0_PATH "savegames/EXPORT/"
-#define EXPORT_PATH_IMC0        IMC0_PATH "savegames/EXPORT/"
+#define EXPORT_PATH             "savegames/EXPORT/"
 #define EXPORT_ZRIF_PATH        APOLLO_PATH "zrif/"
 
 #define EXP_PSP_PATH_UMA0       UMA0_PATH PSP_SAVES_PATH_USB
@@ -77,7 +76,6 @@ enum cmd_code_enum
     CMD_COPY_SAVE_USB,
     CMD_COPY_SAVE_HDD,
     CMD_EXPORT_ZIP_USB,
-    CMD_EXPORT_ZIP_HDD,
     CMD_VIEW_DETAILS,
     CMD_VIEW_RAW_PATCH,
     CMD_RESIGN_VMP,
