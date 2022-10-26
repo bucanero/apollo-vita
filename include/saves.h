@@ -22,7 +22,7 @@
 #define PSV_SAVES_PATH_USB      "savegames/"
 #define TROPHIES_PATH_USB       "trophies/"
 
-#define PS3_LICENSE_PATH        "exdata/"
+#define PSV_LICENSE_PATH        "ux0:license/"
 #define PSV_ICONS_PATH_HDD      "ur0:appmeta/%s"
 #define PS1_SAVES_PATH_HDD      APOLLO_PATH "PS1/"
 #define PSP_SAVES_PATH_HDD      "ux0:pspemu/" PSP_SAVES_PATH_USB
@@ -37,12 +37,9 @@
 #define TROPHY_PATH_IMC0        IMC0_PATH TROPHIES_PATH_USB
 #define TROPHY_PATH_HDD         "ur0:/user/%02x/trophy/"
 
-#define EXDATA_PATH_HDD			USER_PATH_HDD PS3_LICENSE_PATH
-
 #define EXPORT_PATH_UMA0        UMA0_PATH "savegames/EXPORT/"
 #define EXPORT_PATH_IMC0        IMC0_PATH "savegames/EXPORT/"
-#define EXPORT_RAP_PATH_USB     USB_PATH PS3_LICENSE_PATH
-#define EXPORT_RAP_PATH_HDD     "/dev_hdd0/" PS3_LICENSE_PATH
+#define EXPORT_ZRIF_PATH        APOLLO_PATH "zrif/"
 
 #define EXP_PSP_PATH_UMA0       UMA0_PATH PSP_SAVES_PATH_USB
 #define EXP_PSP_PATH_IMC0       IMC0_PATH PSP_SAVES_PATH_USB
@@ -101,7 +98,7 @@ enum cmd_code_enum
 
 // Export commands
     CMD_EXP_KEYSTONE,
-    CMD_EXP_LICS_RAPS,
+    CMD_EXP_LIC_ZRIF,
     CMD_EXP_VMP2MCR,
     CMD_EXP_PSPKEY,
     CMD_DUMP_PSPKEY,
@@ -256,7 +253,7 @@ void execCodeCommand(code_entry_t* code, const char* codecmd);
 int patch_trophy_account(const char* trp_path, const char* account_id);
 int apply_trophy_patch(const char* trp_path, uint32_t trophy_id, int unlock);
 
-int regMgr_GetParentalPasscode(char* passcode);
+int make_key_zrif(const char *rif_path, const char *out_path);
 int regMgr_GetUserName(int userNumber, char* outString);
 int regMgr_GetAccountId(int userNumber, uint64_t* psnAccountId);
 int regMgr_SetAccountId(int userNumber, uint64_t* psnAccountId);

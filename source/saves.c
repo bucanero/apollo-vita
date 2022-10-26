@@ -708,7 +708,6 @@ int ReadOnlineSaves(save_entry_t * game)
 
 list_t * ReadBackupList(const char* userPath)
 {
-	char tmp[32];
 	save_entry_t * item;
 	code_entry_t * cmd;
 	list_t *list = list_alloc();
@@ -718,33 +717,15 @@ list_t * ReadBackupList(const char* userPath)
 	item->type = FILE_TYPE_ZIP;
 	list_append(list, item);
 
+	item = _createSaveEntry(SAVE_FLAG_PSV, CHAR_ICON_COPY " Export NoNpDRM Licenses to zRIF");
+	item->path = strdup(PSV_LICENSE_PATH);
+	item->type = FILE_TYPE_RIF;
+	list_append(list, item);
 /*
 	item = _createSaveEntry(SAVE_FLAG_PS4, CHAR_ICON_USER " Activate PS Vita Account");
 	asprintf(&item->path, EXDATA_PATH_HDD, apollo_config.user_id);
 	item->type = FILE_TYPE_ACT;
 	list_append(list, item);
-
-	item = _createSaveEntry(SAVE_FLAG_PS4, CHAR_ICON_LOCK " Show Parental Security Passcode");
-	item->codes = list_alloc();
-	cmd = _createCmdCode(PATCH_NULL, CHAR_ICON_LOCK " Security Passcode: ????????", CMD_CODE_NULL);
-//	regMgr_GetParentalPasscode(tmp);
-	strncpy(cmd->name + 21, tmp, 8);
-	list_append(item->codes, cmd);
-	list_append(list, item);
-
-	for (int i = 0; i <= MAX_USB_DEVICES; i++)
-	{
-		snprintf(tmp, sizeof(tmp), USB_PATH, i);
-
-		if (dir_exists(tmp) != SUCCESS)
-			continue;
-
-		snprintf(tmp, sizeof(tmp), CHAR_ICON_COPY " Import Licenses (USB %d)", i);
-		item = _createSaveEntry(SAVE_FLAG_PS3, tmp);
-		asprintf(&item->path, IMPORT_RAP_PATH_USB, i);
-		item->type = FILE_TYPE_RAP;
-		list_append(list, item);
-	}
 */
 
 	return list;

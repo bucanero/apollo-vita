@@ -75,7 +75,7 @@ static uint32_t get_filename_id(const char* dir)
 	return tid;
 }
 
-static void zipSave(const char* exp_path)
+static void zipSave(const save_entry_t* entry, const char* exp_path)
 {
 	char* export_file;
 	char* tmp;
@@ -92,17 +92,17 @@ static void zipSave(const char* exp_path)
 	fid = get_filename_id(exp_path);
 	asprintf(&export_file, "%s%08d.zip", exp_path, fid);
 
-	tmp = strdup(selected_entry->path);
+	tmp = strdup(entry->path);
 	*strrchr(tmp, '/') = 0;
 	*strrchr(tmp, '/') = 0;
 
-	zip_directory(tmp, selected_entry->path, export_file);
+	zip_directory(tmp, entry->path, export_file);
 
 	sprintf(export_file, "%s%08x.txt", exp_path, apollo_config.user_id);
 	FILE* f = fopen(export_file, "a");
 	if (f)
 	{
-		fprintf(f, "%08d.zip=[%s] %s\n", fid, selected_entry->title_id, selected_entry->name);
+		fprintf(f, "%08d.zip=[%s] %s\n", fid, entry->title_id, entry->name);
 		fclose(f);
 	}
 
@@ -489,13 +489,13 @@ static void copySavePFS(const save_entry_t* save)
 	return;
 }
 */
-static void copyKeystone(int import)
+static void copyKeystone(const save_entry_t* entry, int import)
 {
 	char path_data[256];
 	char path_save[256];
 
-	snprintf(path_save, sizeof(path_save), "%ssce_sys/keystone", selected_entry->path);
-	snprintf(path_data, sizeof(path_data), APOLLO_USER_PATH "%s/keystone", apollo_config.user_id, selected_entry->title_id);
+	snprintf(path_save, sizeof(path_save), "%ssce_sys/keystone", entry->path);
+	snprintf(path_data, sizeof(path_data), APOLLO_USER_PATH "%s/keystone", apollo_config.user_id, entry->title_id);
 	mkdirs(path_data);
 
 	LOG("Copy '%s' <-> '%s'...", path_save, path_data);
@@ -614,10 +614,10 @@ static void enableWebServer(const save_entry_t* save, int port)
 {
 	LOG("Starting local web server for '%s'...", save->path);
 
-	if (web_start(port, webReqHandler))
+	if (dbg_webserver_start(port, webReqHandler))
 	{
 		show_message("Web Server listening on port %d.\nPress OK to stop the Server.", port);
-		web_stop();
+		dbg_webserver_stop();
 	}
 	else show_message("Error starting Web Server!");
 }
@@ -972,18 +972,25 @@ static int apply_cheat_patches(const save_entry_t* entry)
 	return ret;
 }
 
-static void resignSave(sfo_patch_t* patch)
+static void resignSave(const save_entry_t* entry)
 {
-    LOG("Resigning save '%s'...", selected_entry->name);
+    sfo_patch_t patch = {
+        .flags = 0,
+        .user_id = apollo_config.user_id,
+        .directory = NULL,
+        .account_id = apollo_config.account_id,
+    };
 
-    if (!apply_sfo_patches(patch))
+    LOG("Resigning save '%s'...", entry->name);
+
+    if (!apply_sfo_patches(&patch))
         show_message("Error! Account changes couldn't be applied");
 
-    LOG("Applying cheats to '%s'...", selected_entry->name);
-    if (!apply_cheat_patches(selected_entry))
+    LOG("Applying cheats to '%s'...", entry->name);
+    if (!apply_cheat_patches(entry))
         show_message("Error! Cheat codes couldn't be applied");
 
-    show_message("Save %s successfully modified!", selected_entry->title_id);
+    show_message("Save %s successfully modified!", entry->title_id);
 }
 
 static void resignAllSaves(const save_entry_t* save, int all)
@@ -1156,12 +1163,12 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			break;
 
 		case CMD_EXPORT_ZIP_USB:
-			zipSave(codecmd[1] ? EXPORT_PATH_IMC0 : EXPORT_PATH_UMA0);
+			zipSave(selected_entry, codecmd[1] ? EXPORT_PATH_IMC0 : EXPORT_PATH_UMA0);
 			code->activated = 0;
 			break;
 
 		case CMD_EXPORT_ZIP_HDD:
-			zipSave(APOLLO_PATH);
+			zipSave(selected_entry, APOLLO_PATH);
 			code->activated = 0;
 			break;
 
@@ -1177,7 +1184,7 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 
 		case CMD_EXP_KEYSTONE:
 		case CMD_IMP_KEYSTONE:
-			copyKeystone(codecmd[0] == CMD_IMP_KEYSTONE);
+			copyKeystone(selected_entry, codecmd[0] == CMD_IMP_KEYSTONE);
 			code->activated = 0;
 			break;
 
@@ -1240,17 +1247,7 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			break;
 
 		case CMD_RESIGN_SAVE:
-			{
-				sfo_patch_t patch = {
-					.flags = 0,
-					.user_id = apollo_config.user_id,
-//					.psid = (u8*) apollo_config.psid,
-					.directory = NULL,
-					.account_id = apollo_config.account_id,
-				};
-
-				resignSave(&patch);
-			}
+			resignSave(selected_entry);
 			code->activated = 0;
 			break;
 
