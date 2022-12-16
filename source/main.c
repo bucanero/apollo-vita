@@ -182,8 +182,9 @@ static int initPad()
 static int LoadTextures_Menu()
 {
 	texture_mem = malloc(256 * 8 * 4);
+	menu_textures = (png_texture *)calloc(TOTAL_MENU_TEXTURES, sizeof(png_texture));
 	
-	if(!texture_mem)
+	if(!texture_mem || !menu_textures)
 		return 0; // fail!
 	
 	ResetFont();
@@ -194,12 +195,9 @@ static int LoadTextures_Menu()
 		TTFLoadFont(2, "sa0:data/font/pvf/kr0.pvf", NULL, 0) != SUCCESS ||
 		TTFLoadFont(3, "sa0:data/font/pvf/cn0.pvf", NULL, 0) != SUCCESS)
 		return 0;
-	free_mem = (u32*) init_ttf_table((u8*) free_mem);
 
+	free_mem = (u32*) init_ttf_table((u8*) free_mem);
 	set_ttf_window(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, WIN_SKIP_LF);
-	
-	if (!menu_textures)
-		menu_textures = (png_texture *)malloc(sizeof(png_texture) * TOTAL_MENU_TEXTURES);
 	
 	//Init Main Menu textures
 

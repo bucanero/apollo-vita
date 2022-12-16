@@ -914,6 +914,20 @@ int sortSaveList_Compare(const void* a, const void* b)
 	return strcasecmp(((save_entry_t*) a)->name, ((save_entry_t*) b)->name);
 }
 
+int sortSaveList_Compare_TitleID(const void* a, const void* b)
+{
+	char* ta = ((save_entry_t*) a)->title_id;
+	char* tb = ((save_entry_t*) b)->title_id;
+
+	if (!ta)
+		return (-1);
+
+	if (!tb)
+		return (1);
+
+	return strcasecmp(ta, tb);
+}
+
 static void read_usb_encrypted_saves(const char* userPath, list_t *list, uint64_t account)
 {
 	DIR *d, *d2;

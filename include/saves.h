@@ -58,6 +58,13 @@ enum storage_enum
     STORAGE_UX0,
 };
 
+enum save_sort_enum
+{
+    SORT_DISABLED,
+    SORT_BY_NAME,
+    SORT_BY_TITLE_ID,
+};
+
 enum cmd_code_enum
 {
     CMD_CODE_NULL,
@@ -220,6 +227,7 @@ list_t * ReadTrophyList(const char* userPath);
 void UnloadGameList(list_t * list);
 char * readTextFile(const char * path, long* size);
 int sortSaveList_Compare(const void* A, const void* B);
+int sortSaveList_Compare_TitleID(const void* A, const void* B);
 int sortCodeList_Compare(const void* A, const void* B);
 int ReadCodes(save_entry_t * save);
 int ReadTrophies(save_entry_t * game);

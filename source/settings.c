@@ -12,6 +12,7 @@
 
 
 static char* ext_src[] = {"ux0", "uma0", "imc0", "xmc0", "ur0", NULL};
+static char* sort_opt[] = {"Disabled", "by Name", "by Title ID", NULL};
 
 menu_option_t menu_options[] = {
 	{ .name = "\nBackground Music", 
@@ -20,17 +21,17 @@ menu_option_t menu_options[] = {
 		.value = &apollo_config.music, 
 		.callback = music_callback 
 	},
-	{ .name = "Sort Saves", 
-		.options = NULL, 
-		.type = APP_OPTION_BOOL, 
-		.value = &apollo_config.doSort, 
-		.callback = sort_callback 
-	},
 	{ .name = "Menu Animations", 
 		.options = NULL, 
 		.type = APP_OPTION_BOOL, 
 		.value = &apollo_config.doAni, 
 		.callback = ani_callback 
+	},
+	{ .name = "Sort Saves", 
+		.options = (char**) sort_opt,
+		.type = APP_OPTION_LIST,
+		.value = &apollo_config.doSort, 
+		.callback = sort_callback 
 	},
 	{ .name = "\nExternal Saves Source",
 		.options = (char**) ext_src,
@@ -38,23 +39,23 @@ menu_option_t menu_options[] = {
 		.value = &apollo_config.storage,
 		.callback = owner_callback
 	},
-	{ .name = "\nVersion Update Check", 
+	{ .name = "Version Update Check", 
 		.options = NULL, 
 		.type = APP_OPTION_BOOL, 
 		.value = &apollo_config.update, 
 		.callback = update_callback 
+	},
+	{ .name = "\nUpdate Application Data", 
+		.options = NULL, 
+		.type = APP_OPTION_CALL, 
+		.value = NULL, 
+		.callback = upd_appdata_callback 
 	},
 	{ .name = "Clear Local Cache", 
 		.options = NULL, 
 		.type = APP_OPTION_CALL, 
 		.value = NULL, 
 		.callback = clearcache_callback 
-	},
-	{ .name = "Update Application Data", 
-		.options = NULL, 
-		.type = APP_OPTION_CALL, 
-		.value = NULL, 
-		.callback = upd_appdata_callback 
 	},
 	{ .name = "\nEnable Debug Log",
 		.options = NULL,
@@ -73,7 +74,7 @@ void music_callback(int sel)
 
 void sort_callback(int sel)
 {
-	apollo_config.doSort = !sel;
+	apollo_config.doSort = sel;
 }
 
 void ani_callback(int sel)

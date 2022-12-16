@@ -53,9 +53,10 @@ int http_init()
 /* follow the CURLOPT_XFERINFOFUNCTION callback definition */
 static int update_progress(void *p, int64_t dltotal, int64_t dlnow, int64_t ultotal, int64_t ulnow)
 {
-    LOG("DL: %lld / %lld", dlnow, dltotal);
+	LOG("DL: %lld / %lld", dlnow, dltotal);
 	update_progress_bar(dlnow, dltotal, (const char*) p);
-    return 0;
+
+	return 0;
 }
 
 int http_download(const char* url, const char* filename, const char* local_dst, int show_progress)
