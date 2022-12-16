@@ -995,7 +995,7 @@ static void resignAllSaves(const save_entry_t* save, int all)
 			continue;
 
 		LOG("Patching SFO '%s'...", sfoPath);
-		err_count += patch_sfo(sfoPath, &patch);
+		err_count += (patch_sfo(sfoPath, &patch) != SUCCESS);
 	}
 
 	end_progress_bar();

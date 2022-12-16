@@ -32,7 +32,7 @@ static void _draw_OptionsMenu(u8 alpha)
 				DrawTextureCenteredX(&menu_textures[c], OPTION_ITEM_OFF-2, y_off-4, 0, menu_textures[c].width, menu_textures[c].height, 0xFFFFFF00 | alpha);
 				break;
 			case APP_OPTION_CALL:
-                DrawTextureCenteredX(&menu_textures[footer_ico_cross_png_index], OPTION_ITEM_OFF, y_off+4, 0, menu_textures[footer_ico_cross_png_index].width * 3/4, menu_textures[footer_ico_cross_png_index].height * 3/4, 0xFFFFFF00 | alpha);
+				DrawTextureCenteredX(&menu_textures[footer_ico_cross_png_index], OPTION_ITEM_OFF, y_off+4, 0, menu_textures[footer_ico_cross_png_index].width * 3/4, menu_textures[footer_ico_cross_png_index].height * 3/4, 0xFFFFFF00 | alpha);
 				break;
 			case APP_OPTION_LIST:
 				SetFontAlign(FONT_ALIGN_CENTER);

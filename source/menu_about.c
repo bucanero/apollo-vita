@@ -6,6 +6,11 @@
 #include "menu_gui.h"
 #include "libfont.h"
 
+const char * menu_about_strings[] = { "Bucanero", "Developer",
+									"", "",
+									"console", "details:",
+									NULL };
+
 static void _draw_AboutMenu(u8 alpha)
 {
 	int cnt = 0;

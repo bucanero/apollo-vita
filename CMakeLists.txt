@@ -71,12 +71,14 @@ add_executable(${PROJECT_NAME}
   source/menu_about.c
   source/menu_cheats.c
   source/menu_options.c
+  source/menu_main.c
   source/saves.c
   source/settings.c
   source/sfo.c
   source/sqlite3.c
   source/ttf_fonts.c
   source/util.c
+  source/vitapad.c
   source/zip_util.c
   source/kirk_engine.c
   source/psp_decrypter.c
