@@ -108,13 +108,13 @@ int extract_zip(const char* zip_file, const char* dest_path)
 	progress[1] = zip_entries_total(archive);
 	zip_close(archive);
 
-	LOG("Extracting ZIP (%lld) to <%s>...", progress[1], dest_path);
+	LOG("Extracting %s (%lld) to <%s>...", zip_file, progress[1], dest_path);
 
 	init_progress_bar("Extracting files...");
 	ret = zip_extract(zip_file, dest_path, on_extract_entry, progress);
 	end_progress_bar();
 
-	return (ret == SUCCESS);
+	return (ret == SUCCESS ? progress[1] : 0);
 }
 
 void callback_7z(const char* fileName, unsigned long fileSize, unsigned fileNum, unsigned numFiles)

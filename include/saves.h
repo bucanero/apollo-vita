@@ -47,6 +47,7 @@
 #define IMPORT_RAP_PATH_USB     USB_PATH PS3_LICENSE_PATH
 
 #define ONLINE_URL				"https://bucanero.github.io/apollo-saves/"
+#define ONLINE_PATCH_URL		"https://bucanero.github.io/apollo-patches/PSV/"
 #define ONLINE_CACHE_TIMEOUT    24*3600     // 1-day local cache
 
 #define OWNER_XML_FILE          "owners.xml"

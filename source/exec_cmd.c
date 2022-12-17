@@ -791,7 +791,7 @@ void importLicenses(const char* fname, const char* exdata_path)
 	show_message("Files successfully copied to:\n%s", lic_path);
 }
 */
-static int apply_sfo_patches(sfo_patch_t* patch)
+static int apply_sfo_patches(save_entry_t* entry, sfo_patch_t* patch)
 {
     code_entry_t* code;
     char in_file_path[256];
@@ -799,10 +799,10 @@ static int apply_sfo_patches(sfo_patch_t* patch)
     u8 tmp_psid[SFO_PSID_SIZE];
     list_node_t* node;
 
-    if (selected_entry->flags & SAVE_FLAG_PSP)
+    if (entry->flags & SAVE_FLAG_PSP)
         return 1;
 
-    for (node = list_head(selected_entry->codes); (code = list_get(node)); node = list_next(node))
+    for (node = list_head(entry->codes); (code = list_get(node)); node = list_next(node))
     {
         if (!code->activated || code->type != PATCH_SFO)
             continue;
@@ -811,16 +811,9 @@ static int apply_sfo_patches(sfo_patch_t* patch)
 
         switch (code->codes[0])
         {
-        case SFO_UNLOCK_COPY:
-            if (selected_entry->flags & SAVE_FLAG_LOCKED)
-                selected_entry->flags ^= SAVE_FLAG_LOCKED;
-
-            patch->flags = SFO_PATCH_FLAG_REMOVE_COPY_PROTECTION;
-            break;
-
         case SFO_CHANGE_ACCOUNT_ID:
-            if (selected_entry->flags & SAVE_FLAG_OWNER)
-                selected_entry->flags ^= SAVE_FLAG_OWNER;
+            if (entry->flags & SAVE_FLAG_OWNER)
+                entry->flags ^= SAVE_FLAG_OWNER;
 
             sscanf(code->options->value[code->options->sel], "%lx", &patch->account_id);
             break;
@@ -831,18 +824,18 @@ static int apply_sfo_patches(sfo_patch_t* patch)
             break;
 
         case SFO_CHANGE_TITLE_ID:
-            patch->directory = strstr(selected_entry->path, selected_entry->title_id);
-            snprintf(in_file_path, sizeof(in_file_path), "%s", selected_entry->path);
+            patch->directory = strstr(entry->path, entry->title_id);
+            snprintf(in_file_path, sizeof(in_file_path), "%s", entry->path);
             strncpy(tmp_dir, patch->directory, SFO_DIRECTORY_SIZE);
 
-            strncpy(selected_entry->title_id, code->options[0].name[code->options[0].sel], 9);
-            strncpy(patch->directory, selected_entry->title_id, 9);
-            strncpy(tmp_dir, selected_entry->title_id, 9);
+            strncpy(entry->title_id, code->options[0].name[code->options[0].sel], 9);
+            strncpy(patch->directory, entry->title_id, 9);
+            strncpy(tmp_dir, entry->title_id, 9);
             *strrchr(tmp_dir, '/') = 0;
             patch->directory = tmp_dir;
 
-            LOG("Moving (%s) -> (%s)", in_file_path, selected_entry->path);
-            rename(in_file_path, selected_entry->path);
+            LOG("Moving (%s) -> (%s)", in_file_path, entry->path);
+            rename(in_file_path, entry->path);
             break;
 
         default:
@@ -946,7 +939,7 @@ static int apply_cheat_patches(const save_entry_t* entry)
 	return ret;
 }
 
-static void resignSave(const save_entry_t* entry)
+static void resignSave(save_entry_t* entry)
 {
     sfo_patch_t patch = {
         .flags = 0,
@@ -957,7 +950,7 @@ static void resignSave(const save_entry_t* entry)
 
     LOG("Resigning save '%s'...", entry->name);
 
-    if (!apply_sfo_patches(&patch))
+    if (!apply_sfo_patches(entry, &patch))
         show_message("Error! Account changes couldn't be applied");
 
     LOG("Applying cheats to '%s'...", entry->name);
