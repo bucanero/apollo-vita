@@ -125,7 +125,7 @@ vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} ${PROJECT_NAME}.self
 )
 
 add_custom_target(createzip
-  COMMAND @echo "Creating appdata.zip ..."
+  COMMAND @echo "Downloading appdata.zip ..."
   COMMAND @rm -fr ${CMAKE_SOURCE_DIR}/data/appdata.zip
-  COMMAND @cd ${CMAKE_SOURCE_DIR}/appdata && zip ../data/appdata.zip *.savepatch
+  COMMAND @curl -L "https://bucanero.github.io/apollo-patches/PSV/apollo-vita-update.zip" > ${CMAKE_SOURCE_DIR}/data/appdata.zip
 )
