@@ -36,11 +36,10 @@ void initMenuOptions()
 	while (menu_options[menu_options_maxopt].name)
 		menu_options_maxopt++;
 	
-	menu_options_maxsel = (int *)calloc(1, menu_options_maxopt * sizeof(int));
+	menu_options_maxsel = (int *)calloc(menu_options_maxopt, sizeof(int));
 	
 	for (int i = 0; i < menu_options_maxopt; i++)
 	{
-		menu_options_maxsel[i] = 0;
 		if (menu_options[i].type == APP_OPTION_LIST)
 		{
 			while (menu_options[i].options[menu_options_maxsel[i]])
@@ -288,31 +287,41 @@ static void move_selection_fwd(int game_count, int steps)
 		menu_sel = game_count - 1;
 }
 
-static void doSaveMenu(save_list_t * save_list)
+static int updatePadSelection(int total)
 {
 	if(vitaPadGetButtonHold(SCE_CTRL_UP))
-		move_selection_back(list_count(save_list->list), 1);
+		move_selection_back(total, 1);
 
 	else if(vitaPadGetButtonHold(SCE_CTRL_DOWN))
-		move_selection_fwd(list_count(save_list->list), 1);
+		move_selection_fwd(total, 1);
 
 	else if (vitaPadGetButtonHold(SCE_CTRL_LEFT))
-		move_selection_back(list_count(save_list->list), 5);
+		move_selection_back(total, 5);
 
 	else if (vitaPadGetButtonHold(SCE_CTRL_LTRIGGER))
-		move_selection_back(list_count(save_list->list), 25);
+		move_selection_back(total, 25);
 
 	else if (vitaPadGetButtonHold(SCE_CTRL_L2))
 		menu_sel = 0;
 
 	else if (vitaPadGetButtonHold(SCE_CTRL_RIGHT))
-		move_selection_fwd(list_count(save_list->list), 5);
+		move_selection_fwd(total, 5);
 
 	else if (vitaPadGetButtonHold(SCE_CTRL_RTRIGGER))
-		move_selection_fwd(list_count(save_list->list), 25);
+		move_selection_fwd(total, 25);
 
 	else if (vitaPadGetButtonHold(SCE_CTRL_R2))
-		menu_sel = list_count(save_list->list) - 1;
+		menu_sel = total - 1;
+
+	else return 0;
+
+	return 1;
+}
+
+static void doSaveMenu(save_list_t * save_list)
+{
+	if (updatePadSelection(list_count(save_list->list)))
+		(void)0;
 
 	else if (vitaPadGetButtonPressed(SCE_CTRL_CIRCLE))
 	{
@@ -470,14 +479,9 @@ static int count_code_lines()
 
 static void doPatchViewMenu()
 {
-	int max = count_code_lines();
-	
 	// Check the pads.
-	if(vitaPadGetButtonHold(SCE_CTRL_UP))
-		move_selection_back(max, 1);
-
-	else if(vitaPadGetButtonHold(SCE_CTRL_DOWN))
-		move_selection_fwd(max, 1);
+	if (updatePadSelection(count_code_lines()))
+		(void)0;
 
 	else if (vitaPadGetButtonPressed(SCE_CTRL_CIRCLE))
 	{
@@ -527,14 +531,9 @@ static void doCodeOptionsMenu()
 
 static void doSaveDetailsMenu()
 {
-	int max = count_code_lines();
-
 	// Check the pads.
-	if(vitaPadGetButtonHold(SCE_CTRL_UP))
-		move_selection_back(max, 1);
-
-	else if(vitaPadGetButtonHold(SCE_CTRL_DOWN))
-		move_selection_fwd(max, 1);
+	if (updatePadSelection(count_code_lines()))
+		(void)0;
 
 	if (vitaPadGetButtonPressed(SCE_CTRL_CIRCLE))
 	{
@@ -548,23 +547,8 @@ static void doSaveDetailsMenu()
 static void doPatchMenu()
 {
 	// Check the pads.
-	if(vitaPadGetButtonHold(SCE_CTRL_UP))
-		move_selection_back(list_count(selected_entry->codes), 1);
-
-	else if(vitaPadGetButtonHold(SCE_CTRL_DOWN))
-		move_selection_fwd(list_count(selected_entry->codes), 1);
-
-	else if (vitaPadGetButtonHold(SCE_CTRL_LEFT))
-		move_selection_back(list_count(selected_entry->codes), 5);
-
-	else if (vitaPadGetButtonHold(SCE_CTRL_RIGHT))
-		move_selection_fwd(list_count(selected_entry->codes), 5);
-
-	else if (vitaPadGetButtonHold(SCE_CTRL_LTRIGGER))
-		move_selection_back(list_count(selected_entry->codes), 25);
-
-	else if (vitaPadGetButtonHold(SCE_CTRL_RTRIGGER))
-		move_selection_fwd(list_count(selected_entry->codes), 25);
+	if (updatePadSelection(list_count(selected_entry->codes)))
+		(void)0;
 
 	else if (vitaPadGetButtonPressed(SCE_CTRL_CIRCLE))
 	{

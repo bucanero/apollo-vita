@@ -4,6 +4,21 @@ All notable changes to the `apollo-vita` project will be documented in this file
 
 ## [Unreleased]()
 
+## [v1.1.2](https://github.com/bucanero/apollo-vita/releases/tag/v1.1.2) - 2022-12-24
+
+_dedicated to Leon ~ in loving memory (2009 - 2022)_ :heart:
+
+### Added
+
+* Export noNpDRM licenses to zRIF (`User Tools`)
+* New save-game sorting options (`Settings`)
+  * by Name, by Title ID
+
+### Misc
+
+* Improved UI pad controls
+* Download application data updates from `apollo-patches` repository
+
 ## [v1.1.0](https://github.com/bucanero/apollo-vita/releases/tag/v1.1.0) - 2022-10-23
 
 ### Added

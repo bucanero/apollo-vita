@@ -17,7 +17,7 @@ find_package(OpenSSL REQUIRED)
 
 set(VITA_APP_NAME "Apollo Save Tool")
 set(VITA_TITLEID  "NP0APOLLO")
-set(VITA_VERSION  "01.10")
+set(VITA_VERSION  "01.12")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
