@@ -203,6 +203,7 @@ static int LoadTextures_Menu()
 
 	load_menu_texture(bgimg, jpg);
 	load_menu_texture(cheat, png);
+	load_menu_texture(leon, jpg);
 
 	load_menu_texture(circle_loading_bg, png);
 	load_menu_texture(circle_loading_seek, png);
@@ -566,6 +567,8 @@ s32 main(s32 argc, const char* argv[])
 		unlink_secure(APOLLO_LOCAL_CACHE "appdata.zip");
 	}
 
+	// dedicated to Leon ~ in loving memory (2009 - 2022)
+	menu_textures[buk_scr_png_index] = menu_textures[leon_jpg_index];
 	// Splash screen logo (fade-in)
 	drawSplashLogo(1);
  
@@ -576,6 +579,7 @@ s32 main(s32 argc, const char* argv[])
 	registerSpecialChars();
 	initMenuOptions();
 
+	usleep(0x100000);
 	// Splash screen logo (fade-out)
 	drawSplashLogo(-1);
 	SDL_DestroyTexture(menu_textures[buk_scr_png_index].texture);
