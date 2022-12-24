@@ -9,20 +9,35 @@ jobs:
 
     - name: Checkout
       uses: actions/checkout@v3
-      with:
-        fetch-depth: 1
 
-    - name: Checkout Dependecies
-      run: |
-        git clone https://github.com/bucanero/dbglogger.git       --depth 1
-        git clone https://github.com/bucanero/apollo-lib.git      --depth 1
-        git clone https://github.com/bucanero/zip.git             --depth 1
-        git clone https://github.com/vitasdk/vdpm                 --depth 1
+    - name: Checkout apollo-lib
+      uses: actions/checkout@v3
+      with:
+        repository: bucanero/apollo-lib
+        path: apollo-lib
+
+    - name: Checkout dbglogger
+      uses: actions/checkout@v3
+      with:
+        repository: bucanero/dbglogger
+        path: dbglogger
+
+    - name: Checkout zip
+      uses: actions/checkout@v3
+      with:
+        repository: bucanero/zip
+        path: zip
+
+    - name: Checkout vdpm
+      uses: actions/checkout@v3
+      with:
+        repository: vitasdk/vdpm
+        path: vdpm
 
     - name: Set env vars
       id: slug
       run: |
-        echo "::set-output name=sha8::$(echo ${GITHUB_SHA} | cut -c1-8)"
+        echo "sha_name=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
         echo "vpk_file=apollo-vita.vpk" >> $GITHUB_ENV
         echo "VITASDK=${GITHUB_WORKSPACE}/vitasdk" >> $GITHUB_ENV
 
@@ -31,7 +46,14 @@ jobs:
       working-directory: vdpm
       run: |
         ./bootstrap-vitasdk.sh
-        ./install-all.sh
+        ./vdpm zlib
+        ./vdpm libpng
+        ./vdpm freetype
+        ./vdpm taihen
+        ./vdpm sdl2
+        ./vdpm openssl
+        ./vdpm curl
+        ./vdpm unrar
 
     - name: Install polarssl
       working-directory: vdpm
@@ -72,7 +94,7 @@ jobs:
     - name: Push package artifact
       uses: actions/upload-artifact@v3
       with:
-        name: apollo-vita-build_${{ steps.slug.outputs.sha8 }}
+        name: apollo-vita-build_${{ env.sha_name }}
         path: ${{ env.vpk_file }}
         if-no-files-found: error
         retention-days: 7 # don't keep artifacts for too long
