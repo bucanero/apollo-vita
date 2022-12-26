@@ -19,6 +19,12 @@ set(VITA_APP_NAME "Apollo Save Tool")
 set(VITA_TITLEID  "NP0APOLLO")
 set(VITA_VERSION  "01.12")
 
+option(APOLLO_ENABLE_LOGGING "enables debug logging over udp multicast" OFF)
+
+if(APOLLO_ENABLE_LOGGING)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAPOLLO_ENABLE_LOGGING")
+endif()
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
@@ -128,4 +134,10 @@ add_custom_target(createzip
   COMMAND @echo "Downloading appdata.zip ..."
   COMMAND @rm -fr ${CMAKE_SOURCE_DIR}/data/appdata.zip
   COMMAND @curl -L "https://bucanero.github.io/apollo-patches/PSV/apollo-vita-update.zip" > ${CMAKE_SOURCE_DIR}/data/appdata.zip
+)
+
+add_custom_target(send
+  COMMAND @echo "Uploading to ftp://$$PSVITAIP:1337/ux0:/app/${VITA_TITLEID}/eboot.bin ..."
+  COMMAND @curl -T ${PROJECT_NAME}.self ftp://$$PSVITAIP:1337/ux0:/app/${VITA_TITLEID}/eboot.bin
+  DEPENDS ${PROJECT_NAME}.self
 )

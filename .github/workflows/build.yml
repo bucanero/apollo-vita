@@ -38,7 +38,6 @@ jobs:
       id: slug
       run: |
         echo "sha_name=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
-        echo "vpk_file=apollo-vita.vpk" >> $GITHUB_ENV
         echo "VITASDK=${GITHUB_WORKSPACE}/vitasdk" >> $GITHUB_ENV
 
       # install latest vita sdk
@@ -46,6 +45,10 @@ jobs:
       working-directory: vdpm
       run: |
         ./bootstrap-vitasdk.sh
+
+    - name: Install SDK libraries
+      working-directory: vdpm
+      run: |
         ./vdpm zlib
         ./vdpm libpng
         ./vdpm freetype
@@ -54,21 +57,14 @@ jobs:
         ./vdpm openssl
         ./vdpm curl
         ./vdpm unrar
-
-    - name: Install polarssl
-      working-directory: vdpm
-      run: |
         ./vdpm polarssl
+        ./vdpm un7zip
+        ./vdpm libxmp-lite
 
     - name: Install zip
       working-directory: zip
       run: |
         make -f Makefile.vita install
-
-    - name: Install un7zip
-      working-directory: vdpm
-      run: |
-        ./vdpm un7zip
 
     - name: Install dbglogger
       working-directory: dbglogger
@@ -80,11 +76,6 @@ jobs:
       run: |
         make -f Makefile.vita install
 
-    - name: Install xmp-lite
-      working-directory: vdpm
-      run: |
-        ./vdpm libxmp-lite
-
     - name: Build Apollo App Package
       run: |
         cmake .
@@ -95,6 +86,6 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: apollo-vita-build_${{ env.sha_name }}
-        path: ${{ env.vpk_file }}
+        path: apollo-vita.vpk
         if-no-files-found: error
         retention-days: 7 # don't keep artifacts for too long

@@ -9,7 +9,7 @@ The `apollo-vita` homebrew app allows to download, unlock, patch and resign save
 
 ![image](./screenshots/screenshot-main.jpg)
 
-**Comments, ideas, suggestions?** You can contact [me](https://github.com/bucanero/) on [Twitter](https://twitter.com/dparrino) and on [my website](http://www.bucanero.com.ar/).
+**Comments, ideas, suggestions?** You can [contact me](https://github.com/bucanero/) on [Twitter](https://twitter.com/dparrino) and on [my website](http://www.bucanero.com.ar/).
 
 # Features
 
@@ -82,9 +82,10 @@ It will open the context menu on the screen. Press ![O button](https://github.co
 
 # Online Database
 
-The application also provides direct access to the [Apollo online database](https://github.com/bucanero/apollo-saves) of save-game files for PlayStation Vita games. These usually offer additional features such as completed games that can save you many hours of playing.
+The application also provides direct access to the [Apollo online database](https://github.com/bucanero/apollo-saves) of save-game files for PlayStation Vita and PSP games.
+These usually offer additional features such as completed games that can save you many hours of playing.
 
-Currently, the list of available games and files is limited, but the project aims to add more save-games shared by the community.
+The Online Database project aims to [add more save-games](https://github.com/bucanero/apollo-saves/issues/new/choose) shared by the community.
 
 **Note:** Downloaded save files **must be resigned** using Apollo before loading them in your games.
 
@@ -124,12 +125,14 @@ You need to have installed:
 - [Zip](https://github.com/bucanero/zip) library
 - [dbglogger](https://github.com/bucanero/dbglogger) library
 
-Run `cmake . && make` to create a release build. If you want to include the latest save patches in your `.vpk` file, run `make createzip`.
+Run `cmake . && make` to create a release build. If you want to include the [latest save patches](https://github.com/bucanero/apollo-patches) in your `.vpk` file, run `make createzip`.
 
-To enable debug logging, build Apollo Save Tool with `make DEBUGLOG=1`. The application will send debug messages to
+To enable debug logging, pass `-DAPOLLO_ENABLE_LOGGING=ON` argument to cmake. The application will send debug messages to
 UDP multicast address `239.255.0.100:30000`. To receive them you can use [socat][] on your computer:
 
     $ socat udp4-recv:30000,ip-add-membership=239.255.0.100:0.0.0.0 -
+
+You can also set the `PSVITAIP` environment variable to your Vita's IP address, and use `make send` to upload `eboot.bin` directly to the `ux0:app/NP0APOLLO` folder.
 
 # License
 
