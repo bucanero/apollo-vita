@@ -1100,8 +1100,8 @@ static void encryptSaveFile(const save_entry_t* entry, const char* filename)
 		show_message("Error! Can't find decrypted save-game file:\n%s", path);
 		return;
 	}
-	strrchr(path, '/')[1] = 0;
 
+	snprintf(path, sizeof(path), APOLLO_USER_PATH "%s/", apollo_config.user_id, entry->dir_name);
 	LOG("Encrypt '%s%s' to '%s'...", path, filename, entry->path);
 
 	if (_copy_save_file(path, entry->path, filename))
