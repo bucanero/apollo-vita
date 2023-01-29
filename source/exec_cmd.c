@@ -509,11 +509,10 @@ static void copyKeystone(const save_entry_t* entry, int import)
 		show_message("Error! Keystone couldn't be copied");
 }
 
-static int webReqHandler(const dWebRequest_t* req, char* outfile)
+static int webReqHandler(dWebRequest_t* req, dWebResponse_t* res, void* list)
 {
 	list_node_t *node;
 	save_entry_t *item;
-	list_t *list = ((void**)selected_entry->dir_name)[0];
 
 	// http://ps3-ip:8080/
 	if (strcmp(req->resource, "/") == 0)
@@ -526,12 +525,12 @@ static int webReqHandler(const dWebRequest_t* req, char* outfile)
 			md5_update(&ctx, (uint8_t*) item->name, strlen(item->name));
 
 		md5_finish(&ctx, (uint8_t*) hash);
-		snprintf(outfile, BUFSIZ, APOLLO_LOCAL_CACHE "web%08lx%08lx.html", hash[0], hash[1]);
+		asprintf(&res->data, APOLLO_LOCAL_CACHE "web%016lx%016lx.html", hash[0], hash[1]);
 
-		if (file_exists(outfile) == SUCCESS)
+		if (file_exists(res->data) == SUCCESS)
 			return 1;
 
-		FILE* f = fopen(outfile, "w");
+		FILE* f = fopen(res->data, "w");
 		if (!f)
 			return 0;
 
@@ -570,7 +569,7 @@ static int webReqHandler(const dWebRequest_t* req, char* outfile)
 		char *base, *path;
 		int id = 0;
 
-		snprintf(outfile, BUFSIZ, "%s%s", APOLLO_LOCAL_CACHE, req->resource + 14);
+		asprintf(&res->data, "%s%s", APOLLO_LOCAL_CACHE, req->resource + 14);
 		sscanf(req->resource + 5, "%08x", &id);
 		item = list_get_item(list, id);
 
@@ -582,7 +581,7 @@ static int webReqHandler(const dWebRequest_t* req, char* outfile)
 		*strrchr(base, '/') = 0;
 		*strrchr(base, '/') = 0;
 
-		id = zip_directory(base, path, outfile);
+		id = zip_directory(base, path, res->data);
 		if (item->flags & SAVE_FLAG_PSV && item->flags & SAVE_FLAG_HDD)
 			vita_SaveUmount();
 
@@ -591,38 +590,37 @@ static int webReqHandler(const dWebRequest_t* req, char* outfile)
 		return id;
 	}
 
-	// http://ps3-ip:8080/icon/CUSA12345-DIR-NAME/sce_sys/icon0.png
+	// http://vita-ip:8080/icon/00000000/ICON0.PNG
 	if (wildcard_match(req->resource, "/icon/\?\?\?\?\?\?\?\?/ICON0.PNG"))
 	{
 		int id = 0;
 
 		sscanf(req->resource + 6, "%08x", &id);
 		item = list_get_item(list, id);
-		snprintf(outfile, BUFSIZ, "%sICON0.PNG", item->path);
+		asprintf(&res->data, "%sICON0.PNG", item->path);
 
-		return (file_exists(outfile) == SUCCESS);
+		return (file_exists(res->data) == SUCCESS);
 	}
 
-	// http://ps3-ip:8080/icon/CUSA12345/DIR-NAME_icon0.png
+	// http://vita-ip:8080/icon/PCSE12345/icon0.png
 	if (wildcard_match(req->resource, "/icon/\?\?\?\?\?\?\?\?\?/icon0.png"))
 	{
-		snprintf(outfile, BUFSIZ, PSV_ICONS_PATH_HDD, req->resource + 6);
-		return (file_exists(outfile) == SUCCESS);
+		asprintf(&res->data, PSV_ICONS_PATH_HDD, req->resource + 6);
+		return (file_exists(res->data) == SUCCESS);
 	}
 
 	return 0;
 }
 
-static void enableWebServer(const save_entry_t* save, int port)
+static void enableWebServer(dWebReqHandler_t handler, void* data, int port)
 {
 	SceNetCtlInfo ip_info;
 
 	memset(&ip_info, 0, sizeof(ip_info));
 	sceNetCtlInetGetInfo(SCE_NETCTL_INFO_GET_IP_ADDRESS, &ip_info);
+	LOG("Starting local web server %s:%d ...", ip_info.ip_address, port);
 
-	LOG("Starting local web server %s:%d for '%s'...", ip_info.ip_address, port, save->path);
-
-	if (dbg_webserver_start(port, webReqHandler))
+	if (dbg_webserver_start(port, handler, data))
 	{
 		show_message("Web Server on http://%s:%d\nPress OK to stop the Server.", ip_info.ip_address, port);
 		dbg_webserver_stop();
@@ -1232,7 +1230,7 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			break;
 
 		case CMD_RUN_WEBSERVER:
-			enableWebServer(selected_entry, 8080);
+			enableWebServer(webReqHandler, ((void**)selected_entry->dir_name)[0], 8080);
 			code->activated = 0;
 			break;
 

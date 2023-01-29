@@ -242,6 +242,7 @@ void initMenuOptions();
 void drawScene();
 void drawSplashLogo(int m);
 void drawEndLogo();
+void drawDialogBackground(void);
 
 int load_app_settings(app_config_t* config);
 int save_app_settings(app_config_t* config);

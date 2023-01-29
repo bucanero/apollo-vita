@@ -167,7 +167,7 @@ enum char_flag_enum
     CHAR_TAG_APPLY,
     CHAR_TAG_OWNER,
     CHAR_TAG_LOCKED,
-    CHAR_RES_TAB,
+    CHAR_TAG_NET,
     CHAR_RES_LF,
     CHAR_TAG_TRANSFER,
     CHAR_TAG_ZIP,
