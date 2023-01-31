@@ -77,6 +77,7 @@ enum texture_index
 	tag_warning_png_index,
 	tag_transfer_png_index,
 	tag_zip_png_index,
+	tag_net_png_index,
 	tag_apply_png_index,
 	buk_scr_png_index,
 	footer_ico_circle_png_index,
@@ -116,6 +117,9 @@ enum texture_index
 #define RGBA_G(c)		(uint8_t)((c & 0x00FF0000) >> 16)
 #define RGBA_B(c)		(uint8_t)((c & 0x0000FF00) >> 8)
 #define RGBA_A(c)		(uint8_t) (c & 0x000000FF)
+
+#define DIALOG_TYPE_OK						0
+#define DIALOG_TYPE_YESNO					1
 
 //Fonts
 #define  font_adonais_regular				0

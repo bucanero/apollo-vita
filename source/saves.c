@@ -16,6 +16,7 @@
 
 #define UTF8_CHAR_STAR		"\xE2\x98\x85"
 
+#define CHAR_ICON_NET		"\x09"
 #define CHAR_ICON_ZIP		"\x0C"
 #define CHAR_ICON_COPY		"\x0B"
 #define CHAR_ICON_SIGN		"\x06"
@@ -511,7 +512,7 @@ int ReadCodes(save_entry_t * save)
 		addVitaCommands(save);
 
 	snprintf(filePath, sizeof(filePath), APOLLO_DATA_PATH "%s.savepatch", save->title_id);
-	if (file_exists(filePath) != SUCCESS)
+	if ((buffer = readTextFile(filePath, NULL)) == NULL)
 		goto skip_end;
 
 	code = _createCmdCode(PATCH_NULL, "----- " UTF8_CHAR_STAR " Cheats " UTF8_CHAR_STAR " -----", CMD_CODE_NULL);	
@@ -521,7 +522,6 @@ int ReadCodes(save_entry_t * save)
 	list_append(save->codes, code);
 
 	LOG("Loading BSD codes '%s'...", filePath);
-	buffer = readTextFile(filePath, NULL);
 	load_patch_code_list(buffer, save->codes, &get_file_entries, save->path);
 	free (buffer);
 
@@ -721,6 +721,11 @@ list_t * ReadBackupList(const char* userPath)
 	item->path = strdup(PSV_LICENSE_PATH);
 	item->type = FILE_TYPE_RIF;
 	list_append(list, item);
+
+	item = _createSaveEntry(0, CHAR_ICON_NET " Network Tools (Downloader, Web Server)");
+	item->path = strdup(UX0_PATH);
+	item->type = FILE_TYPE_NET;
+	list_append(list, item);
 /*
 	item = _createSaveEntry(SAVE_FLAG_PS4, CHAR_ICON_USER " Activate PS Vita Account");
 	asprintf(&item->path, EXDATA_PATH_HDD, apollo_config.user_id);
@@ -740,6 +745,14 @@ int ReadBackupCodes(save_entry_t * bup)
 	{
 	case FILE_TYPE_ZIP:
 		break;
+
+	case FILE_TYPE_NET:
+		bup->codes = list_alloc();
+		cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_NET " URL link Downloader (http, https, ftp, ftps)", CMD_URL_DOWNLOAD);
+		list_append(bup->codes, cmd);
+		cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_NET " Local Web Server (full system access)", CMD_NET_WEBSERVER);
+		list_append(bup->codes, cmd);
+		return list_count(bup->codes);
 
 	case FILE_TYPE_RIF:
 		bup->codes = list_alloc();
@@ -1178,7 +1191,7 @@ list_t * ReadUsbList(const char* userPath)
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy all decrypted Saves to User Storage (ux0:user/)", CMD_COPY_ALL_SAVES_HDD);
 	list_append(item->codes, cmd);
 
-	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Start local Web Server", CMD_RUN_WEBSERVER);
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_NET " Start local Web Server", CMD_SAVE_WEBSERVER);
 	list_append(item->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_LOCK " Dump all decrypted Save Fingerprints", CMD_DUMP_FINGERPRINTS);
@@ -1222,7 +1235,7 @@ list_t * ReadUserList(const char* userPath)
 	cmd->options = _createOptions(2, "Copy Saves to Backup Storage", CMD_COPY_ALL_SAVES_USB);
 	list_append(item->codes, cmd);
 
-	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Start local Web Server", CMD_RUN_WEBSERVER);
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_NET " Start local Web Server", CMD_SAVE_WEBSERVER);
 	list_append(item->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_LOCK " Dump all Save Fingerprints", CMD_DUMP_FINGERPRINTS);

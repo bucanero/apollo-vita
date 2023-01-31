@@ -100,7 +100,7 @@ enum cmd_code_enum
     CMD_COPY_SAVES_HDD,
     CMD_COPY_ALL_SAVES_HDD,
     CMD_DUMP_FINGERPRINTS,
-    CMD_RUN_WEBSERVER,
+    CMD_SAVE_WEBSERVER,
 
 // Export commands
     CMD_EXP_KEYSTONE,
@@ -114,6 +114,8 @@ enum cmd_code_enum
     CMD_IMP_MCR2VMP0,
     CMD_IMP_MCR2VMP1,
     CMD_EXTRACT_ARCHIVE,
+    CMD_URL_DOWNLOAD,
+    CMD_NET_WEBSERVER,
 
 // SFO patches
     SFO_UNLOCK_COPY,
@@ -153,7 +155,7 @@ enum save_type_enum
 
     // ISO Files
     FILE_TYPE_ISO,
-    FILE_TYPE_BINENC,
+    FILE_TYPE_NET,
 };
 
 enum char_flag_enum
@@ -246,14 +248,14 @@ int zip_directory(const char* basedir, const char* inputdir, const char* output_
 int zip_append_directory(const char* basedir, const char* inputdir, const char* output_filename);
 
 int show_dialog(int dialog_type, const char * format, ...);
+int osk_dialog_get_text(const char* title, char* text, uint32_t size);
 void init_progress_bar(const char* msg);
 void update_progress_bar(uint64_t progress, const uint64_t total_size, const char* msg);
 void end_progress_bar(void);
-#define show_message(...)	show_dialog(0, __VA_ARGS__)
+#define show_message(...)	show_dialog(DIALOG_TYPE_OK, __VA_ARGS__)
 
 int init_loading_screen(const char* msg);
 void stop_loading_screen();
-void disable_unpatch();
 
 void execCodeCommand(code_entry_t* code, const char* codecmd);
 

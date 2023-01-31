@@ -267,19 +267,19 @@ static int convert_from_utf16(const uint16_t* utf16, char* utf8, uint32_t size)
     return count;
 }
 
-static int osk_dialog_input_init(const char* title, const char* text, uint32_t maxlen)
+static int osk_dialog_input_init(int tosk, const char* title, const char* text, uint32_t maxlen)
 {
     SceImeDialogParam param;
     sceImeDialogParamInit(&param);
 
     convert_to_utf16(title, g_ime_title, ARRAY_COUNTOF(g_ime_title) - 1);
     convert_to_utf16(text, g_ime_text, ARRAY_COUNTOF(g_ime_text) - 1);
+    memset(g_ime_input, 0, sizeof(g_ime_input));
     g_ime_active = 0;
 
     param.supportedLanguages = 0x0001FFFF;
-    param.languagesForced = SCE_TRUE;
-    param.type = SCE_IME_TYPE_DEFAULT;
-    param.option = 0;
+    param.type = (tosk ? SCE_IME_TYPE_URL : SCE_IME_TYPE_DEFAULT);
+    param.option = (tosk ? SCE_IME_OPTION_NO_AUTO_CAPITALIZATION : 0);
     param.title = g_ime_title;
     param.maxTextLength = maxlen;
     param.initialText = g_ime_text;
@@ -323,7 +323,7 @@ int osk_dialog_get_text(const char* title, char* text, uint32_t size)
 {
     if (size > SCE_IME_DIALOG_MAX_TEXT_LENGTH) size = SCE_IME_DIALOG_MAX_TEXT_LENGTH;
 
-    if (!osk_dialog_input_init(title, text, size))
+    if (!osk_dialog_input_init(1, title, text, size))
         return 0;
 
     while (g_ime_active)

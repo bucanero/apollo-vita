@@ -157,7 +157,7 @@ save_list_t online_saves = {
 */
 save_list_t user_backup = {
     .icon_id = cat_bup_png_index,
-    .title = "User Data Backup",
+    .title = "User Tools",
     .list = NULL,
     .path = "",
     .ReadList = &ReadBackupList,
@@ -200,7 +200,6 @@ static int LoadTextures_Menu()
 	set_ttf_window(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, WIN_SKIP_LF);
 	
 	//Init Main Menu textures
-
 	load_menu_texture(bgimg, jpg);
 	load_menu_texture(cheat, png);
 	load_menu_texture(leon, jpg);
@@ -267,6 +266,7 @@ static int LoadTextures_Menu()
 	load_menu_texture(tag_psv, png);
 	load_menu_texture(tag_warning, png);
 	load_menu_texture(tag_zip, png);
+	load_menu_texture(tag_net, png);
 	load_menu_texture(tag_apply, png);
 	load_menu_texture(tag_transfer, png);
 
@@ -368,6 +368,7 @@ static void registerSpecialChars()
 	RegisterSpecialCharacter(CHAR_TAG_WARNING, 0, 1.3, &menu_textures[tag_warning_png_index]);
 	RegisterSpecialCharacter(CHAR_TAG_APPLY, 2, 1.0, &menu_textures[tag_apply_png_index]);
 	RegisterSpecialCharacter(CHAR_TAG_ZIP, 0, 1.0, &menu_textures[tag_zip_png_index]);
+	RegisterSpecialCharacter(CHAR_TAG_NET, 0, 1.0, &menu_textures[tag_net_png_index]);
 	RegisterSpecialCharacter(CHAR_TAG_TRANSFER, 0, 1.0, &menu_textures[tag_transfer_png_index]);
 
 	// Register button icons
@@ -568,7 +569,7 @@ s32 main(s32 argc, const char* argv[])
 	}
 
 	// dedicated to Leon ~ in loving memory (2009 - 2022)
-	menu_textures[buk_scr_png_index] = menu_textures[leon_jpg_index];
+	// menu_textures[buk_scr_png_index] = menu_textures[leon_jpg_index];
 	// Splash screen logo (fade-in)
 	drawSplashLogo(1);
  
@@ -579,13 +580,11 @@ s32 main(s32 argc, const char* argv[])
 	registerSpecialChars();
 	initMenuOptions();
 
-	usleep(0x100000);
 	// Splash screen logo (fade-out)
 	drawSplashLogo(-1);
 	SDL_DestroyTexture(menu_textures[buk_scr_png_index].texture);
 	
 	//Set options
-	music_callback(!apollo_config.music);
 	update_callback(!apollo_config.update);
 
 	// Start BGM audio thread
