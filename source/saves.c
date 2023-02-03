@@ -236,11 +236,12 @@ static option_entry_t* _initOptions(int count)
 static option_entry_t* _createOptions(int count, const char* name, char value)
 {
 	option_entry_t* options = _initOptions(count);
+	int imc = (count != 2) || (dir_exists(IMC0_PATH) == SUCCESS);
 
 	asprintf(&options->name[0], "%s (%s)", name, UMA0_PATH);
 	asprintf(&options->value[0], "%c%c", value, STORAGE_UMA0);
-	asprintf(&options->name[1], "%s (%s)", name, IMC0_PATH);
-	asprintf(&options->value[1], "%c%c", value, STORAGE_IMC0);
+	asprintf(&options->name[1], "%s (%s)", name, imc ? IMC0_PATH : UX0_PATH);
+	asprintf(&options->value[1], "%c%c", value, imc ? STORAGE_IMC0 : STORAGE_UX0);
 
 	return options;
 }
@@ -344,9 +345,12 @@ static void _addBackupCommands(save_entry_t* item)
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy save game", CMD_CODE_NULL);
 	cmd->options_count = 1;
-	cmd->options = _createOptions(3, "Copy Save to Backup Storage", CMD_COPY_SAVE_USB);
-	asprintf(&cmd->options->name[2], "Copy Save to User Storage (ux0:%s/)", (item->flags & SAVE_FLAG_PSP) ? "pspemu":"user");
-	asprintf(&cmd->options->value[2], "%c", CMD_COPY_SAVE_HDD);
+	cmd->options = _createOptions((item->flags & SAVE_FLAG_HDD) ? 2 : 3, "Copy Save to Backup Storage", CMD_COPY_SAVE_USB);
+	if (!(item->flags & SAVE_FLAG_HDD))
+	{
+		asprintf(&cmd->options->name[2], "Copy Save to User Storage (ux0:%s/)", (item->flags & SAVE_FLAG_PSP) ? "pspemu":"user");
+		asprintf(&cmd->options->value[2], "%c", CMD_COPY_SAVE_HDD);
+	}
 	list_append(item->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_ZIP " Export save game to Zip", CMD_CODE_NULL);

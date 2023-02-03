@@ -11,7 +11,7 @@
 #include "common.h"
 
 
-static char* ext_src[] = {"ux0", "uma0", "imc0", "xmc0", "ur0", NULL};
+static char* ext_src[MAX_USB_DEVICES+1] = {"ux0", "uma0", "imc0", "xmc0", "ur0", NULL};
 static char* sort_opt[] = {"Disabled", "by Name", "by Title ID", NULL};
 
 menu_option_t menu_options[] = {

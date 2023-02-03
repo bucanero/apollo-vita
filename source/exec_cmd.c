@@ -119,10 +119,12 @@ static void zipSave(const save_entry_t* entry, int dst)
 	show_message("Zip file successfully saved to:\n%s%08d.zip", exp_path, fid);
 }
 
-static void copySave(const save_entry_t* save, const char* exp_path)
+static void copySave(const save_entry_t* save, int dev)
 {
 	char* copy_path;
+	char exp_path[256];
 
+	_set_dest_path(exp_path, dev, PSV_SAVES_PATH_USB);
 	if (strncmp(save->path, exp_path, strlen(exp_path)) == 0)
 	{
 		show_message("Copy operation cancelled!\nSame source and destination.");
@@ -137,7 +139,7 @@ static void copySave(const save_entry_t* save, const char* exp_path)
 
 	init_loading_screen("Copying files...");
 
-	asprintf(&copy_path, "%s%02x_%s_%s/", exp_path, apollo_config.user_id, save->title_id, save->dir_name);
+	asprintf(&copy_path, "%s%s_%s/", exp_path, save->title_id, save->dir_name);
 
 	LOG("Copying <%s> to %s...", save->path, copy_path);
 	copy_directory(save->path, save->path, copy_path);
@@ -165,6 +167,7 @@ static int _copy_save_hdd(const save_entry_t* save)
 	char copy_path[256];
 	save_entry_t entry = {
 		.title_id = save->title_id,
+		.dir_name = save->dir_name,
 		.path = copy_path,
 	};
 
@@ -306,12 +309,14 @@ static void exportFingerprint(const save_entry_t* save, int silent)
 	if (!silent) show_message("%s fingerprint successfully saved to:\n%s", save->title_id, fpath);
 }
 
-void exportTrophyZip(const save_entry_t *trop, const char* exp_path)
+static void exportTrophyZip(const save_entry_t *trop, int dev)
 {
+	char exp_path[256];
 	char trp_path[256];
 	char* export_file;
 	char* tmp;
 
+	_set_dest_path(exp_path, dev, TROPHIES_PATH_USB);
 	if (mkdirs(exp_path) != SUCCESS)
 	{
 		show_message("Error! Export folder is not available:\n%s", exp_path);
@@ -651,8 +656,9 @@ static void enableWebServer(dWebReqHandler_t handler, void* data, int port)
 	else show_message("Error starting Web Server!");
 }
 
-static void copyAllSavesUSB(const save_entry_t* save, const char* dst_path, int all)
+static void copyAllSavesUSB(const save_entry_t* save, int dev, int all)
 {
+	char dst_path[256];
 	char copy_path[256];
 	char save_path[256];
 	int done = 0, err_count = 0;
@@ -661,6 +667,7 @@ static void copyAllSavesUSB(const save_entry_t* save, const char* dst_path, int 
 	save_entry_t *item;
 	list_t *list = ((void**)save->dir_name)[0];
 
+	_set_dest_path(dst_path, dev, PSV_SAVES_PATH_USB);
 	if (!list || mkdirs(dst_path) != SUCCESS)
 	{
 		show_message("Error! Folder is not available:\n%s", dst_path);
@@ -676,7 +683,7 @@ static void copyAllSavesUSB(const save_entry_t* save, const char* dst_path, int 
 		if (!all && !(item->flags & SAVE_FLAG_SELECTED))
 			continue;
 
-		snprintf(copy_path, sizeof(copy_path), "%s%02x_%s_%s/", dst_path, apollo_config.user_id, item->title_id, item->dir_name);
+		snprintf(copy_path, sizeof(copy_path), "%s%s_%s/", dst_path, item->title_id, item->dir_name);
 		LOG("Copying <%s> to %s...", item->path, copy_path);
 
 		if (item->type == FILE_TYPE_PSV && vita_SaveMount(item))
@@ -720,10 +727,12 @@ static int _copy_trophyset(const save_entry_t* trop, const char* out_path)
 	return 1;
 }
 
-static void copyTrophy(const save_entry_t* trop, const char* exp_path)
+static void copyTrophy(const save_entry_t* trop, int dev)
 {
 	int ret;
+	char exp_path[256];
 
+	_set_dest_path(exp_path, dev, TROPHIES_PATH_USB);
 	if (mkdirs(exp_path) != SUCCESS)
 	{
 		show_message("Error! Export folder is not available:\n%s", exp_path);
@@ -740,13 +749,21 @@ static void copyTrophy(const save_entry_t* trop, const char* exp_path)
 		show_message("Error! Trophy Set %s not copied!", trop->title_id);
 }
 
-static void copyAllTrophies(const save_entry_t* save, const char* out_path, int all)
+static void copyAllTrophies(const save_entry_t* save, int dev, int all)
 {
+	char out_path[256];
 	int done = 0, err_count = 0;
 	list_node_t *node;
 	save_entry_t *item;
 	uint64_t progress = 0;
 	list_t *list = ((void**)save->dir_name)[0];
+
+	_set_dest_path(out_path, dev, TROPHIES_PATH_USB);
+	if (!list || mkdirs(out_path) != SUCCESS)
+	{
+		show_message("Error! Export folder is not available:\n%s", out_path);
+		return;
+	}
 
 	init_progress_bar("Copying trophies...");
 
@@ -1178,7 +1195,7 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			break;
 
 		case CMD_COPY_SAVE_USB:
-			copySave(selected_entry, codecmd[1] ? SAVES_PATH_IMC0 : SAVES_PATH_UMA0);
+			copySave(selected_entry, codecmd[1]);
 			code->activated = 0;
 			break;
 
@@ -1220,7 +1237,7 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			break;
 
 		case CMD_EXP_TROPHY_USB:
-			copyTrophy(selected_entry, codecmd[1] ? TROPHY_PATH_IMC0 : TROPHY_PATH_UMA0);
+			copyTrophy(selected_entry, codecmd[1]);
 			code->activated = 0;
 			break;
 
@@ -1230,19 +1247,19 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			break;
 
 		case CMD_ZIP_TROPHY_USB:
-			exportTrophyZip(selected_entry, codecmd[1] ? TROPHY_PATH_IMC0 : TROPHY_PATH_UMA0);
+			exportTrophyZip(selected_entry, codecmd[1]);
 			code->activated = 0;
 			break;
 
 		case CMD_COPY_TROPHIES_USB:
 		case CMD_COPY_ALL_TROP_USB:
-			copyAllTrophies(selected_entry, codecmd[1] ? TROPHY_PATH_IMC0 : TROPHY_PATH_UMA0, codecmd[0] == CMD_COPY_ALL_TROP_USB);
+			copyAllTrophies(selected_entry, codecmd[1], codecmd[0] == CMD_COPY_ALL_TROP_USB);
 			code->activated = 0;
 			break;
 
 		case CMD_COPY_SAVES_USB:
 		case CMD_COPY_ALL_SAVES_USB:
-			copyAllSavesUSB(selected_entry, codecmd[1] ? SAVES_PATH_IMC0 : SAVES_PATH_UMA0, codecmd[0] == CMD_COPY_ALL_SAVES_USB);
+			copyAllSavesUSB(selected_entry, codecmd[1], codecmd[0] == CMD_COPY_ALL_SAVES_USB);
 			code->activated = 0;
 			break;
 
