@@ -5,6 +5,7 @@
 #include <time.h>
 #include <dirent.h>
 #include <psp2/appmgr.h>
+#include <libxml/parser.h>
 
 #include "saves.h"
 #include "common.h"
@@ -28,8 +29,8 @@
 
 int sqlite_init();
 
-char pfs_mount_point[MAX_MOUNT_POINT_LENGTH];
-const int known_pfs_ids[] = { 0x6E, 0x12E, 0x12F, 0x3ED };
+static char pfs_mount_point[MAX_MOUNT_POINT_LENGTH];
+static const int known_pfs_ids[] = { 0x6E, 0x12E, 0x12F, 0x3ED };
 
 static sqlite3* open_sqlite_db(const char* db_path)
 {
@@ -222,14 +223,12 @@ static code_entry_t* _createCmdCode(uint8_t type, const char* name, char code)
 
 static option_entry_t* _initOptions(int count)
 {
-	option_entry_t* options = (option_entry_t*)malloc(sizeof(option_entry_t));
+	option_entry_t* options = (option_entry_t*)calloc(1, sizeof(option_entry_t));
 
-	options->id = 0;
 	options->sel = -1;
 	options->size = count;
-	options->line = NULL;
-	options->value = malloc (sizeof(char *) * count);
-	options->name = malloc (sizeof(char *) * count);
+	options->value = calloc (count, sizeof(char *));
+	options->name = calloc (count, sizeof(char *));
 
 	return options;
 }
@@ -534,6 +533,79 @@ skip_end:
 	return list_count(save->codes);
 }
 
+static char* _get_xml_node_value(xmlNode * a_node, const xmlChar* node_name)
+{
+	xmlNode *cur_node = NULL;
+	char *value = NULL;
+
+	for (cur_node = a_node; cur_node && !value; cur_node = cur_node->next)
+	{
+		if (cur_node->type != XML_ELEMENT_NODE)
+			continue;
+
+		if (xmlStrcasecmp(cur_node->name, node_name) == 0)
+		{
+			value = (char*) xmlNodeGetContent(cur_node);
+//			LOG("xml value=%s", value);
+		}
+	}
+
+	return value;
+}
+
+static int get_usb_trophies(save_entry_t* item)
+{
+	DIR *d;
+	struct dirent *dir;
+	code_entry_t * cmd;
+	char filePath[256];
+	xmlDoc *doc = NULL;
+	xmlNode *root_element = NULL;
+	char *name, *commid;
+
+	d = opendir(item->path);
+	if (!d)
+		return 0;
+
+	item->codes = list_alloc();
+	while ((dir = readdir(d)) != NULL)
+	{
+		if (!(dir->d_stat.st_mode & SCE_S_IFDIR) || strcmp(dir->d_name, ".") == 0 || strcmp(dir->d_name, "..") == 0)
+			continue;
+
+		snprintf(filePath, sizeof(filePath), "%s%s/conf/TROP.SFM", item->path, dir->d_name);
+		LOG("Reading %s...", filePath);
+
+		/*parse the file and get the DOM */
+		doc = xmlParseFile(filePath);
+		if (!doc)
+		{
+			LOG("XML: could not parse file %s", filePath);
+			continue;
+		}
+
+		/*Get the root element node */
+		root_element = xmlDocGetRootElement(doc);
+		name = _get_xml_node_value(root_element->children, BAD_CAST "title-name");
+		commid = _get_xml_node_value(root_element->children, BAD_CAST "npcommid");
+		snprintf(filePath, sizeof(filePath), "%s (%s)", name, commid);
+
+		cmd = _createCmdCode(PATCH_COMMAND, filePath, CMD_IMP_TROPHY_HDD);
+		cmd->flags = APOLLO_CODE_FLAG_PARENT;
+		cmd->file = strdup(dir->d_name);
+
+		/*free the document */
+		xmlFreeDoc(doc);
+		xmlCleanupParser();
+
+		LOG("[%s] name '%s'", cmd->file, cmd->name);
+		list_append(item->codes, cmd);
+	}
+	closedir(d);
+
+	return list_count(item->codes);
+}
+
 int ReadTrophies(save_entry_t * game)
 {
 	int trop_count = 0;
@@ -541,6 +613,10 @@ int ReadTrophies(save_entry_t * game)
 	char query[256];
 	sqlite3 *db;
 	sqlite3_stmt *res;
+
+	// Import trophies from USB
+	if (game->type == FILE_TYPE_MENU)
+		return get_usb_trophies(game);
 
 	snprintf(query, sizeof(query), TROPHY_PATH_HDD "db/trophy_local.db", apollo_config.user_id);
 	if ((db = open_sqlite_db(query)) == NULL)
@@ -777,7 +853,7 @@ int ReadBackupCodes(save_entry_t * bup)
 			cmd->file = filename;
 			list_append(bup->codes, cmd);
 
-			LOG("[%s] name '%s'", cmd->file, cmd->name);
+			LOG("[%s] name '%s'", cmd->file, cmd->name +2);
 		}
 
 		list_free(file_list);
@@ -807,7 +883,7 @@ int ReadBackupCodes(save_entry_t * bup)
 			cmd = _createCmdCode(PATCH_COMMAND, tmp, CMD_EXTRACT_ARCHIVE);
 			asprintf(&cmd->file, "%s%s", bup->path, dir->d_name);
 
-			LOG("[%s] name '%s'", cmd->file, cmd->name);
+			LOG("[%s] name '%s'", cmd->file, cmd->name +2);
 			list_append(bup->codes, cmd);
 		}
 		closedir(d);
@@ -885,6 +961,11 @@ void UnloadGameList(list_t * list)
 				{
 					for (int z = 0; z < code->options_count; z++)
 					{
+						for (int j = 0; j < code->options[z].size; j++)
+						{
+							free(code->options[z].name[j]);
+							free(code->options[z].value[j]);
+						}
 						if (code->options[z].line)
 							free(code->options[z].line);
 						if (code->options[z].name)
@@ -1353,11 +1434,13 @@ static int sqlite_trophy_collate(void *foo, int ll, const void *l, int rl, const
 
 list_t * ReadTrophyList(const char* userPath)
 {
+	char filePath[256];
 	save_entry_t *item;
 	code_entry_t *cmd;
 	list_t *list;
 	sqlite3 *db;
 	sqlite3_stmt *res;
+	const char* dev[] = {UMA0_PATH, IMC0_PATH, UX0_PATH};
 
 	if ((db = open_sqlite_db(userPath)) == NULL)
 		return NULL;
@@ -1381,6 +1464,19 @@ list_t * ReadTrophyList(const char* userPath)
 	cmd->options = _createOptions(2, "Copy Trophies to Backup Storage", CMD_COPY_ALL_TROP_USB);
 	list_append(item->codes, cmd);
 	list_append(list, item);
+
+	for (int i = 0; i < 3; i++)
+	{
+		snprintf(filePath, sizeof(filePath), "%s" TROPHIES_PATH_USB, dev[i]);
+		if (i && dir_exists(filePath) != SUCCESS)
+			continue;
+
+		item = _createSaveEntry(SAVE_FLAG_PSV | SAVE_FLAG_TROPHY, CHAR_ICON_COPY " Import Trophies");
+		asprintf(&item->path, "%s" TROPHIES_PATH_USB, dev[i]);
+		asprintf(&item->title_id, " %s", dev[i]);
+		item->type = FILE_TYPE_MENU;
+		list_append(list, item);
+	}
 
 	sqlite3_create_collation(db, "trophy_collator", SQLITE_UTF8, NULL, &sqlite_trophy_collate);
 	int rc = sqlite3_prepare_v2(db, "SELECT id, npcommid, title FROM tbl_trophy_title WHERE status = 0", -1, &res, NULL);

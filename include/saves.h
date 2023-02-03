@@ -46,8 +46,8 @@
 #define IMP_PS2VMC_PATH_USB     USB_PATH "PS2/VMC/"
 #define IMPORT_RAP_PATH_USB     USB_PATH PS3_LICENSE_PATH
 
-#define ONLINE_URL				"https://bucanero.github.io/apollo-saves/"
-#define ONLINE_PATCH_URL		"https://bucanero.github.io/apollo-patches/PSV/"
+#define ONLINE_URL              "https://bucanero.github.io/apollo-saves/"
+#define ONLINE_PATCH_URL        "https://bucanero.github.io/apollo-patches/PSV/"
 #define ONLINE_CACHE_TIMEOUT    24*3600     // 1-day local cache
 
 #define OWNER_XML_FILE          "owners.xml"
@@ -75,6 +75,7 @@ enum cmd_code_enum
     CMD_EXP_TROPHY_USB,
     CMD_COPY_TROPHIES_USB,
     CMD_ZIP_TROPHY_USB,
+    CMD_IMP_TROPHY_HDD,
 
 // Save commands
     CMD_DECRYPT_FILE,

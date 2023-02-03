@@ -418,26 +418,49 @@ static void dumpAllFingerprints(const save_entry_t* save)
 	end_progress_bar();
 	show_message("All fingerprints dumped to:\n%sfingerprints.txt", APOLLO_PATH);
 }
-/*
-static void activateAccount(int user, const char* value)
+
+static void importTrophy(const char* path, const char* trop_dir)
 {
-	uint64_t account = 0;
+	save_entry_t tmp;
+	char src_path[256];
+	char dst_path[256];
 
-	sscanf(value, "%lx", &account);
-	if (!account)
-		account = (0x6F6C6C6F70610000 + ((user & 0xFFFF) ^ 0xFFFF));
+	memset(&tmp, 0, sizeof(save_entry_t));
+	tmp.path = dst_path;
+	tmp.dir_name = (char*)trop_dir;
+	tmp.title_id = (char*)trop_dir;
 
-	LOG("Activating user=%d (%lx)...", user, account);
-	if (1)
-//	if (regMgr_SetAccountId(user, &account) != SUCCESS)
+	snprintf(src_path, sizeof(src_path), "%s%s/data/", path, trop_dir);
+	snprintf(tmp.path, sizeof(dst_path), TROPHY_PATH_HDD "data/%s/", apollo_config.user_id, trop_dir);
+
+	if (!vita_SaveMount(&tmp))
 	{
-		show_message("Error! Couldn't activate user account");
+		show_message("Error! Trophy folder is not available:\n%s", tmp.path);
 		return;
 	}
 
-	show_message("Account successfully activated!\nA system reboot might be required");
+	init_loading_screen("Importing trophy...");
+
+	LOG("Copying <%s> to %s...", src_path, dst_path);
+	copy_directory(src_path, src_path, dst_path);
+
+	snprintf(src_path, sizeof(src_path), "%s%s/conf/", path, trop_dir);
+	snprintf(dst_path, sizeof(dst_path), TROPHY_PATH_HDD "conf/%s/", apollo_config.user_id, trop_dir);
+	LOG("Copying <%s> to %s...", src_path, dst_path);
+	copy_directory(src_path, src_path, dst_path);
+
+	snprintf(src_path, sizeof(src_path), "%s%s/conf_ux0/", path, trop_dir);
+	dst_path[1] = 'x';
+	LOG("Copying <%s> to %s...", src_path, dst_path);
+	copy_directory(src_path, src_path, dst_path);
+
+	stop_loading_screen();
+	vita_SaveUmount();
+
+	show_message("Trophy %s successfully copied to:\n" TROPHY_PATH_HDD, trop_dir, apollo_config.user_id);
 }
 
+/*
 static void copySavePFS(const save_entry_t* save)
 {
 	char src_path[256];
@@ -1198,6 +1221,11 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 
 		case CMD_EXP_TROPHY_USB:
 			copyTrophy(selected_entry, codecmd[1] ? TROPHY_PATH_IMC0 : TROPHY_PATH_UMA0);
+			code->activated = 0;
+			break;
+
+		case CMD_IMP_TROPHY_HDD:
+			importTrophy(selected_entry->path, code->file);
 			code->activated = 0;
 			break;
 

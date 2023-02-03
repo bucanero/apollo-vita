@@ -35,7 +35,6 @@ jobs:
         path: vdpm
 
     - name: Set env vars
-      id: slug
       run: |
         echo "sha_name=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
         echo "VITASDK=${GITHUB_WORKSPACE}/vitasdk" >> $GITHUB_ENV
@@ -59,6 +58,7 @@ jobs:
         ./vdpm unrar
         ./vdpm polarssl
         ./vdpm un7zip
+        ./vdpm libxml2
         ./vdpm libxmp-lite
 
     - name: Install zip

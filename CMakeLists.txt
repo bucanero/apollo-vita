@@ -31,6 +31,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 include_directories(
   include
   ${VITASDK}/arm-vita-eabi/include/freetype2
+  ${VITASDK}/arm-vita-eabi/include/libxml2
 )
 
 link_directories(
@@ -114,6 +115,7 @@ target_link_libraries(${PROJECT_NAME}
   un7zip
   stdc++
   xmp-lite
+  xml2
   z
 )
 

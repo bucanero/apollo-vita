@@ -340,12 +340,12 @@ void update_usb_path(char* path)
 	if (dir_exists(path) == SUCCESS)
 		return;
 
-	strcpy(path, "");
+	path[0] = 0;
 }
 
 void update_hdd_path(char* path)
 {
-	sprintf(path, USER_PATH_HDD, apollo_config.user_id);
+	strcpy(path, USER_PATH_HDD);
 }
 
 void update_trophy_path(char* path)
