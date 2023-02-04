@@ -312,6 +312,7 @@ int save_xml_owner(const char *xmlfile)
         /* Creates a new document, a node and set it as a root node */
         doc = xmlNewDoc(BAD_CAST "1.0");
         root_node = xmlNewNode(NULL, BAD_CAST "apollo");
+        xmlNewProp(root_node, BAD_CAST "platform", BAD_CAST "vita");
         xmlNewProp(root_node, BAD_CAST "version", BAD_CAST APOLLO_VERSION);
         xmlDocSetRootElement(doc, root_node);
     }

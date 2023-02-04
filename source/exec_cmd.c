@@ -109,7 +109,7 @@ static void zipSave(const save_entry_t* entry, int dst)
 		fclose(f);
 	}
 
-	sprintf(export_file, "%s%08x.xml", exp_path, apollo_config.user_id);
+	sprintf(export_file, "%s%s", exp_path, OWNER_XML_FILE);
 	save_xml_owner(export_file);
 
 	free(export_file);
@@ -159,6 +159,11 @@ static int get_psp_save_key(const save_entry_t* entry, uint8_t* key)
 		return 1;
 
 	snprintf(path, sizeof(path), "ux0:pspemu/PSP/SAVEPLAIN/%s/%s.bin", entry->title_id, entry->title_id);
+	if (read_psp_game_key(path, key))
+		return 1;
+
+	// SGKeyDumper 1.5+ support
+	snprintf(path, sizeof(path), "ux0:pspemu/PSP/GAME/SED/gamekey/%s.bin", entry->title_id);
 	return (read_psp_game_key(path, key));
 }
 
@@ -338,6 +343,9 @@ static void exportTrophyZip(const save_entry_t *trop, int dev)
 	trp_path[1] = 'x';
 	sprintf(tmp, "%.12s", trp_path);
 	zip_append_directory(tmp, trp_path, export_file);
+
+	sprintf(export_file, "%s%s", exp_path, OWNER_XML_FILE);
+	save_xml_owner(export_file);
 
 	free(export_file);
 	free(tmp);

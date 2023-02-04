@@ -4,6 +4,23 @@ All notable changes to the `apollo-vita` project will be documented in this file
 
 ## [Unreleased]()
 
+## [v1.2.0](https://github.com/bucanero/apollo-vita/releases/tag/v1.2.0) - 2023-02-04
+
+### Added
+
+* Import Trophies from USB
+* Network Tools
+  * URL downloader tool (download http/https/ftp/ftps links)
+  * Simple local Web Server (full access to console drives)
+* Improve External storage selection (`uma0`, `imc0`, `ux0`)
+* On-screen Keyboard (for text input)
+* Save account owner details to `owners.xml`
+* Support PSP keys dumped with SGKeyDumper v1.5+
+
+### Fixed
+
+* Fixed a bug when importing decrypted data files
+
 ## [v1.1.2](https://github.com/bucanero/apollo-vita/releases/tag/v1.1.2) - 2022-12-24
 
 _dedicated to Leon ~ in loving memory (2009 - 2022)_ :heart:
@@ -13,6 +30,7 @@ _dedicated to Leon ~ in loving memory (2009 - 2022)_ :heart:
 * Export noNpDRM licenses to zRIF (`User Tools`)
 * New save-game sorting options (`Settings`)
   * by Name, by Title ID
+* Show Vita IP address when running Apollo's Web Server
 
 ### Misc
 
