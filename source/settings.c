@@ -4,6 +4,7 @@
 #include <time.h>
 #include <psp2/registrymgr.h>
 #include <psp2/vshbridge.h>
+#include <libxml/parser.h>
 
 #include "types.h"
 #include "menu.h"
@@ -265,4 +266,85 @@ int load_app_settings(app_config_t* config)
 
 	vita_SaveUmount();
 	return 1;
+}
+
+static xmlNode* _get_owner_node(xmlNode *a_node, xmlChar *owner_name)
+{
+    xmlNode *cur_node = NULL;
+
+    for (cur_node = a_node; cur_node; cur_node = cur_node->next)
+    {
+        if (cur_node->type != XML_ELEMENT_NODE)
+            continue;
+
+        if ((xmlStrcasecmp(cur_node->name, BAD_CAST "owner") == 0) &&
+            (xmlStrcmp(xmlGetProp(cur_node, BAD_CAST "name"), owner_name) == 0))
+            return cur_node;
+    }
+
+    return NULL;
+}
+
+int save_xml_owner(const char *xmlfile)
+{
+    xmlDocPtr doc = NULL;       /* document pointer */
+    xmlNodePtr root_node = NULL, node = NULL, node1 = NULL;/* node pointers */
+    char buff[64];
+
+    /*parse the file and get the DOM */
+    doc = xmlParseFile(xmlfile);
+    if (doc)
+    {
+        LOG("XML: updating file '%s'", xmlfile);
+        /*Get the root element node */
+        root_node = xmlDocGetRootElement(doc);
+        node = _get_owner_node(root_node->children, BAD_CAST menu_about_strings_project[1]);
+
+        if (node)
+        {
+            xmlUnlinkNode(node);
+            xmlFreeNode(node);
+        }
+    }
+    else
+    {
+        LOG("XML: could not parse data, creating new file '%s'", xmlfile);
+        /* Creates a new document, a node and set it as a root node */
+        doc = xmlNewDoc(BAD_CAST "1.0");
+        root_node = xmlNewNode(NULL, BAD_CAST "apollo");
+        xmlNewProp(root_node, BAD_CAST "version", BAD_CAST APOLLO_VERSION);
+        xmlDocSetRootElement(doc, root_node);
+    }
+
+    /* 
+     * xmlNewChild() creates a new node, which is "attached" as child node
+     * of root_node node. 
+     */
+    node = xmlNewChild(root_node, NULL, BAD_CAST "owner", NULL);
+    xmlNewProp(node, BAD_CAST "name", BAD_CAST menu_about_strings_project[1]);
+
+    node1 = xmlNewChild(node, NULL, BAD_CAST "console", NULL);
+
+    snprintf(buff, sizeof(buff), "%016llX %016llX", apollo_config.idps[0], apollo_config.idps[1]);
+    xmlNewProp(node1, BAD_CAST "idps", BAD_CAST buff);
+
+    snprintf(buff, sizeof(buff), "%016X %016X", 0, 0);
+    xmlNewProp(node1, BAD_CAST "psid", BAD_CAST buff);
+
+    node1 = xmlNewChild(node, NULL, BAD_CAST "user", NULL);
+
+    snprintf(buff, sizeof(buff), "%08d", apollo_config.user_id);
+    xmlNewProp(node1, BAD_CAST "id", BAD_CAST buff);
+
+    snprintf(buff, sizeof(buff), "%016llx", apollo_config.account_id);
+    xmlNewProp(node1, BAD_CAST "account_id", BAD_CAST buff);
+
+    /* Dumping document to file */
+    xmlSaveFormatFileEnc(xmlfile, doc, "UTF-8", 1);
+
+    /*free the document */
+    xmlFreeDoc(doc);
+    xmlCleanupParser();
+
+    return(1);
 }

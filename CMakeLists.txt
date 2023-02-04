@@ -17,7 +17,7 @@ find_package(OpenSSL REQUIRED)
 
 set(VITA_APP_NAME "Apollo Save Tool")
 set(VITA_TITLEID  "NP0APOLLO")
-set(VITA_VERSION  "01.12")
+set(VITA_VERSION  "01.20")
 
 option(APOLLO_ENABLE_LOGGING "enables debug logging over udp multicast" OFF)
 

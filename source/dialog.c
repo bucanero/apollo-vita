@@ -4,6 +4,7 @@
 #include <psp2/ime_dialog.h>
 #include <psp2/message_dialog.h>
 #include <psp2/notificationutil.h>
+#include <psp2/kernel/processmgr.h>
 #include <SDL2/SDL.h>
 
 #include "menu.h"
@@ -49,6 +50,9 @@ int show_dialog(int tdialog, const char * format, ...)
         return 0;
 
     do {
+        if (tdialog == DIALOG_TYPE_OK)
+            sceKernelPowerTick(SCE_KERNEL_POWER_TICK_DISABLE_AUTO_SUSPEND);
+
         drawDialogBackground();
     } while (sceMsgDialogGetStatus() != SCE_COMMON_DIALOG_STATUS_FINISHED);
     sceMsgDialogClose();

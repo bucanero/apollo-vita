@@ -110,7 +110,7 @@ static void zipSave(const save_entry_t* entry, int dst)
 	}
 
 	sprintf(export_file, "%s%08x.xml", exp_path, apollo_config.user_id);
-//	save_xml_owner(export_file);
+	save_xml_owner(export_file);
 
 	free(export_file);
 	free(tmp);
