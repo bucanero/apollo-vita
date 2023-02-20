@@ -9,8 +9,6 @@
 
 #include "menu.h"
 
-#define ARRAY_COUNTOF(arr) (sizeof(arr)/sizeof(0[arr]))
-
 #define SCE_NOTIFICATION_UTIL_TEXT_MAX                     (0x3F)
 
 typedef struct SceNotificationUtilSendParam {
@@ -276,8 +274,8 @@ static int osk_dialog_input_init(int tosk, const char* title, const char* text, 
     SceImeDialogParam param;
     sceImeDialogParamInit(&param);
 
-    convert_to_utf16(title, g_ime_title, ARRAY_COUNTOF(g_ime_title) - 1);
-    convert_to_utf16(text, g_ime_text, ARRAY_COUNTOF(g_ime_text) - 1);
+    convert_to_utf16(title, g_ime_title, countof(g_ime_title) - 1);
+    convert_to_utf16(text, g_ime_text, countof(g_ime_text) - 1);
     memset(g_ime_input, 0, sizeof(g_ime_input));
     g_ime_active = 0;
 

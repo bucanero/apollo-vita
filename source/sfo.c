@@ -134,6 +134,8 @@ int sfo_read(sfo_context_t *context, const char *file_path) {
 		list_append(context->params, param);
 	}
 
+	free(sfo);
+
 error:
 	return ret;
 }
@@ -283,7 +285,7 @@ void sfo_grab(sfo_context_t *inout, sfo_context_t *tpl, int num_keys, const sfo_
 	}
 }
 
-void sfo_patch_titleid(sfo_context_t *inout) {
+static void sfo_patch_titleid(sfo_context_t *inout) {
 	sfo_context_param_t *p;
 
 	p = sfo_context_get_param(inout, "PARAMS");
