@@ -949,7 +949,7 @@ static int apply_cheat_patches(const save_entry_t* entry)
 
 			if (entry->flags & SAVE_FLAG_PSP && !psp_is_decrypted(decrypted_files, filename))
 			{
-				if (get_psp_save_key(entry, key) && psp_DecryptSavedata(entry->path, filename, key))
+				if (get_psp_save_key(entry, key) && psp_DecryptSavedata(entry->path, tmpfile, key))
 				{
 					LOG("Decrypted PSP file '%s'", filename);
 					list_append(decrypted_files, strdup(filename));
