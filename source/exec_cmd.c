@@ -1169,7 +1169,8 @@ static void downloadLink(const char* path)
 	if (!osk_dialog_get_text("Download URL", url, sizeof(url)))
 		return;
 
-	snprintf(out_path, sizeof(out_path), "%s%s", path, strrchr(url, '/')+1);
+	char *fname = strrchr(url, '/');
+	snprintf(out_path, sizeof(out_path), "%s%s", path, fname ? ++fname : "download.bin");
 
 	if (http_download(url, NULL, out_path, 1))
 		show_message("File successfully downloaded to:\n%s", out_path);
