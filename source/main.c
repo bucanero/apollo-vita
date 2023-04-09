@@ -29,6 +29,7 @@
 #include "libfont.h"
 #include "ttf_render.h"
 #include "font_adonais.h"
+#include "font-16x32.h"
 
 //Menus
 #include "menu.h"
@@ -98,6 +99,7 @@ const char * menu_pad_help[TOTAL_MENU_IDS] = { NULL,												//Main
 								"\x13 Back",														//View Cheat
 								"\x10 Select    \x13 Back",											//Cheat Option
 								"\x13 Back",														//View Details
+								"\x10 Value Up  \x11 Value Down   \x13 Exit",						//Hex Editor
 								};
 
 /*
@@ -189,7 +191,8 @@ static int LoadTextures_Menu()
 	
 	ResetFont();
 	free_mem = (u32 *) AddFontFromBitmapArray((u8 *) data_font_Adonais, (u8 *) texture_mem, 0x20, 0x7e, 32, 31, 1, BIT7_FIRST_PIXEL);
-	
+	free_mem = (u32 *) AddFontFromBitmapArray((u8 *) console_font_16x32, (u8 *) free_mem, 0, 0xFF, 16, 32, 1, BIT7_FIRST_PIXEL);
+
 	if (TTFLoadFont(0, "sa0:data/font/pvf/ltn0.pvf", NULL, 0) != SUCCESS ||
 		TTFLoadFont(1, "sa0:data/font/pvf/jpn0.pvf", NULL, 0) != SUCCESS ||
 		TTFLoadFont(2, "sa0:data/font/pvf/kr0.pvf", NULL, 0) != SUCCESS ||
@@ -575,7 +578,7 @@ s32 main(s32 argc, const char* argv[])
  
 	// Setup font
 	SetExtraSpace(-10);
-	SetCurrentFont(0);
+	SetCurrentFont(font_adonais_regular);
 
 	registerSpecialChars();
 	initMenuOptions();
@@ -618,7 +621,7 @@ s32 main(s32 argc, const char* argv[])
 			}
 			
 			SetFontSize(APP_FONT_SIZE_DESCRIPTION);
-			SetCurrentFont(0);
+			SetCurrentFont(font_adonais_regular);
 			SetFontAlign(FONT_ALIGN_SCREEN_CENTER);
 			SetFontColor(APP_FONT_COLOR | alpha, 0);
 			DrawString(0, SCREEN_HEIGHT - 44, (char *)menu_pad_help[menu_id]);

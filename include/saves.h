@@ -81,7 +81,7 @@ enum cmd_code_enum
     CMD_RESIGN_VMP,
     CMD_EXP_FINGERPRINT,
     CMD_CONVERT_TO_PSV,
-    CMD_COPY_PFS,
+    CMD_HEX_EDIT_FILE,
     CMD_IMPORT_DATA_FILE,
 
 // Bulk commands

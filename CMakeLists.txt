@@ -79,6 +79,7 @@ add_executable(${PROJECT_NAME}
   source/menu_cheats.c
   source/menu_options.c
   source/menu_main.c
+  source/menu_hex.c
   source/saves.c
   source/settings.c
   source/sfo.c
