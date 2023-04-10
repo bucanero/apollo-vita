@@ -26,6 +26,8 @@ typedef struct
 
 typedef struct __attribute__((packed))
 {
+    char app_name[8];
+    char app_ver[8];
     uint8_t music;
     uint8_t doSort;
     uint8_t doAni;
@@ -34,22 +36,14 @@ typedef struct __attribute__((packed))
     uint32_t user_id;
     uint64_t idps[2];
     uint64_t account_id;
+    char save_db[256];
 } app_config_t;
 
 extern menu_option_t menu_options[];
-
 extern app_config_t apollo_config;
 
-void log_callback(int sel);
-void owner_callback(int sel);
 void music_callback(int sel);
-void sort_callback(int sel);
-void ani_callback(int sel);
 void update_callback(int sel);
-void clearcache_callback(int sel);
-void upd_appdata_callback(int sel);
-void unzip_app_data(const char* zip_file);
 
 int save_xml_owner(const char *xmlfile);
 int read_xml_owner(const char *xmlfile, const char *owner);
-int get_xml_owners(const char *xmlfile, int cmd, char*** nam, char*** val);

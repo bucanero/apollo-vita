@@ -15,6 +15,15 @@
 static char* ext_src[MAX_USB_DEVICES+1] = {"ux0", "uma0", "imc0", "xmc0", "ur0", NULL};
 static char* sort_opt[] = {"Disabled", "by Name", "by Title ID", NULL};
 
+static void log_callback(int sel);
+static void sort_callback(int sel);
+static void ani_callback(int sel);
+static void owner_callback(int sel);
+static void db_url_callback(int sel);
+static void redetect_callback(int sel);
+static void clearcache_callback(int sel);
+static void upd_appdata_callback(int sel);
+
 menu_option_t menu_options[] = {
 	{ .name = "\nBackground Music", 
 		.options = NULL, 
@@ -46,6 +55,12 @@ menu_option_t menu_options[] = {
 		.value = &apollo_config.update, 
 		.callback = update_callback 
 	},
+	{ .name = "Change Online Database URL",
+		.options = NULL,
+		.type = APP_OPTION_CALL,
+		.value = NULL,
+		.callback = db_url_callback 
+	},
 	{ .name = "\nUpdate Application Data", 
 		.options = NULL, 
 		.type = APP_OPTION_CALL, 
@@ -73,17 +88,26 @@ void music_callback(int sel)
 	apollo_config.music = !sel;
 }
 
-void sort_callback(int sel)
+static void sort_callback(int sel)
 {
 	apollo_config.doSort = sel;
 }
 
-void ani_callback(int sel)
+static void ani_callback(int sel)
 {
 	apollo_config.doAni = !sel;
 }
 
-void clearcache_callback(int sel)
+static void db_url_callback(int sel)
+{
+	if (osk_dialog_get_text("Enter the URL of the online database", apollo_config.save_db, sizeof(apollo_config.save_db)))
+		show_message("Online database URL changed to:\n%s", apollo_config.save_db);
+
+	if (apollo_config.save_db[strlen(apollo_config.save_db)-1] != '/')
+		strcat(apollo_config.save_db, "/");
+}
+
+static void clearcache_callback(int sel)
 {
 	LOG("Cleaning folder '%s'...", APOLLO_LOCAL_CACHE);
 	clean_directory(APOLLO_LOCAL_CACHE);
@@ -91,7 +115,7 @@ void clearcache_callback(int sel)
 	show_message("Local cache folder cleaned:\n" APOLLO_LOCAL_CACHE);
 }
 
-void upd_appdata_callback(int sel)
+static void upd_appdata_callback(int sel)
 {
 	int i;
 
@@ -185,14 +209,14 @@ end_update:
 	return;
 }
 
-void owner_callback(int sel)
+static void owner_callback(int sel)
 {
 	apollo_config.storage = sel;
 }
 
-void log_callback(int sel)
+static void log_callback(int sel)
 {
-	dbglogger_init_mode(FILE_LOGGER, APOLLO_PATH "apollo.log", 0);
+	dbglogger_init_mode(FILE_LOGGER, APOLLO_PATH "apollo.log", 1);
 	show_message("Debug Logging Enabled!\n\n" APOLLO_PATH "apollo.log");
 }
 

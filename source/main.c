@@ -56,8 +56,12 @@ extern const uint8_t _binary_data_haiku_s3m_size;
 void update_usb_path(char *p);
 void update_hdd_path(char *p);
 void update_trophy_path(char *p);
+void update_db_path(char *p);
 
 app_config_t apollo_config = {
+    .app_name = "APOLLO",
+    .app_ver = APOLLO_VERSION,
+    .save_db = ONLINE_URL,
     .music = 1,
     .doSort = 1,
     .doAni = 1,
@@ -151,7 +155,7 @@ save_list_t online_saves = {
     .path = ONLINE_URL,
     .ReadList = &ReadOnlineList,
     .ReadCodes = &ReadOnlineSaves,
-    .UpdatePath = NULL,
+    .UpdatePath = &update_db_path,
 };
 
 /*
@@ -354,6 +358,11 @@ void update_hdd_path(char* path)
 void update_trophy_path(char* path)
 {
 	sprintf(path, TROPHY_PATH_HDD "db/trophy_local.db", apollo_config.user_id);
+}
+
+void update_db_path(char* path)
+{
+	strcpy(path, apollo_config.save_db);
 }
 
 static void registerSpecialChars()
