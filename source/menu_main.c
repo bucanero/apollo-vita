@@ -524,11 +524,10 @@ static void doHexEditor(void)
 		if (hex_data.pos + 0x130 < hex_data.size)
 			hex_data.pos += 0x130;
 	}
-//		else if (paddata[0].BTN_L2)
-//			hex_data.pos = 0;
-
-//		else if (paddata[0].BTN_R2)
-//			hex_data.pos = hex_data.size - 1;
+	else if (vitaPadGetButtonPressed(SCE_CTRL_START))
+		hex_data.pos = 0;
+	else if (vitaPadGetButtonPressed(SCE_CTRL_SELECT))
+		hex_data.pos = hex_data.size - 1;
 
 	else if (vitaPadGetButtonPressed(SCE_CTRL_CIRCLE))
 	{

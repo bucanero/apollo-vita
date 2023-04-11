@@ -1229,6 +1229,11 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			code->activated = 0;
 			break;
 
+		case CMD_SETUP_PLUGIN:
+			show_message(install_sgkey_plugin(codecmd[1]) ? "Plugin successfully %s" : "Error! Plugin couldn't be %s", codecmd[1] ? "installed" : "disabled");
+			code->activated = 0;
+			break;
+
 		case CMD_IMP_MCR2VMP0:
 		case CMD_IMP_MCR2VMP1:
 			import_mcr2vmp(selected_entry, code->options[0].name[code->options[0].sel], codecmd[0] == CMD_IMP_MCR2VMP1);

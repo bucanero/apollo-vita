@@ -811,12 +811,11 @@ list_t * ReadBackupList(const char* userPath)
 	item->path = strdup(UX0_PATH);
 	item->type = FILE_TYPE_NET;
 	list_append(list, item);
-/*
-	item = _createSaveEntry(SAVE_FLAG_PS4, CHAR_ICON_USER " Activate PS Vita Account");
-	asprintf(&item->path, EXDATA_PATH_HDD, apollo_config.user_id);
-	item->type = FILE_TYPE_ACT;
+
+	item = _createSaveEntry(SAVE_FLAG_PSP, CHAR_ICON_COPY " Manage PSP Save-game Key Dumper plugin");
+	item->path = strdup(UX0_PATH);
+	item->type = FILE_TYPE_PRX;
 	list_append(list, item);
-*/
 
 	return list;
 }
@@ -839,9 +838,19 @@ int ReadBackupCodes(save_entry_t * bup)
 		list_append(bup->codes, cmd);
 		return list_count(bup->codes);
 
+	case FILE_TYPE_PRX:
+		bup->codes = list_alloc();
+		cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_USER " Install Save-game Key Dumper plugin", CMD_SETUP_PLUGIN);
+		cmd->codes[1] = 1;
+		list_append(bup->codes, cmd);
+		cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_LOCK " Disable Save-game Key Dumper plugin", CMD_SETUP_PLUGIN);
+		cmd->codes[1] = 0;
+		list_append(bup->codes, cmd);
+
+		return list_count(bup->codes);
+
 	case FILE_TYPE_RIF:
 		bup->codes = list_alloc();
-
 		LOG("Getting .rifs from '%s'...", bup->path);
 
 		char* filename;

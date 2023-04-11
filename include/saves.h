@@ -80,7 +80,6 @@ enum cmd_code_enum
     CMD_VIEW_RAW_PATCH,
     CMD_RESIGN_VMP,
     CMD_EXP_FINGERPRINT,
-    CMD_CONVERT_TO_PSV,
     CMD_HEX_EDIT_FILE,
     CMD_IMPORT_DATA_FILE,
 
@@ -100,6 +99,7 @@ enum cmd_code_enum
     CMD_EXP_VMP2MCR,
     CMD_EXP_PSPKEY,
     CMD_DUMP_PSPKEY,
+    CMD_SETUP_PLUGIN,
 
 // Import commands
     CMD_IMP_KEYSTONE,
@@ -142,7 +142,7 @@ enum save_type_enum
 
     // License Files
     FILE_TYPE_RIF,
-    FILE_TYPE_RAP,
+    FILE_TYPE_PRX,
     FILE_TYPE_ACT,
 
     // ISO Files

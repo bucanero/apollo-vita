@@ -264,6 +264,6 @@ void drawDialogBackground(void);
 
 int load_app_settings(app_config_t* config);
 int save_app_settings(app_config_t* config);
-int reset_app_settings(app_config_t* config);
+int install_sgkey_plugin(int mode);
 
 #endif
