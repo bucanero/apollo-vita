@@ -24,7 +24,6 @@ static void sort_callback(int sel);
 static void ani_callback(int sel);
 static void owner_callback(int sel);
 static void db_url_callback(int sel);
-static void redetect_callback(int sel);
 static void clearcache_callback(int sel);
 static void upd_appdata_callback(int sel);
 

@@ -586,7 +586,7 @@ static int webReqHandler(dWebRequest_t* req, dWebResponse_t* res, void* list)
 			if (item->flags & SAVE_FLAG_PSP)
 				fprintf(f, "/icon/%08x/ICON0.PNG\" width=\"144\" height=\"80", i);
 			else
-				fprintf(f, "/icon/%s/icon0.png\" width=\"128\" height=\"128", item->title_id);
+				fprintf(f, "/PSV/%s/icon0.png\" width=\"128\" height=\"128", item->title_id);
 
 			fprintf(f, "\" alt=\"%s\"></td>", item->name);
 			fprintf(f, "<td>%s</td>", item->title_id);
@@ -599,10 +599,80 @@ static int webReqHandler(dWebRequest_t* req, dWebResponse_t* res, void* list)
 		return 1;
 	}
 
+	// http://vita-ip:8080/PSV/games.txt
+	if (wildcard_match(req->resource, "/PS?/games.txt"))
+	{
+		asprintf(&res->data, "%s%.3s%s", APOLLO_LOCAL_CACHE, req->resource+1, "_games.txt");
+
+		FILE* f = fopen(res->data, "w");
+		if (!f)
+			return 0;
+
+		for (node = list_head(list); (item = list_get(node)); node = list_next(node))
+		{
+			if (item->type == FILE_TYPE_MENU || 
+				(strncmp(req->resource+1, "PSV", 3) == 0 && !(item->flags & SAVE_FLAG_PSV)) ||
+				(strncmp(req->resource+1, "PSP", 3) == 0 && !(item->flags & SAVE_FLAG_PSP)))
+				continue;
+
+			fprintf(f, "%s=%s\n", item->title_id, item->name);
+		}
+
+		fclose(f);
+		return 1;
+	}
+
+	// http://vita-ip:8080/PSV/BLUS12345/saves.txt
+	if (wildcard_match(req->resource, "/PS?/\?\?\?\?\?\?\?\?\?/saves.txt"))
+	{
+		asprintf(&res->data, "%sweb%.9s_saves.txt", APOLLO_LOCAL_CACHE, req->resource + 5);
+
+		FILE* f = fopen(res->data, "w");
+		if (!f)
+			return 0;
+
+		int i = 0;
+		for (node = list_head(list); (item = list_get(node)); node = list_next(node), i++)
+		{
+			if (item->type == FILE_TYPE_MENU || !(item->flags & (SAVE_FLAG_PSV|SAVE_FLAG_PSP)) || strncmp(item->title_id, req->resource + 5, 9))
+				continue;
+
+			fprintf(f, "%08d.zip=(%s) %s\n", i, item->dir_name, item->name);
+		}
+
+		fclose(f);
+		return 1;
+	}
+
+	// http://vita-ip:8080/PSV/BLUS12345/00000000.zip
+	if (wildcard_match(req->resource, "/PS?/\?\?\?\?\?\?\?\?\?/*.zip"))
+	{
+		char *base;
+		int id = 0;
+
+		sscanf(req->resource + 15, "%08d", &id);
+		item = list_get_item(list, id);
+
+		if (item->flags & SAVE_FLAG_PSV && item->flags & SAVE_FLAG_HDD && !vita_SaveMount(item))
+			return 0;
+
+		asprintf(&res->data, "%s%s.zip", APOLLO_LOCAL_CACHE, item->dir_name);
+		base = strdup(item->path);
+		*strrchr(base, '/') = 0;
+		*strrchr(base, '/') = 0;
+
+		id = zip_directory(base, item->path, res->data);
+		if (item->flags & SAVE_FLAG_PSV && item->flags & SAVE_FLAG_HDD)
+			vita_SaveUmount();
+
+		free(base);
+		return id;
+	}
+
 	// http://ps3-ip:8080/zip/00000000/CUSA12345_DIR-NAME.zip
 	if (wildcard_match(req->resource, "/zip/\?\?\?\?\?\?\?\?/\?\?\?\?\?\?\?\?\?_*.zip"))
 	{
-		char *base, *path;
+		char *base;
 		int id = 0;
 
 		asprintf(&res->data, "%s%s", APOLLO_LOCAL_CACHE, req->resource + 14);
@@ -613,17 +683,30 @@ static int webReqHandler(dWebRequest_t* req, dWebResponse_t* res, void* list)
 			return 0;
 
 		base = strdup(item->path);
-		path = strdup(item->path);
 		*strrchr(base, '/') = 0;
 		*strrchr(base, '/') = 0;
 
-		id = zip_directory(base, path, res->data);
+		id = zip_directory(base, item->path, res->data);
 		if (item->flags & SAVE_FLAG_PSV && item->flags & SAVE_FLAG_HDD)
 			vita_SaveUmount();
 
 		free(base);
-		free(path);
 		return id;
+	}
+
+	// http://vita-ip:8080/PSP/BLUS12345/ICON0.PNG
+	if (wildcard_match(req->resource, "/PSP/\?\?\?\?\?\?\?\?\?/ICON0.PNG"))
+	{
+		for (node = list_head(list); (item = list_get(node)); node = list_next(node))
+		{
+			if (item->type == FILE_TYPE_MENU || !(item->flags & SAVE_FLAG_PSP) || strncmp(item->title_id, req->resource + 5, 9))
+				continue;
+
+			asprintf(&res->data, "%sICON0.PNG", item->path);
+			return (file_exists(res->data) == SUCCESS);
+		}
+
+		return 0;
 	}
 
 	// http://vita-ip:8080/icon/00000000/ICON0.PNG
@@ -638,10 +721,10 @@ static int webReqHandler(dWebRequest_t* req, dWebResponse_t* res, void* list)
 		return (file_exists(res->data) == SUCCESS);
 	}
 
-	// http://vita-ip:8080/icon/PCSE12345/icon0.png
-	if (wildcard_match(req->resource, "/icon/\?\?\?\?\?\?\?\?\?/icon0.png"))
+	// http://vita-ip:8080/PSV/PCSE12345/icon0.png
+	if (wildcard_match(req->resource, "/PSV/\?\?\?\?\?\?\?\?\?/icon0.png"))
 	{
-		asprintf(&res->data, PSV_ICONS_PATH_HDD, req->resource + 6);
+		asprintf(&res->data, PSV_ICONS_PATH_HDD, req->resource + 5);
 		return (file_exists(res->data) == SUCCESS);
 	}
 
