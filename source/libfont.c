@@ -151,7 +151,7 @@ u8 * AddFontFromBitmapArray(u8 *font, u8 *texture, u8 first_char, u8 last_char, 
                     buf[a*w + b] = 0x0; // alpha
                 }
             }
-            font += (w * bits_per_pixel) / 8;
+            font += (((w+7) & ~7) * bits_per_pixel) / 8;
         }
 
         // Black font texture

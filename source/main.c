@@ -29,7 +29,7 @@
 #include "libfont.h"
 #include "ttf_render.h"
 #include "font_adonais.h"
-#include "font-16x32.h"
+#include "font-10x20.h"
 
 //Menus
 #include "menu.h"
@@ -195,7 +195,7 @@ static int LoadTextures_Menu()
 	
 	ResetFont();
 	free_mem = (u32 *) AddFontFromBitmapArray((u8 *) data_font_Adonais, (u8 *) texture_mem, 0x20, 0x7e, 32, 31, 1, BIT7_FIRST_PIXEL);
-	free_mem = (u32 *) AddFontFromBitmapArray((u8 *) console_font_16x32, (u8 *) free_mem, 0, 0xFF, 16, 32, 1, BIT7_FIRST_PIXEL);
+	free_mem = (u32 *) AddFontFromBitmapArray((u8 *) console_font_10x20, (u8 *) free_mem, 0, 0xFF, 10, 20, 1, BIT7_FIRST_PIXEL);
 
 	if (TTFLoadFont(0, "sa0:data/font/pvf/ltn0.pvf", NULL, 0) != SUCCESS ||
 		TTFLoadFont(1, "sa0:data/font/pvf/jpn0.pvf", NULL, 0) != SUCCESS ||
@@ -267,8 +267,6 @@ static int LoadTextures_Menu()
 	load_menu_texture(tag_pce, png);
 	load_menu_texture(tag_ps1, png);
 	load_menu_texture(tag_ps2, png);
-	load_menu_texture(tag_ps3, png);
-	load_menu_texture(tag_ps4, png);
 	load_menu_texture(tag_psp, png);
 	load_menu_texture(tag_psv, png);
 	load_menu_texture(tag_warning, png);
@@ -370,8 +368,6 @@ static void registerSpecialChars()
 	// Register save tags
 	RegisterSpecialCharacter(CHAR_TAG_PS1, 2, 1.5, &menu_textures[tag_ps1_png_index]);
 	RegisterSpecialCharacter(CHAR_TAG_PS2, 2, 1.5, &menu_textures[tag_ps2_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_PS3, 2, 1.5, &menu_textures[tag_ps3_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_PS4, 2, 1.5, &menu_textures[tag_ps4_png_index]);
 	RegisterSpecialCharacter(CHAR_TAG_PSP, 2, 1.5, &menu_textures[tag_psp_png_index]);
 	RegisterSpecialCharacter(CHAR_TAG_PSV, 2, 1.5, &menu_textures[tag_psv_png_index]);
 	RegisterSpecialCharacter(CHAR_TAG_PCE, 2, 1.5, &menu_textures[tag_pce_png_index]);

@@ -577,16 +577,16 @@ static int webReqHandler(dWebRequest_t* req, dWebResponse_t* res, void* list)
 		int i = 0;
 		for (node = list_head(list); (item = list_get(node)); node = list_next(node), i++)
 		{
-			if (item->type == FILE_TYPE_MENU || !(item->flags & (SAVE_FLAG_PSV|SAVE_FLAG_PSP)) || item->flags & SAVE_FLAG_LOCKED)
+			if (item->type == FILE_TYPE_MENU || !(item->flags & (SAVE_FLAG_PSV|SAVE_FLAG_PSP|SAVE_FLAG_PS1)) || item->flags & SAVE_FLAG_LOCKED)
 				continue;
 
 			fprintf(f, "<tr><td><a href=\"/zip/%08x/%s_%s.zip\">%s</a></td>", i, item->title_id, item->dir_name, item->name);
 			fprintf(f, "<td><img class=\"lazy\" data-src=\"");
 
-			if (item->flags & SAVE_FLAG_PSP)
-				fprintf(f, "/icon/%08x/ICON0.PNG\" width=\"144\" height=\"80", i);
-			else
+			if (item->flags & SAVE_FLAG_PSV)
 				fprintf(f, "/PSV/%s/icon0.png\" width=\"128\" height=\"128", item->title_id);
+			else
+				fprintf(f, "/icon/%08x/ICON0.PNG\" width=\"%d\" height=\"80", i, (item->flags & SAVE_FLAG_PSP) ? 144 : 80);
 
 			fprintf(f, "\" alt=\"%s\"></td>", item->name);
 			fprintf(f, "<td>%s</td>", item->title_id);

@@ -233,6 +233,7 @@ int save_app_settings(app_config_t* config)
 		.path = filePath,
 	};
 
+	LOG("Apollo Save Tool v%s - Patch Engine v%s", APOLLO_VERSION, APOLLO_LIB_VERSION);
 	snprintf(filePath, sizeof(filePath), APOLLO_SANDBOX_PATH, title);
 	if (!vita_SaveMount(&se)) {
 		LOG("sceSaveDataMount2 ERROR");

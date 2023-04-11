@@ -515,14 +515,14 @@ static void doHexEditor(void)
 	}
 	else if (vitaPadGetButtonHold(SCE_CTRL_LTRIGGER))
 	{
-		hex_data.pos -= 0x130;
+		hex_data.pos -= 0x120;
 		if (hex_data.pos < 0)
 			hex_data.pos = 0;
 	}
 	else if (vitaPadGetButtonHold(SCE_CTRL_RTRIGGER))
 	{
-		if (hex_data.pos + 0x130 < hex_data.size)
-			hex_data.pos += 0x130;
+		if (hex_data.pos + 0x120 < hex_data.size)
+			hex_data.pos += 0x120;
 	}
 	else if (vitaPadGetButtonPressed(SCE_CTRL_START))
 		hex_data.pos = 0;
@@ -557,11 +557,8 @@ static void doHexEditor(void)
 			hex_data.data[hex_data.pos] -= (0x10 >> hex_data.low_nibble * 4);
 	}
 
-	if (hex_data.pos < hex_data.start)
+	if ((hex_data.pos < hex_data.start) || (hex_data.pos >= hex_data.start + 0x120))
 		hex_data.start = (hex_data.pos) & ~15;
-
-	if (hex_data.pos >= hex_data.start + 19*0x10)
-		hex_data.start = (hex_data.pos-1) & ~15;
 
 	Draw_HexEditor(&hex_data);
 }

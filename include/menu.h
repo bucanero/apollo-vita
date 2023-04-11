@@ -123,8 +123,8 @@ enum texture_index
 #define DIALOG_TYPE_YESNO					1
 
 //Fonts
-#define  font_adonais_regular				0
-#define font_console_16x32					1
+#define font_adonais_regular				0
+#define font_console_10x20					1
 
 #define APP_FONT_COLOR						0xFFFFFF00
 #define APP_FONT_TAG_COLOR					0xFFFFFF00
@@ -183,19 +183,19 @@ enum texture_index
 #define column_7_png_x						1665 * SCREEN_W_ADJ
 #define column_7_png_y						955 * SCREEN_H_ADJ
 #define jar_empty_png_x						159 * SCREEN_W_ADJ
-#define jar_empty_png_y						777 * SCREEN_H_ADJ
+#define jar_empty_png_y						779 * SCREEN_H_ADJ
 #define jar_usb_png_x						441 * SCREEN_W_ADJ
-#define jar_usb_png_y						699 * SCREEN_H_ADJ
+#define jar_usb_png_y						701 * SCREEN_H_ADJ
 #define jar_hdd_png_x						669 * SCREEN_W_ADJ
 #define jar_hdd_png_y						739 * SCREEN_H_ADJ
 #define jar_db_png_x						898 * SCREEN_W_ADJ
-#define jar_db_png_y						700 * SCREEN_H_ADJ
+#define jar_db_png_y						702 * SCREEN_H_ADJ
 #define jar_bup_png_x						1125 * SCREEN_W_ADJ
 #define jar_bup_png_y						810 * SCREEN_H_ADJ
 #define jar_opt_png_x						1353 * SCREEN_W_ADJ
-#define jar_opt_png_y						696 * SCREEN_H_ADJ
+#define jar_opt_png_y						699 * SCREEN_H_ADJ
 #define jar_about_png_x						1698 * SCREEN_W_ADJ
-#define jar_about_png_y						782 * SCREEN_H_ADJ
+#define jar_about_png_y						785 * SCREEN_H_ADJ
 #define cat_any_png_x						40 * SCREEN_W_ADJ
 #define cat_any_png_y						45 * SCREEN_H_ADJ
 #define app_ver_png_x						1828 * SCREEN_W_ADJ

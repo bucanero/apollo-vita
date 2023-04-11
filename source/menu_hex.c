@@ -7,24 +7,24 @@
 #include "menu_gui.h"
 #include "libfont.h"
 
-#define MAX_LINES 19
-
+#define MAX_LINES   18
+#define FNT_HEIGHT  20
 
 static void _draw_HexEditor(const hexedit_data_t* hex, u8 alpha)
 {
     char msgout[64];
     char ascii[32];
-    int i, y_off = 94;
+    int i, y_off = 96;
 
-    SetCurrentFont(font_console_16x32);
-    SetFontSize(9, 19);
+    SetCurrentFont(font_console_10x20);
+    SetFontSize(10, FNT_HEIGHT);
     SetFontColor(0x00000000 | alpha, 0);
 
     memset(msgout, 32, sizeof(msgout));
     sprintf(msgout + (hex->pos % 16)*3 + hex->low_nibble, "%c", 0xDB);
-    DrawFormatStringMono(MENU_ICON_OFF + MENU_TITLE_OFF, y_off - 19, "OFFSET: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F  \xB3 0123456789ABCDEF");
-    DrawFormatStringMono(MENU_ICON_OFF + MENU_TITLE_OFF, y_off + (hex->pos - hex->start)/16*MAX_LINES, "        %s", msgout);
-    DrawTexture(&menu_textures[mark_line_png_index], 0, y_off-2 + (hex->pos - hex->start)/16*MAX_LINES, 0, SCREEN_WIDTH, menu_textures[mark_line_png_index].height, 0xFFFFFF00 | alpha);
+    DrawFormatStringMono(MENU_ICON_OFF + MENU_TITLE_OFF, y_off - FNT_HEIGHT, "OFFSET: 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F  \xB3 0123456789ABCDEF");
+    DrawFormatStringMono(MENU_ICON_OFF + MENU_TITLE_OFF, y_off + (hex->pos - hex->start)/16*FNT_HEIGHT, "        %s", msgout);
+    DrawTexture(&menu_textures[mark_line_png_index], 0, y_off-1 + (hex->pos - hex->start)/16*FNT_HEIGHT, 0, SCREEN_WIDTH, menu_textures[mark_line_png_index].height, 0xFFFFFF00 | alpha);
 
     SetFontColor(APP_FONT_COLOR | alpha, 0);
     for (i = hex->start; i < hex->size && (i - hex->start) < (MAX_LINES*16); i++)
@@ -32,7 +32,7 @@ static void _draw_HexEditor(const hexedit_data_t* hex, u8 alpha)
         if (i != hex->start && !(i % 16))
         {
             DrawFormatStringMono(MENU_ICON_OFF + MENU_TITLE_OFF, y_off, "%06X: %s \xB3 %s", i-0x10, msgout, ascii);
-            y_off += 19;
+            y_off += FNT_HEIGHT;
         }
 
         sprintf(msgout + (i % 16)*3, "%02X ", hex->data[i]);

@@ -4,6 +4,27 @@ All notable changes to the `apollo-vita` project will be documented in this file
 
 ## [Unreleased]()
 
+## [v1.2.4](https://github.com/bucanero/apollo-vita/releases/tag/v1.2.4) - 2023-04-12
+
+### Added
+
+* Hex Editor for save-data files
+* Improved internal Web Server (Online DB support)
+* User-defined Online DB URL (`Settings`)
+* Tool to install/disable PSP key dumper plugin (`User Tools`)
+
+### Fixed
+
+* Fixed bug when applying cheats to PSP save files
+* Fixed possible freeze when using the on-screen keyboard
+
+### Misc
+
+* Updated Apollo patch engine v0.4.1
+  * Skip search if the pattern was not found
+  * Improve code types 9, B, D
+  * Add value subtraction support (BSD)
+
 ## [v1.2.0](https://github.com/bucanero/apollo-vita/releases/tag/v1.2.0) - 2023-02-04
 
 ### Added
