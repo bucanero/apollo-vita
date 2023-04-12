@@ -471,10 +471,10 @@ static void add_psp_commands(save_entry_t* item)
 	cmd = _createCmdCode(PATCH_NULL, "----- " UTF8_CHAR_STAR " Game Key Backup " UTF8_CHAR_STAR " -----", CMD_CODE_NULL);
 	list_append(item->codes, cmd);
 
-	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_LOCK " Export binary Game Key", CMD_EXP_PSPKEY);
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_LOCK " Dump binary Save-game Key", CMD_EXP_PSPKEY);
 	list_append(item->codes, cmd);
 
-	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_LOCK " Dump Game Key fingerprint", CMD_DUMP_PSPKEY);
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_LOCK " Export Save-game Key (text file)", CMD_DUMP_PSPKEY);
 	list_append(item->codes, cmd);
 
 	return;

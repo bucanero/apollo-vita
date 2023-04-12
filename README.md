@@ -5,7 +5,7 @@
 
 **Apollo Save Tool** is an application to manage save-game files on the PlayStation Vita.
 
-The `apollo-vita` homebrew app allows to download, unlock, patch and resign save-game files directly on your Vita.
+This homebrew app allows to download, unlock, patch and resign save-game files directly on your Vita.
 
 ![image](./docs/screenshots/screenshot-main.jpg)
 
@@ -68,7 +68,7 @@ On first run, the application will detect and setup the required user settings.
 3. Start your PSP game and let it load/save so the plugin can dump the key.
 4. Once the key has been dumped, Apollo will detect it, and use it as needed to decrypt, encrypt, apply patches, or rehash the PSP save.
 
-**Tip:** if you have PSP save keys, use Apollo's `Dump Key fingerprint` option on your PSP save, and then share the `fingerprints.txt` file so all these keys can be added to the next release.
+**Tip:** if you have PSP save keys, use Apollo's `Export Save-game Key` option on your PSP save, and then share the `gamekeys.txt` file so all these keys can be added to the next release.
 
 # Usage
 
@@ -120,7 +120,7 @@ You need to have installed:
 - [Vita SDK](https://github.com/vitasdk/)
 - [Apollo](https://github.com/bucanero/apollo-lib) library
 - [polarSSL](https://github.com/vitasdk/packages/tree/master/polarssl) library
-- [libcurl](https://github.com/vitasdk/packages/tree/master/curl) library
+- [cURL](https://github.com/vitasdk/packages/tree/master/curl) library
 - [libxmp-lite](https://github.com/vitasdk/packages/tree/master/libxmp-lite) library
 - [Zip](https://github.com/bucanero/zip) library
 - [dbglogger](https://github.com/bucanero/dbglogger) library
@@ -136,7 +136,7 @@ You can also set the `PSVITAIP` environment variable to your Vita's IP address, 
 
 # License
 
-[Apollo Save Tool](https://github.com/bucanero/apollo-vita/) (PS Vita) - Copyright (C) 2020-2022  [Damian Parrino](https://twitter.com/dparrino)
+[Apollo Save Tool](https://github.com/bucanero/apollo-vita/) (PS Vita) - Copyright (C) 2020-2023  [Damian Parrino](https://twitter.com/dparrino)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the [GNU General Public License][app_license] as published by

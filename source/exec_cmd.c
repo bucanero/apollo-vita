@@ -365,7 +365,7 @@ static void pspDumpKey(const save_entry_t* save)
 		return;
 	}
 
-	snprintf(fpath, sizeof(fpath), APOLLO_PATH "fingerprints.txt");
+	snprintf(fpath, sizeof(fpath), APOLLO_PATH "gamekeys.txt");
 	FILE *fp = fopen(fpath, "a");
 	if (!fp)
 	{
@@ -375,12 +375,12 @@ static void pspDumpKey(const save_entry_t* save)
 
 	fprintf(fp, "%s=", save->title_id);
 	for (size_t i = 0; i < sizeof(buffer); i++)
-		fprintf(fp, "%02x", buffer[i]);
+		fprintf(fp, "%02X", buffer[i]);
 
 	fprintf(fp, "\n");
 	fclose(fp);
 
-	show_message("%s fingerprint successfully saved to:\n%s", save->title_id, fpath);
+	show_message("%s game key successfully saved to:\n%s", save->title_id, fpath);
 }
 
 static void pspExportKey(const save_entry_t* save)
