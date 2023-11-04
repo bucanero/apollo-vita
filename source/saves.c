@@ -799,11 +799,13 @@ list_t * ReadBackupList(const char* userPath)
 
 	item = _createSaveEntry(SAVE_FLAG_ZIP, CHAR_ICON_ZIP " Extract Archives (RAR, Zip, 7z)");
 	item->path = strdup("ux0:data/");
+	item->title_id = strdup(item->path);
 	item->type = FILE_TYPE_ZIP;
 	list_append(list, item);
 
 	item = _createSaveEntry(SAVE_FLAG_PSV, CHAR_ICON_COPY " Export NoNpDRM Licenses to zRIF");
 	item->path = strdup(PSV_LICENSE_PATH);
+	item->title_id = strdup(item->path);
 	item->type = FILE_TYPE_RIF;
 	list_append(list, item);
 
@@ -813,7 +815,8 @@ list_t * ReadBackupList(const char* userPath)
 	list_append(list, item);
 
 	item = _createSaveEntry(SAVE_FLAG_PSP, CHAR_ICON_COPY " Manage PSP Save-game Key Dumper plugin");
-	item->path = strdup(UX0_PATH);
+	asprintf(&item->path, PSP_EMULATOR_PATH, "ux0");
+	item->title_id = strdup(item->path);
 	item->type = FILE_TYPE_PRX;
 	list_append(list, item);
 

@@ -113,11 +113,12 @@ target_link_libraries(${PROJECT_NAME}
   png
   pthread
   unrar
-  mzip
+  zip
   un7zip
   stdc++
   xmp-lite
   xml2
+  bz2
   z
 )
 

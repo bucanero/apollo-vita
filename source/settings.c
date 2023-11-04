@@ -360,7 +360,7 @@ int save_xml_owner(const char *xmlfile)
     snprintf(buff, sizeof(buff), "%016llX %016llX", apollo_config.idps[0], apollo_config.idps[1]);
     xmlNewProp(node1, BAD_CAST "idps", BAD_CAST buff);
 
-    snprintf(buff, sizeof(buff), "%016X %016X", 0, 0);
+    snprintf(buff, sizeof(buff), "%016llX %016llX", apollo_config.psid[0], apollo_config.psid[1]);
     xmlNewProp(node1, BAD_CAST "psid", BAD_CAST buff);
 
     node1 = xmlNewChild(node, NULL, BAD_CAST "user", NULL);

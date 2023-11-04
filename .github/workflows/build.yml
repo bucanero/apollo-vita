@@ -22,12 +22,6 @@ jobs:
         repository: bucanero/dbglogger
         path: dbglogger
 
-    - name: Checkout zip
-      uses: actions/checkout@v3
-      with:
-        repository: bucanero/zip
-        path: zip
-
     - name: Checkout vdpm
       uses: actions/checkout@v3
       with:
@@ -49,6 +43,7 @@ jobs:
       working-directory: vdpm
       run: |
         ./vdpm zlib
+        ./vdpm bzip2
         ./vdpm libpng
         ./vdpm freetype
         ./vdpm taihen
@@ -62,9 +57,14 @@ jobs:
         ./vdpm libxmp-lite
 
     - name: Install zip
-      working-directory: zip
       run: |
-        make -f Makefile.vita install
+        curl -sL https://libzip.org/download/libzip-1.9.2.tar.gz | tar xz -C ./
+        cd libzip-1.9.2
+        cmake -DCMAKE_TOOLCHAIN_FILE=${VITASDK}/share/vita.toolchain.cmake -DBUILD_SHARED=OFF -DBUILD_EXAMPLES=OFF -DBUILD_TOOLS=OFF -DBUILD_REGRESS=OFF -DBUILD_DOC=OFF -DENABLE_LZMA=OFF -DENABLE_ZSTD=OFF .
+        make
+        cp zipconf.h ${VITASDK}/arm-vita-eabi/include/zipconf.h
+        cp lib/zip.h ${VITASDK}/arm-vita-eabi/include/zip.h
+        cp lib/libzip.a ${VITASDK}/arm-vita-eabi/lib/libzip.a
 
     - name: Install dbglogger
       working-directory: dbglogger
@@ -88,4 +88,3 @@ jobs:
         name: apollo-vita-build_${{ env.sha_name }}
         path: apollo-vita.vpk
         if-no-files-found: error
-        retention-days: 7 # don't keep artifacts for too long

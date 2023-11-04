@@ -125,7 +125,7 @@ void Draw_AboutMenu_Ani(void)
 static void _draw_LeonLuna(void)
 {
 	DrawTextureCenteredY(&menu_textures[leon_luna_jpg_index], 0, SCREEN_HEIGHT/2, 0, menu_textures[leon_luna_jpg_index].width, menu_textures[leon_luna_jpg_index].height, 0xFFFFFF00 | 0xFF);
-	DrawTexture(&menu_textures[help_png_index], 0, 420, 0, SCREEN_WIDTH + 10, 40, 0xFFFFFF00 | 0xFF);
+	DrawTexture(&menu_textures[help_png_index], 0, 420, 0, SCREEN_WIDTH + 20, 50, 0xFFFFFF00 | 0xFF);
 
 	SetFontColor(APP_FONT_MENU_COLOR | 0xFF, 0);
 	draw_sinetext(430, "... in memory of Leon & Luna - may your days be filled with eternal joy ...");

@@ -122,7 +122,7 @@ You need to have installed:
 - [polarSSL](https://github.com/vitasdk/packages/tree/master/polarssl) library
 - [cURL](https://github.com/vitasdk/packages/tree/master/curl) library
 - [libxmp-lite](https://github.com/vitasdk/packages/tree/master/libxmp-lite) library
-- [Zip](https://github.com/bucanero/zip) library
+- [libZip](https://github.com/vitasdk/packages/tree/master/libzip) library
 - [dbglogger](https://github.com/bucanero/dbglogger) library
 
 Run `cmake . && make` to create a release build. If you want to include the [latest save patches](https://github.com/bucanero/apollo-patches) in your `.vpk` file, run `make createzip`.

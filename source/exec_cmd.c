@@ -62,7 +62,7 @@ static void downloadSave(const save_entry_t* entry, const char* file, int dst)
 	unlink_secure(APOLLO_LOCAL_CACHE "tmpsave.zip");
 }
 
-static uint32_t get_filename_id(const char* dir)
+static uint32_t get_filename_id(const char* dir, const char* title_id)
 {
 	char path[128];
 	uint32_t tid = 0;
@@ -70,7 +70,7 @@ static uint32_t get_filename_id(const char* dir)
 	do
 	{
 		tid++;
-		snprintf(path, sizeof(path), "%s%08d.zip", dir, tid);
+		snprintf(path, sizeof(path), "%s%s-%08d.zip", dir, title_id, tid);
 	}
 	while (file_exists(path) == SUCCESS);
 
@@ -94,8 +94,8 @@ static void zipSave(const save_entry_t* entry, int dst)
 
 	init_loading_screen("Exporting save game...");
 
-	fid = get_filename_id(exp_path);
-	snprintf(export_file, sizeof(export_file), "%s%08d.zip", exp_path, fid);
+	fid = get_filename_id(exp_path, entry->title_id);
+	snprintf(export_file, sizeof(export_file), "%s%s-%08d.zip", exp_path, entry->title_id, fid);
 
 	tmp = strdup(entry->path);
 	*strrchr(tmp, '/') = 0;
@@ -110,7 +110,7 @@ static void zipSave(const save_entry_t* entry, int dst)
 		FILE* f = fopen(export_file, "a");
 		if (f)
 		{
-			fprintf(f, "%08d.zip=[%s] %s\n", fid, entry->title_id, entry->name);
+			fprintf(f, "%s-%08d.zip=%s\n", entry->title_id, fid, entry->name);
 			fclose(f);
 		}
 
@@ -125,7 +125,7 @@ static void zipSave(const save_entry_t* entry, int dst)
 		return;
 	}
 
-	show_message("Zip file successfully saved to:\n%s%08d.zip", exp_path, fid);
+	show_message("Zip file successfully saved to:\n%s%s-%08d.zip", exp_path, entry->title_id, fid);
 }
 
 static void copySave(const save_entry_t* save, int dev)
@@ -296,6 +296,7 @@ static void extractArchive(const char* file_path)
 	case 'z':
 	case 'Z':
 		/* ZIP */
+		strcat(exp_path, "/");
 		ret = extract_zip(file_path, exp_path);
 		break;
 
@@ -354,6 +355,7 @@ static void exportFingerprint(const save_entry_t* save, int silent)
 
 static void exportTrophyZip(const save_entry_t *trop, int dev)
 {
+	int ret;
 	char exp_path[256];
 	char trp_path[256];
 	char* export_file;
@@ -373,14 +375,14 @@ static void exportTrophyZip(const save_entry_t *trop, int dev)
 
 	tmp = strdup(trp_path);
 	*strrchr(tmp, '/') = 0;
-	zip_directory(tmp, trop->path, export_file);
+	ret = zip_directory(tmp, trop->path, export_file);
 
 	snprintf(trp_path, sizeof(trp_path), TROPHY_PATH_HDD "conf/%s/", apollo_config.user_id, trop->title_id);
-	zip_append_directory(tmp, trp_path, export_file);
+	ret &= zip_append_directory(tmp, trp_path, export_file);
 
 	trp_path[1] = 'x';
 	sprintf(tmp, "%.12s", trp_path);
-	zip_append_directory(tmp, trp_path, export_file);
+	ret &= zip_append_directory(tmp, trp_path, export_file);
 
 	sprintf(export_file, "%s%s", exp_path, OWNER_XML_FILE);
 	save_xml_owner(export_file);
@@ -389,6 +391,12 @@ static void exportTrophyZip(const save_entry_t *trop, int dev)
 	free(tmp);
 
 	stop_loading_screen();
+	if (!ret)
+	{
+		show_message("Failed to export Trophy Set %s", trop->title_id);
+		return;
+	}
+
 	show_message("Trophy Set successfully exported to:\n%strophy_%s.zip", exp_path, trop->title_id);
 }
 
