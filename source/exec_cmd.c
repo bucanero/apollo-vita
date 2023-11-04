@@ -161,6 +161,7 @@ static void copySave(const save_entry_t* save, int dev)
 
 static int get_psp_save_key(const save_entry_t* entry, uint8_t* key)
 {
+	FILE* fp;
 	char path[256];
 
 	snprintf(path, sizeof(path), "ux0:pspemu/PSP/SAVEPLAIN/%s/%s.bin", entry->dir_name, entry->title_id);
@@ -173,7 +174,35 @@ static int get_psp_save_key(const save_entry_t* entry, uint8_t* key)
 
 	// SGKeyDumper 1.5+ support
 	snprintf(path, sizeof(path), "ux0:pspemu/PSP/GAME/SED/gamekey/%s.bin", entry->title_id);
-	return (read_psp_game_key(path, key));
+	if (read_psp_game_key(path, key))
+		return 1;
+
+	snprintf(path, sizeof(path), APOLLO_DATA_PATH "gamekeys.txt");
+	if ((fp = fopen(path, "r")) == NULL)
+		return 0;
+
+	while(fgets(path, sizeof(path), fp))
+	{
+		char *ptr = strchr(path, '=');
+
+		if (!ptr || path[0] == ';')
+			continue;
+
+		*ptr++ = 0;
+		ptr[32] = 0;
+		if (strncasecmp(entry->dir_name, path, strlen(path)) == 0)
+		{
+			LOG("[DB] %s Key found: %s", path, ptr);
+			ptr = x_to_u8_buffer(ptr);
+			memcpy(key, ptr, 16);
+			free(ptr);
+
+			return 1;
+		}
+	}
+	fclose(fp);
+
+	return 0;
 }
 
 static int _copy_save_hdd(const save_entry_t* save)
