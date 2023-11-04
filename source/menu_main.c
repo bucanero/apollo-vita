@@ -410,14 +410,21 @@ static void doMainMenu()
 
 static void doAboutMenu()
 {
+	static int ll = 0;
+
 	// Check the pads.
 	if (vitaPadGetButtonPressed(SCE_CTRL_CIRCLE))
 	{
+		ll = 0;
 		SetMenu(MENU_MAIN_SCREEN);
 		return;
 	}
+	else if (vitaPadGetButtonPressed(SCE_CTRL_SELECT))
+	{
+		ll = 1;
+	}
 
-	Draw_AboutMenu();
+	Draw_AboutMenu(ll);
 }
 
 static void doOptionsMenu()

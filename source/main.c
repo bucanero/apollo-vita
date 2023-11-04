@@ -69,6 +69,7 @@ app_config_t apollo_config = {
     .storage = 0,
     .user_id = 0,
     .idps = {0, 0},
+    .psid = {0, 0},
     .account_id = 0,
 };
 
@@ -172,10 +173,18 @@ save_list_t user_backup = {
 };
 
 
-static int initPad()
+static int initPad(void)
 {
-    // Set sampling mode
-    if (vitaPadInit() < 0)
+    int val;
+
+    // Set enter button
+    if (sceAppUtilSystemParamGetInt(SCE_SYSTEM_PARAM_ID_ENTER_BUTTON, &val) < 0)
+    {
+        LOG("sceAppUtilSystemParamGetInt Error");
+        val = 1;
+    }
+
+    if (vitaPadInit(val) < 0)
     {
         LOG("[ERROR] Failed to open pad!");
         return 0;
@@ -185,7 +194,7 @@ static int initPad()
 }
 
 // Used only in initialization. Allocates 64 mb for textures and loads the font
-static int LoadTextures_Menu()
+static int LoadTextures_Menu(void)
 {
 	texture_mem = malloc(256 * 8 * 4);
 	menu_textures = (png_texture *)calloc(TOTAL_MENU_TEXTURES, sizeof(png_texture));
@@ -209,7 +218,7 @@ static int LoadTextures_Menu()
 	//Init Main Menu textures
 	load_menu_texture(bgimg, jpg);
 	load_menu_texture(cheat, png);
-	load_menu_texture(leon, jpg);
+	load_menu_texture(leon_luna, jpg);
 
 	load_menu_texture(circle_loading_bg, png);
 	load_menu_texture(circle_loading_seek, png);
@@ -340,7 +349,7 @@ static int LoadSounds(void* data)
 
 void update_usb_path(char* path)
 {
-	sprintf(path, USB_PATH, menu_options[3].options[apollo_config.storage]);
+	sprintf(path, USB_PATH, USER_STORAGE_DEV);
 
 	if (dir_exists(path) == SUCCESS)
 		return;
@@ -363,7 +372,7 @@ void update_db_path(char* path)
 	strcpy(path, apollo_config.save_db);
 }
 
-static void registerSpecialChars()
+static void registerSpecialChars(void)
 {
 	// Register save tags
 	RegisterSpecialCharacter(CHAR_TAG_PS1, 2, 1.5, &menu_textures[tag_ps1_png_index]);
@@ -380,10 +389,10 @@ static void registerSpecialChars()
 	RegisterSpecialCharacter(CHAR_TAG_TRANSFER, 0, 1.0, &menu_textures[tag_transfer_png_index]);
 
 	// Register button icons
-	RegisterSpecialCharacter(CHAR_BTN_X, 0, 1.2, &menu_textures[footer_ico_cross_png_index]);
+	RegisterSpecialCharacter(vitaPadGetConf()->crossButtonOK ? CHAR_BTN_X : CHAR_BTN_O, 0, 1.2, &menu_textures[footer_ico_cross_png_index]);
 	RegisterSpecialCharacter(CHAR_BTN_S, 0, 1.2, &menu_textures[footer_ico_square_png_index]);
 	RegisterSpecialCharacter(CHAR_BTN_T, 0, 1.2, &menu_textures[footer_ico_triangle_png_index]);
-	RegisterSpecialCharacter(CHAR_BTN_O, 0, 1.2, &menu_textures[footer_ico_circle_png_index]);
+	RegisterSpecialCharacter(vitaPadGetConf()->crossButtonOK ? CHAR_BTN_O : CHAR_BTN_X, 0, 1.2, &menu_textures[footer_ico_circle_png_index]);
 
 	// Register trophy icons
 	RegisterSpecialCharacter(CHAR_TRP_BRONZE, 2, 0.9f, &menu_textures[trp_bronze_png_index]);
@@ -393,7 +402,7 @@ static void registerSpecialChars()
 	RegisterSpecialCharacter(CHAR_TRP_SYNC, 0, 1.2f, &menu_textures[trp_sync_png_index]);
 }
 
-static void terminate()
+static void terminate(void)
 {
 	LOG("Exiting...");
 
@@ -401,7 +410,7 @@ static void terminate()
 	sceKernelExitProcess(0);
 }
 
-static int initInternal()
+static int initInternal(void)
 {
 	// load common modules
 	int ret = sceSysmoduleLoadModule(SCE_SYSMODULE_SQLITE);
@@ -437,7 +446,7 @@ static int initInternal()
 	return 1;
 }
 
-static int initialize_vitashell_modules()
+static int initialize_vitashell_modules(void)
 {
 	SceUID kern_modid, user_modid;
 	char module_path[60] = {0};
@@ -620,9 +629,7 @@ s32 main(s32 argc, const char* argv[])
 			if (vitaPadGetConf()->idle > 0x100)
 			{
 				int dec = (vitaPadGetConf()->idle - 0x100) * 4;
-				if (dec > alpha)
-					dec = alpha;
-				alpha -= dec;
+				alpha = (dec > alpha) ? 0 : (alpha - dec);
 			}
 			
 			SetFontSize(APP_FONT_SIZE_DESCRIPTION);

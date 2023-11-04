@@ -6,6 +6,8 @@
 #define MENU_SPLIT_OFF			200			//Offset from left of sub/split menu to start drawing
 #define OPTION_ITEM_OFF         730         //Offset from left of settings item/value
 
+#define USER_STORAGE_DEV        menu_options[3].options[apollo_config.storage]
+
 enum app_option_type
 {
     APP_OPTION_NONE,
@@ -35,6 +37,7 @@ typedef struct __attribute__((packed))
     uint8_t update;
     uint32_t user_id;
     uint64_t idps[2];
+    uint64_t psid[2];
     uint64_t account_id;
     char save_db[256];
 } app_config_t;

@@ -4,6 +4,7 @@
 #include <time.h>
 #include <psp2/registrymgr.h>
 #include <psp2/vshbridge.h>
+#include <psp2/kernel/openpsid.h>
 #include <libxml/parser.h>
 
 #include "types.h"
@@ -267,6 +268,7 @@ int load_app_settings(app_config_t* config)
 		config->account_id = 0;
 	}
 
+	sceKernelGetOpenPsId((SceKernelOpenPsId*) config->psid);
 	_vshSblAimgrGetConsoleId((char*) config->idps);
 	config->idps[0] = ES64(config->idps[0]);
 	config->idps[1] = ES64(config->idps[1]);
@@ -284,8 +286,8 @@ int load_app_settings(app_config_t* config)
 	{
 		file_data->user_id = config->user_id;
 		file_data->account_id = config->account_id;
-		file_data->idps[0] = config->idps[0];
-		file_data->idps[1] = config->idps[1];
+		memcpy(file_data->idps, config->idps, sizeof(uint64_t)*2);
+		memcpy(file_data->psid, config->psid, sizeof(uint64_t)*2);
 		memcpy(config, file_data, file_size);
 
 		LOG("Settings loaded: UserID (%08x) AccountID (%016llX)", config->user_id, config->account_id);

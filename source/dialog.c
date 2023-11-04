@@ -323,7 +323,7 @@ static int osk_dialog_input_update(void)
 
 int osk_dialog_get_text(const char* title, char* text, uint32_t size)
 {
-    if (size > SCE_IME_DIALOG_MAX_TEXT_LENGTH) size = SCE_IME_DIALOG_MAX_TEXT_LENGTH;
+    size = (size > SCE_IME_DIALOG_MAX_TEXT_LENGTH) ? SCE_IME_DIALOG_MAX_TEXT_LENGTH : (size-1);
 
     if (!osk_dialog_input_init(1, title, text, size))
         return 0;
@@ -336,5 +336,5 @@ int osk_dialog_get_text(const char* title, char* text, uint32_t size)
         drawDialogBackground();
     }
 
-    return (convert_from_utf16(g_ime_input, text, size - 1));
+    return (convert_from_utf16(g_ime_input, text, size));
 }

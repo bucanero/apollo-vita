@@ -11,6 +11,7 @@
 #include "utils.h"
 #include "sfo.h"
 
+static char host_buf[256];
 
 static int _set_dest_path(char* path, int dest, const char* folder)
 {
@@ -79,9 +80,10 @@ static uint32_t get_filename_id(const char* dir)
 static void zipSave(const save_entry_t* entry, int dst)
 {
 	char exp_path[256];
-	char* export_file;
+	char export_file[256];
 	char* tmp;
 	uint32_t fid;
+	int ret;
 
 	_set_dest_path(exp_path, dst, EXPORT_PATH);
 	if (mkdirs(exp_path) != SUCCESS)
@@ -93,29 +95,36 @@ static void zipSave(const save_entry_t* entry, int dst)
 	init_loading_screen("Exporting save game...");
 
 	fid = get_filename_id(exp_path);
-	asprintf(&export_file, "%s%08d.zip", exp_path, fid);
+	snprintf(export_file, sizeof(export_file), "%s%08d.zip", exp_path, fid);
 
 	tmp = strdup(entry->path);
 	*strrchr(tmp, '/') = 0;
 	*strrchr(tmp, '/') = 0;
 
-	zip_directory(tmp, entry->path, export_file);
-
-	sprintf(export_file, "%s%08x.txt", exp_path, apollo_config.user_id);
-	FILE* f = fopen(export_file, "a");
-	if (f)
-	{
-		fprintf(f, "%08d.zip=[%s] %s\n", fid, entry->title_id, entry->name);
-		fclose(f);
-	}
-
-	sprintf(export_file, "%s%s", exp_path, OWNER_XML_FILE);
-	save_xml_owner(export_file);
-
-	free(export_file);
+	ret = zip_directory(tmp, entry->path, export_file);
 	free(tmp);
 
+	if (ret)
+	{
+		snprintf(export_file, sizeof(export_file), "%s%08x.txt", exp_path, apollo_config.user_id);
+		FILE* f = fopen(export_file, "a");
+		if (f)
+		{
+			fprintf(f, "%08d.zip=[%s] %s\n", fid, entry->title_id, entry->name);
+			fclose(f);
+		}
+
+		sprintf(export_file, "%s%s", exp_path, OWNER_XML_FILE);
+		save_xml_owner(export_file);
+	}
+
 	stop_loading_screen();
+	if (!ret)
+	{
+		show_message("Error! Can't export save game to:\n%s", exp_path);
+		return;
+	}
+
 	show_message("Zip file successfully saved to:\n%s%08d.zip", exp_path, fid);
 }
 
@@ -735,7 +744,7 @@ static void enableWebServer(dWebReqHandler_t handler, void* data, int port)
 {
 	SceNetCtlInfo ip_info;
 
-	memset(&ip_info, 0, sizeof(ip_info));
+	memset(&ip_info, 0, sizeof(SceNetCtlInfo));
 	sceNetCtlInetGetInfo(SCE_NETCTL_INFO_GET_IP_ADDRESS, &ip_info);
 	LOG("Starting local web server %s:%d ...", ip_info.ip_address, port);
 
@@ -997,6 +1006,41 @@ static int psp_is_decrypted(list_t* list, const char* fname)
 	return 0;
 }
 
+static void* vita_host_callback(int id, int* size)
+{
+	memset(host_buf, 0, sizeof(host_buf));
+
+	switch (id)
+	{
+	case APOLLO_HOST_TEMP_PATH:
+		return APOLLO_LOCAL_CACHE;
+
+	case APOLLO_HOST_SYS_NAME:
+		return "Apollo-Vita";
+
+	case APOLLO_HOST_PSID:
+		memcpy(host_buf, apollo_config.psid, 16);
+		if (size) *size = 16;
+		return host_buf;
+
+	case APOLLO_HOST_USERNAME:
+		strncpy(host_buf, menu_about_strings_project[1], sizeof(host_buf));
+		if (size) *size = strlen(host_buf);
+		return host_buf;
+
+	case APOLLO_HOST_LAN_ADDR:
+	case APOLLO_HOST_WLAN_ADDR:
+		if (sceNetGetMacAddress((SceNetEtherAddr*) host_buf, 0) < 0)
+			LOG("Error getting Wlan Ethernet Address");
+
+		if (size) *size = 6;
+		return host_buf;
+	}
+
+	if (size) *size = 1;
+	return host_buf;
+}
+
 static int apply_cheat_patches(const save_entry_t* entry)
 {
 	int ret = 1;
@@ -1046,7 +1090,7 @@ static int apply_cheat_patches(const save_entry_t* entry)
 			}
 		}
 
-		if (!apply_cheat_patch_code(tmpfile, entry->title_id, code, APOLLO_LOCAL_CACHE))
+		if (!apply_cheat_patch_code(tmpfile, entry->title_id, code, &vita_host_callback))
 		{
 			LOG("Error: failed to apply (%s)", code->name);
 			ret = 0;

@@ -27,11 +27,12 @@ typedef struct VitaPadConfig
 	unsigned int buttonsReleased;
 	unsigned int buttonsHold;
 	unsigned int idle;
+	int crossButtonOK;
 } VitaPadConfig;
 
-int vitaPadInit();
-void vitaPadFinish();
-VitaPadConfig *vitaPadGetConf();
+int vitaPadInit(int crossOK);
+void vitaPadFinish(void);
+VitaPadConfig *vitaPadGetConf(void);
 bool vitaPadGetButtonHold(unsigned int filter);
 bool vitaPadGetButtonPressed(unsigned int filter);
 bool vitaPadGetButtonReleased(unsigned int filter);
@@ -39,7 +40,7 @@ unsigned int vitaPadGetCurrentButtonsPressed();
 unsigned int vitaPadGetCurrentButtonsReleased();
 void vitaPadSetCurrentButtonsPressed(unsigned int buttons);
 void vitaPadSetCurrentButtonsReleased(unsigned int buttons);
-int vitaPadUpdate();
+int vitaPadUpdate(void);
 
 #ifdef __cplusplus
 }

@@ -26,7 +26,7 @@ static uint64_t timeInMilliseconds(void)
     return (((uint64_t)tv.tv_sec)*1000)+(tv.tv_usec/1000);
 }
 
-void vitaPadFinish()
+void vitaPadFinish(void)
 {
 	int ret;
 
@@ -39,7 +39,7 @@ void vitaPadFinish()
 	LOG("ORBISPAD finished");
 }
 
-VitaPadConfig *vitaPadGetConf()
+VitaPadConfig *vitaPadGetConf(void)
 {
 	if(orbispad_initialized)
 	{
@@ -49,7 +49,7 @@ VitaPadConfig *vitaPadGetConf()
 	return NULL; 
 }
 
-static int vitaPadInitConf()
+static int vitaPadInitConf(void)
 {	
 	if(orbispad_initialized)
 	{
@@ -61,7 +61,7 @@ static int vitaPadInitConf()
 	return 0;
 }
 
-unsigned int vitaPadGetCurrentButtonsPressed()
+unsigned int vitaPadGetCurrentButtonsPressed(void)
 {
 	return vitaPadConf.buttonsPressed;
 }
@@ -71,7 +71,7 @@ void vitaPadSetCurrentButtonsPressed(unsigned int buttons)
 	vitaPadConf.buttonsPressed=buttons;
 }
 
-unsigned int vitaPadGetCurrentButtonsReleased()
+unsigned int vitaPadGetCurrentButtonsReleased(void)
 {
 	return vitaPadConf.buttonsReleased;
 }
@@ -97,6 +97,9 @@ bool vitaPadGetButtonHold(unsigned int filter)
 
 bool vitaPadGetButtonPressed(unsigned int filter)
 {
+	if (!vitaPadConf.crossButtonOK && (filter & (SCE_CTRL_CROSS|SCE_CTRL_CIRCLE)))
+		filter ^= (SCE_CTRL_CROSS|SCE_CTRL_CIRCLE);
+
 	if((vitaPadConf.buttonsPressed&filter)==filter)
 	{
 		vitaPadConf.buttonsPressed ^= filter;
@@ -120,7 +123,7 @@ bool vitaPadGetButtonReleased(unsigned int filter)
 	return 0;
 }
 
-int vitaPadUpdate()
+int vitaPadUpdate(void)
 {
 	int ret;
 	unsigned int actualButtons=0;
@@ -167,7 +170,7 @@ int vitaPadUpdate()
 	return -1;
 }
 
-int vitaPadInit()
+int vitaPadInit(int crossOK)
 {
 	int ret;
 
@@ -184,6 +187,7 @@ int vitaPadInit()
 		return -1;
 	}
 
+	vitaPadConf.crossButtonOK = crossOK;
 	orbispad_initialized=1;
 	g_time = timeInMilliseconds();
 	LOG("ORBISPAD initialized: sceCtrlSetSamplingMode return 0x%X", ret);
