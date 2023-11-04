@@ -92,6 +92,7 @@ add_executable(${PROJECT_NAME}
   source/psp_decrypter.c
   source/vmp_resign.c
   source/key_zrif.c
+  source/ciso.c
 )
 
 target_link_libraries(${PROJECT_NAME}

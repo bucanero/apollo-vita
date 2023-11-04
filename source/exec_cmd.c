@@ -1490,6 +1490,22 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			code->activated = 0;
 			break;
 
+		case CMD_CONV_CSO2ISO:
+			if (convert_cso2iso(code->file))
+				show_message("ISO successfully saved to %s", selected_entry->path);
+			else
+				show_message("Error! ISO couldn't be created");
+			code->activated = 0;
+			break;
+
+		case CMD_CONV_ISO2CSO:
+			if (convert_iso2cso(code->file))
+				show_message("CSO successfully saved to %s", selected_entry->path);
+			else
+				show_message("Error! CSO couldn't be created");
+			code->activated = 0;
+			break;
+
 		default:
 			break;
 	}

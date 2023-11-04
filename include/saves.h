@@ -17,7 +17,7 @@
 #define USB_PATH                "%s:data/savegames/"
 #define USER_PATH_HDD           "ur0:shell/db/app.db"
 
-#define PS2_SAVES_PATH_USB      "PS3/EXPORT/PS2SD/"
+#define PSP_EMULATOR_PATH       "%s:pspemu/"
 #define PSP_SAVES_PATH_USB      "PSP/SAVEDATA/"
 #define PSV_SAVES_PATH_USB      "savegames/"
 #define TROPHIES_PATH_USB       "trophies/"
@@ -100,6 +100,8 @@ enum cmd_code_enum
     CMD_EXP_PSPKEY,
     CMD_DUMP_PSPKEY,
     CMD_SETUP_PLUGIN,
+    CMD_CONV_ISO2CSO,
+    CMD_CONV_CSO2ISO,
 
 // Import commands
     CMD_IMP_KEYSTONE,
@@ -147,6 +149,7 @@ enum save_type_enum
 
     // ISO Files
     FILE_TYPE_ISO,
+    FILE_TYPE_CSO,
     FILE_TYPE_NET,
 };
 
@@ -255,11 +258,9 @@ int patch_trophy_account(const char* trp_path, const char* account_id);
 int apply_trophy_patch(const char* trp_path, uint32_t trophy_id, int unlock);
 
 int make_key_zrif(const char *rif_path, const char *out_path);
-int regMgr_GetUserName(int userNumber, char* outString);
-int regMgr_GetAccountId(int userNumber, uint64_t* psnAccountId);
-int regMgr_SetAccountId(int userNumber, uint64_t* psnAccountId);
+int convert_cso2iso(const char *fname_in);
+int convert_iso2cso(const char *fname_in);
 
-int create_savegame_folder(const char* folder);
 int get_save_details(const save_entry_t *save, char** details);
 int vita_SaveUmount();
 int vita_SaveMount(const save_entry_t *save);
