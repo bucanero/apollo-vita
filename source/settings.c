@@ -15,6 +15,7 @@
 
 #define GAME_PLUGIN_PATH             "ux0:pspemu/seplugins/game.txt"
 #define SGKEY_DUMP_PLUGIN_PATH       "ux0:pspemu/seplugins/SGKeyDumper.prx"
+#define SGKEY_DUMP_PLUGIN_TEXT       "ms0:/seplugins/SGKeyDumper.prx"
 
 char *strcasestr(const char *, const char *);
 static char* ext_src[MAX_USB_DEVICES+1] = {"ux0", "uma0", "imc0", "xmc0", "ur0", NULL};
@@ -395,7 +396,7 @@ int install_sgkey_plugin(int install)
 		if (!install)
 			return 0;
 
-		if (write_buffer(GAME_PLUGIN_PATH, SGKEY_DUMP_PLUGIN_PATH " 1\n", 39) < 0)
+		if (write_buffer(GAME_PLUGIN_PATH, SGKEY_DUMP_PLUGIN_TEXT " 1\n", strlen(SGKEY_DUMP_PLUGIN_TEXT)+3) < 0)
 		{
 			LOG("Error creating game.txt");
 			return 0;
@@ -406,11 +407,11 @@ int install_sgkey_plugin(int install)
 
 	if (install)
 	{
-		char *ptr = strcasestr(data, SGKEY_DUMP_PLUGIN_PATH " ");
-		if (ptr != NULL && (ptr[37] == '1' || ptr[37] == '0'))
+		char *ptr = strcasestr(data, SGKEY_DUMP_PLUGIN_TEXT " ");
+		if (ptr != NULL && (ptr[31] == '1' || ptr[31] == '0'))
 		{
 			LOG("Plugin enabled");
-			ptr[37] = '1';
+			ptr[31] = '1';
 			write_buffer(GAME_PLUGIN_PATH, data, size);
 			free(data);
 
@@ -425,18 +426,18 @@ int install_sgkey_plugin(int install)
 			return 0;
 		}
 
-		fprintf(fp, "%s%s", SGKEY_DUMP_PLUGIN_PATH, " 1\n");
+		fprintf(fp, "%s%s", SGKEY_DUMP_PLUGIN_TEXT, " 1\n");
 		fclose(fp);
 		return 1;
 	}
 
 	if (!install)
 	{
-		char *ptr = strcasestr(data, SGKEY_DUMP_PLUGIN_PATH " ");
-		if (ptr != NULL && (ptr[37] == '1' || ptr[37] == '0'))
+		char *ptr = strcasestr(data, SGKEY_DUMP_PLUGIN_TEXT " ");
+		if (ptr != NULL && (ptr[31] == '1' || ptr[31] == '0'))
 		{
 			LOG("Plugin disabled");
-			ptr[37] = '0';
+			ptr[31] = '0';
 			write_buffer(GAME_PLUGIN_PATH, data, size);
 		}
 		free(data);
