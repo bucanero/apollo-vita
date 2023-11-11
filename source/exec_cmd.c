@@ -1060,6 +1060,12 @@ static void* vita_host_callback(int id, int* size)
 		if (size) *size = 16;
 		return host_buf;
 
+	case APOLLO_HOST_ACCOUNT_ID:
+		memcpy(host_buf, &apollo_config.account_id, 8);
+		*(uint64_t*)host_buf = ES64(*(uint64_t*)host_buf);
+		if (size) *size = 8;
+		return host_buf;
+
 	case APOLLO_HOST_USERNAME:
 		strncpy(host_buf, menu_about_strings_project[1], sizeof(host_buf));
 		if (size) *size = strlen(host_buf);

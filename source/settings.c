@@ -287,8 +287,8 @@ int load_app_settings(app_config_t* config)
 	{
 		file_data->user_id = config->user_id;
 		file_data->account_id = config->account_id;
-		memcpy(file_data->idps, config->idps, sizeof(uint64_t)*2);
-		memcpy(file_data->psid, config->psid, sizeof(uint64_t)*2);
+		memcpy(file_data->idps, config->idps, sizeof(config->idps));
+		memcpy(file_data->psid, config->psid, sizeof(config->psid));
 		memcpy(config, file_data, file_size);
 
 		LOG("Settings loaded: UserID (%08x) AccountID (%016llX)", config->user_id, config->account_id);

@@ -4,6 +4,55 @@ All notable changes to the `apollo-vita` project will be documented in this file
 
 ## [Unreleased]()
 
+## [v1.2.8](https://github.com/bucanero/apollo-vita/releases/tag/v1.2.8) - 2023-11-12
+
+### Added
+
+* Auto-detect `X`/`O` button settings
+* Compress `.ISO` files to `.CSO`
+* Decompress `.CSO` files to `.ISO`
+* Added Save-game Key database for PSP games
+* New Vita cheat codes
+  - Odin Sphere Leifthrasir (PCSE00899, PCSB00986)
+* New PSP cheat codes
+  - BlazBlue: Continuum Shift II (ULUS10579, ULES01526)
+  - Persona (ULUS10432)
+  - Monster Hunter Freedom Unite (ULES01213, ULUS10391)
+  - Monster Hunter Portable 2nd G (ULJM05500)
+* Custom decryption support
+  - Patapon 3 (UCUS98751, UCES01421)
+  - Monster Hunter Freedom Unite (ULES01213, ULUS10391)
+  - Monster Hunter Portable 2nd G (ULJM05500)
+  - Monster Hunter Portable 3rd (ULJM05800)
+* New PSP copy-unlock patches
+  - InviZimals: Shadow Zone (UCES01411, UCES01581, UCUS98760)
+  - InviZimals: The Lost Tribes (UCES01525)
+  - SOCOM: Fire Team Bravo 2 (UCUS98645)
+* Custom checksum support
+  - InviZimals: Shadow Zone (UCES01411, UCES01581, UCUS98760)
+  - InviZimals: The Lost Tribes (UCES01525)
+  - Monster Hunter Freedom Unite (ULES01213, ULUS10391)
+  - Monster Hunter Portable 2nd G (ULJM05500)
+  - Monster Hunter Portable 3rd (ULJM05800)
+
+### Fixed
+
+* Fixed PSP save-game Key dumper plugin installation
+
+### Misc
+
+* Network HTTP proxy settings support
+* Updated [`apollo-lib`](https://github.com/bucanero/apollo-lib) Patch Engine to v0.6.0
+  - Add host callbacks (username, wlan mac, psid, account id)
+  - Add `murmu3_32`, `jhash` hash functions
+  - Add Patapon 3 PSP decryption
+  - Add MGS5 decryption (PS3/PS4)
+  - Add Monster Hunter 2G/3rd PSP decryption
+  - Add Castlevania:LoS checksum
+  - Add Rockstar checksum
+  - Fix SaveWizard Code Type C
+  - Fix `right()` on little-endian platforms
+
 ## [v1.2.4](https://github.com/bucanero/apollo-vita/releases/tag/v1.2.4) - 2023-04-12
 
 ### Added

@@ -31,7 +31,7 @@ code_entry_t* selected_centry;
 int option_index = 0;
 static hexedit_data_t hex_data;
 
-void initMenuOptions()
+void initMenuOptions(void)
 {
 	menu_options_maxopt = 0;
 	while (menu_options[menu_options_maxopt].name)
@@ -89,7 +89,7 @@ static int ReloadUserSaves(save_list_t* save_list)
 	return list_count(save_list->list);
 }
 
-static code_entry_t* LoadRawPatch()
+static code_entry_t* LoadRawPatch(void)
 {
 	char patchPath[256];
 	code_entry_t* centry = calloc(1, sizeof(code_entry_t));
@@ -101,7 +101,7 @@ static code_entry_t* LoadRawPatch()
 	return centry;
 }
 
-static code_entry_t* LoadSaveDetails()
+static code_entry_t* LoadSaveDetails(void)
 {
 	code_entry_t* centry = calloc(1, sizeof(code_entry_t));
 	centry->name = strdup(selected_entry->title_id);
@@ -386,7 +386,7 @@ static void doSaveMenu(save_list_t * save_list)
 	Draw_UserCheatsMenu(save_list, menu_sel, 0xFF);
 }
 
-static void doMainMenu()
+static void doMainMenu(void)
 {
 	// Check the pads.
 	if(vitaPadGetButtonHold(SCE_CTRL_LEFT))
@@ -408,26 +408,30 @@ static void doMainMenu()
 	Draw_MainMenu();
 }
 
-static void doAboutMenu()
+static void doAboutMenu(void)
 {
 	static int ll = 0;
 
 	// Check the pads.
 	if (vitaPadGetButtonPressed(SCE_CTRL_CIRCLE))
 	{
+		if (ll)
+			apollo_config.music = (ll & 0x01);
+
 		ll = 0;
 		SetMenu(MENU_MAIN_SCREEN);
 		return;
 	}
 	else if (vitaPadGetButtonPressed(SCE_CTRL_SELECT))
 	{
-		ll = 1;
+		ll = (0x02 | apollo_config.music);
+		apollo_config.music = 1;
 	}
 
 	Draw_AboutMenu(ll);
 }
 
-static void doOptionsMenu()
+static void doOptionsMenu(void)
 {
 	// Check the pads.
 	if(vitaPadGetButtonHold(SCE_CTRL_UP))
@@ -570,13 +574,12 @@ static void doHexEditor(void)
 	Draw_HexEditor(&hex_data);
 }
 
-static int count_code_lines()
+static int count_text_lines(const char * str)
 {
 	//Calc max
 	int max = 0;
-	const char * str;
 
-	for(str = selected_centry->codes; *str; ++str)
+	for(max = 0; *str; ++str)
 		max += (*str == '\n');
 
 	if (max <= 0)
@@ -585,10 +588,10 @@ static int count_code_lines()
 	return max;
 }
 
-static void doPatchViewMenu()
+static void doPatchViewMenu(void)
 {
 	// Check the pads.
-	if (updatePadSelection(count_code_lines()))
+	if (updatePadSelection(count_text_lines(selected_centry->codes)))
 		(void)0;
 
 	else if (vitaPadGetButtonPressed(SCE_CTRL_CIRCLE))
@@ -600,7 +603,7 @@ static void doPatchViewMenu()
 	Draw_CheatsMenu_View("Patch view");
 }
 
-static void doCodeOptionsMenu()
+static void doCodeOptionsMenu(void)
 {
     code_entry_t* code = selected_centry;
 	// Check the pads.
@@ -657,10 +660,10 @@ static void doCodeOptionsMenu()
 	Draw_CheatsMenu_Options();
 }
 
-static void doSaveDetailsMenu()
+static void doSaveDetailsMenu(void)
 {
 	// Check the pads.
-	if (updatePadSelection(count_code_lines()))
+	if (updatePadSelection(count_text_lines(selected_centry->codes)))
 		(void)0;
 
 	if (vitaPadGetButtonPressed(SCE_CTRL_CIRCLE))
@@ -672,7 +675,7 @@ static void doSaveDetailsMenu()
 	Draw_CheatsMenu_View(selected_entry->name);
 }
 
-static void doPatchMenu()
+static void doPatchMenu(void)
 {
 	// Check the pads.
 	if (updatePadSelection(list_count(selected_entry->codes)))
@@ -755,7 +758,7 @@ static void doPatchMenu()
 }
 
 // Resets new frame
-void drawScene()
+void drawScene(void)
 {
 	switch (menu_id)
 	{
