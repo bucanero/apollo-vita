@@ -165,11 +165,9 @@ static u8 keyvault[0x80][0x10] =
     {0x5F, 0x8C, 0x17, 0x9F, 0xC1, 0xB2, 0x1D, 0xF1, 0xF6, 0x36, 0x7A, 0x9C, 0xF7, 0xD3, 0xD4, 0x7C},
 };
 
-static u8 kirk1_key[]  = {0x98, 0xC9, 0x40, 0x97, 0x5C, 0x1D, 0x10, 0xE8, 0x7F, 0xE6, 0x0E, 0xA3, 0xFD, 0x03, 0xA8, 0xBA};
-
-static u8 kirk16_key[] = {0x47, 0x5E, 0x09, 0xF4, 0xA2, 0x37, 0xDA, 0x9B, 0xEF, 0xFF, 0x3B, 0xC0, 0x77, 0x14, 0x3D, 0x8A};
-
-static u8 const_Rb[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x87};
+static const u8 MASTER_KEY[] = {0x47, 0x5E, 0x09, 0xF4, 0xA2, 0x37, 0xDA, 0x9B, 0xEF, 0xFF, 0x3B, 0xC0, 0x77, 0x14, 0x3D, 0x8A};
+static const u8 kirk1_key[]  = {0x98, 0xC9, 0x40, 0x97, 0x5C, 0x1D, 0x10, 0xE8, 0x7F, 0xE6, 0x0E, 0xA3, 0xFD, 0x03, 0xA8, 0xBA};
+static const u8 const_Rb[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x87};
 
 /* ------------------------- KEY VAULT END ------------------------- */
 
@@ -188,6 +186,7 @@ static u32 g_fuse94;
 
 static aes_context aes_kirk1; //global
 static u8 PRNG_DATA[0x14];
+static u8 g_mesh[0x40];
 
 static char is_kirk_initialized = 0; //"init" emulation
 
@@ -211,7 +210,7 @@ static void AES_cbc_decrypt(aes_context *ctx, u8 *src, u8 *dst, int size)
 
 /* AES-CMAC Generation Function */
 
-static void leftshift_onebit(u8 *input, u8 *output)
+static void leftshift_onebit(const u8 *input, u8 *output)
 {
   u8 overflow = 0;
     
@@ -223,7 +222,7 @@ static void leftshift_onebit(u8 *input, u8 *output)
   }
 }
 
-static void xor_128(u8 *a, u8 *b, u8 *out)
+static void xor_128(const u8 *a, const u8 *b, u8 *out)
 {
   for (int i=0;i<16; i++)
     out[i] = a[i] ^ b[i];
@@ -309,6 +308,78 @@ static void AES_CMAC(aes_context *ctx, u8 *input, int length, u8 *mac)
   xor_128(X,M_last,Y);
   aes_crypt_ecb(ctx, AES_ENCRYPT, Y, X);
   memcpy(mac, X, sizeof(X));
+}
+
+static void init_mesh(void)
+{
+  u8 fuseid[8];
+  int i, k;
+  u8 subkey_1[0x10], subkey_2[0x10];
+  aes_context aes_ctx, aes_ctx2;
+  memset(g_mesh,0,0x40);
+
+  fuseid[7] = g_fuse90 &0xFF;
+  fuseid[6] = (g_fuse90>>8) &0xFF;
+  fuseid[5] = (g_fuse90>>16) &0xFF;
+  fuseid[4] = (g_fuse90>>24) &0xFF; 
+  fuseid[3] = g_fuse94 &0xFF;
+  fuseid[2] = (g_fuse94>>8) &0xFF;
+  fuseid[1] = (g_fuse94>>16) &0xFF;
+  fuseid[0] = (g_fuse94>>24) &0xFF;
+  /* set encryption key */
+  aes_setkey_enc(&aes_ctx, MASTER_KEY, 128);
+  aes_setkey_dec(&aes_ctx2, MASTER_KEY, 128);
+
+  /* set the subkeys */
+  for (i = 0; i < 0x10; i++)
+  {
+      /* set to the fuseid */
+      subkey_2[i] = subkey_1[i] = fuseid[i % 8];
+  }
+
+  /* do aes crypto */
+  for (i = 0; i < 3; i++)
+  {
+      /* encrypt + decrypt */
+      aes_crypt_ecb(&aes_ctx, AES_ENCRYPT, subkey_1, subkey_1);
+      aes_crypt_ecb(&aes_ctx2, AES_DECRYPT, subkey_2, subkey_2);
+  }
+
+  /* set new key */
+  aes_setkey_enc(&aes_ctx, subkey_1, 128);
+
+  /* now lets make the key mesh */
+  for (i = 0; i < 3; i++)
+  {
+      /* do encryption in group of 3 */
+      for (k = 0; k < 3; k++)
+      {
+          /* crypto */
+          aes_crypt_ecb(&aes_ctx, AES_ENCRYPT, subkey_2, subkey_2);
+      }
+
+      /* copy to out block */
+      memcpy(&g_mesh[i * 0x10], subkey_2, 0x10);
+  }    
+}
+
+static void generate_key_from_mesh(u8 * key, int param)
+{
+  u8 genkey[0x10];
+  aes_context aes_ctx;
+  int i;
+  memset(genkey,0,0x10);
+  int rounds = (param >> 1) +1;
+  memcpy(genkey,&g_mesh[(param&1) * 0x10], 0x10);
+
+  aes_setkey_enc(&aes_ctx, &g_mesh[0x20], 128);
+  for (i = 0; i < rounds; i++)
+  {
+      /* encrypt the data */
+      aes_crypt_ecb(&aes_ctx, AES_ENCRYPT, genkey, genkey);
+  }
+  memcpy(key,genkey,0x10);
+  return; 
 }
 
 /* ------------------------- IMPLEMENTATION ------------------------- */
@@ -398,6 +469,26 @@ int kirk_CMD4(u8* outbuff, u8* inbuff, int size)
   aes_setkey_enc(&aesKey, key, 128);
   AES_cbc_encrypt(&aesKey, inbuff+sizeof(KIRK_AES128CBC_HEADER), outbuff+sizeof(KIRK_AES128CBC_HEADER), size);
   
+  return KIRK_OPERATION_SUCCESS;
+}
+
+int kirk_CMD5(u8* outbuff, u8* inbuff, int size)
+{
+  KIRK_AES128CBC_HEADER *header = (KIRK_AES128CBC_HEADER*)inbuff;
+  u8 key[0x10];
+  aes_context aesKey;
+
+  if(is_kirk_initialized == 0) return KIRK_NOT_INITIALIZED;
+  if(header->mode != KIRK_MODE_ENCRYPT_CBC) return KIRK_INVALID_MODE;
+  if(header->keyseed != 0x100) return KIRK_INVALID_MODE;
+  if(header->data_size == 0) return KIRK_DATA_SIZE_ZERO;
+
+  generate_key_from_mesh(key,1);
+
+  //Set the key
+  aes_setkey_enc(&aesKey, key, 128);
+  AES_cbc_encrypt(&aesKey, inbuff+sizeof(KIRK_AES128CBC_HEADER), outbuff+sizeof(KIRK_AES128CBC_HEADER), header->data_size);
+
   return KIRK_OPERATION_SUCCESS;
 }
 
@@ -543,6 +634,7 @@ static int kirk_init2(u8 * rnd_seed, u32 seed_size, u32 fuseid_90, u32 fuseid_94
   //Set Fuse ID
   g_fuse90=fuseid_90;
   g_fuse94=fuseid_94;
+  init_mesh();
   
   //Set KIRK1 main key
   aes_setkey_enc(&aes_kirk1, kirk1_key, 128);
@@ -552,12 +644,15 @@ static int kirk_init2(u8 * rnd_seed, u32 seed_size, u32 fuseid_90, u32 fuseid_94
   return 0;
 }
 
-int kirk_init()
+int kirk_init(void)
 {
   if (is_kirk_initialized)
     return 0;
 
-  return kirk_init2((u8*)"Lazy Dev should have initialized!", 33, 0xBABEF00D, 0xDEADBEEF);
+  // Get device Fuse ID
+  uint64_t fuseId = (0xBC100090);
+
+  return kirk_init2((u8*)"Lazy Dev should have initialized!", 33, (fuseId & 0xFFFFFFFF), (fuseId >> 32));
 }
 
 static u8* kirk_4_7_get_key(int key_type)
@@ -574,6 +669,7 @@ int sceUtilsBufferCopyWithRange(u8* outbuff, int outsize, u8* inbuff, int insize
     case KIRK_CMD_ENCRYPT_PRIVATE: return kirk_CMD0(outbuff, inbuff, insize, 1); break;
     case KIRK_CMD_DECRYPT_PRIVATE: return kirk_CMD1(outbuff, inbuff, insize); break;
     case KIRK_CMD_ENCRYPT_IV_0: return kirk_CMD4(outbuff, inbuff, insize); break;
+    case KIRK_CMD_ENCRYPT_IV_FUSE: return kirk_CMD5(outbuff, inbuff, insize); break;
     case KIRK_CMD_DECRYPT_IV_0: return kirk_CMD7(outbuff, inbuff, insize); break;
     case KIRK_CMD_PRIV_SIGN_CHECK: return kirk_CMD10(inbuff, insize); break;
     case KIRK_CMD_SHA1_HASH: return kirk_CMD11(outbuff, inbuff, insize); break;

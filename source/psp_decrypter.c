@@ -397,12 +397,13 @@ static int hleSdGetLastIndex(SD_Ctx1 ctx, uint8_t *hash, uint8_t *key) {
 
 	// If mode is 2, 4 or 6, encrypt again with KIRK CMD 5 and then KIRK CMD 4.
 	if ((ctx->mode == 0x2) || (ctx->mode == 0x4) || (ctx->mode == 0x6)) {
+		// Copy the result buffer into the data buffer.
 		arraycopy(resultBuf, 0, scrambleResultBuf, 0x14, 0x10);
+
+		// Encrypt with KIRK CMD 5 (seed is always 0x100).
 		ScrambleSD(scrambleResultBuf, 0x10, 0x100, KIRK_MODE_ENCRYPT_CBC, KIRK_CMD_ENCRYPT_IV_FUSE);
-		arraycopy(scrambleResultBuf, 0, scrambleResultBuf, 0x14, 0x10);
-		for(i=0; i < 0x14; i++) {
-			scrambleResultBuf[i] = 0;
-		}
+
+		// Encrypt again with KIRK CMD 4.
 		ScrambleSD(scrambleResultBuf, 0x10, seed, KIRK_MODE_ENCRYPT_CBC, KIRK_CMD_ENCRYPT_IV_0);
 		arraycopy(scrambleResultBuf, 0, resultBuf, 0, 0x10);
 	}
@@ -754,6 +755,40 @@ int psp_DecryptSavedata(const char* fpath, const char* fname, uint8_t* key)
 		return 0;
 
 	free(inbuf);
+	return 1;
+}
+
+int psp_ResignSavedata(const char* fpath)
+{
+	uint8_t *sfo, *sd_param;
+	char path[256];
+	size_t sfosize;
+
+	kirk_init();
+
+	snprintf(path, sizeof(path), "%sPARAM.SFO", fpath);
+	LOG("Resigning file %s", path);
+	if (read_buffer(path, &sfo, &sfosize) < 0)
+		return 0;
+
+	if (read32(sfo) != 0x46535000 || read32(sfo+4) != 0x00000101 ||
+		(sd_param = find_sfo_parameter(sfo, "SAVEDATA_PARAMS")) == NULL)
+	{
+		LOG("PARAM.SFO Error");
+		free(sfo);
+		return 0;
+	}
+
+	UpdateSavedataHashes(sd_param, sfo, sfosize);
+
+	if (write_buffer(path, sfo, sfosize) < 0)
+	{
+		LOG("Error saving %s", path);
+		free(sfo);
+		return 0;
+	}
+
+	free(sfo);
 	return 1;
 }
 

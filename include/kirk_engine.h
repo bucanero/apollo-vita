@@ -195,7 +195,7 @@ typedef struct
 //kirk-like funcs
 int kirk_CMD0(u8* outbuff, u8* inbuff, int size, int generate_trash);
 int kirk_CMD1(u8* outbuff, u8* inbuff, int size);
-
+int kirk_CMD5(u8* outbuff, u8* inbuff, int size);
 int kirk_CMD4(u8* outbuff, u8* inbuff, int size);
 int kirk_CMD7(u8* outbuff, u8* inbuff, int size);
 int kirk_CMD10(u8* inbuff, int insize);
