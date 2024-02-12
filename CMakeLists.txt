@@ -62,6 +62,7 @@ file(GLOB res_files RELATIVE
   data/*.png
   data/*.jpg
   data/*.s3m
+  data/*.bin
 )
 add_resources(apollo_res ${res_files})
 

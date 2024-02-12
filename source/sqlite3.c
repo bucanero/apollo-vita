@@ -134,7 +134,7 @@ static int vita_xDelete(sqlite3_vfs *vfs, const char *name, int syncDir)
   return SQLITE_OK;
 }
 
-int sqlite_init()
+int sqlite_init(void)
 {
   int rc;
 
@@ -167,7 +167,7 @@ int sqlite_init()
   return SQLITE_OK;
 }
 
-int sqlite_exit()
+int sqlite_exit(void)
 {
   int rc = SQLITE_OK;
   free(rw_methods);

@@ -27,7 +27,7 @@
 
 #define MAX_MOUNT_POINT_LENGTH 16
 
-int sqlite_init();
+int sqlite_init(void);
 
 static char pfs_mount_point[MAX_MOUNT_POINT_LENGTH];
 static const int known_pfs_ids[] = { 0x6E, 0x12E, 0x12F, 0x3ED };

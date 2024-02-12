@@ -6,13 +6,22 @@
 #include <psp2/vshbridge.h>
 #include <psp2/kernel/openpsid.h>
 #include <libxml/parser.h>
+#include <zlib.h>
 
 #include "types.h"
 #include "menu.h"
 #include "saves.h"
 #include "common.h"
-#include "plugin.h"
 
+// PSP FuseID dumper EBOOT.PBP (zlib)
+extern const uint8_t _binary_data_fuse_dumper_eboot_bin_start;
+extern const uint8_t _binary_data_fuse_dumper_eboot_bin_size;
+// PSP SGKeyDumper.prx plugin
+extern const uint8_t _binary_data_sgkeydumper_plugin_bin_start;
+extern const uint8_t _binary_data_sgkeydumper_plugin_bin_size;
+
+#define FUSEID_EBOOT_PBP_SIZE        130068
+#define FUSEID_EBOOT_PBP_PATH        "ux0:pspemu/PSP/GAME/FUSEID/EBOOT.PBP"
 #define GAME_PLUGIN_PATH             "ux0:pspemu/seplugins/game.txt"
 #define SGKEY_DUMP_PLUGIN_PATH       "ux0:pspemu/seplugins/SGKeyDumper.prx"
 #define SGKEY_DUMP_PLUGIN_TEXT       "ms0:/seplugins/SGKeyDumper.prx"
@@ -387,7 +396,7 @@ int install_sgkey_plugin(int install)
 	size_t size;
 
 	mkdirs(SGKEY_DUMP_PLUGIN_PATH);
-	if (write_buffer(SGKEY_DUMP_PLUGIN_PATH, sgk_plugin, size_sgk_plugin) < 0)
+	if (write_buffer(SGKEY_DUMP_PLUGIN_PATH, &_binary_data_sgkeydumper_plugin_bin_start, (int) &_binary_data_sgkeydumper_plugin_bin_size) < 0)
 		return 0;
 
 	if (read_buffer(GAME_PLUGIN_PATH, (uint8_t**) &data, &size) < 0)
@@ -445,4 +454,28 @@ int install_sgkey_plugin(int install)
 	}
 
 	return 0;
+}
+
+int install_fuseid_dumper(void)
+{
+	uint8_t* fuseid_dumper;
+	uLong eboot_len = FUSEID_EBOOT_PBP_SIZE;
+
+	if (mkdirs(FUSEID_EBOOT_PBP_PATH) != SUCCESS)
+		return 0;
+
+	fuseid_dumper = (uint8_t*)malloc(eboot_len);
+	if (!fuseid_dumper)
+			return 0;
+
+	uncompress(fuseid_dumper, &eboot_len, &_binary_data_fuse_dumper_eboot_bin_start, (int) &_binary_data_fuse_dumper_eboot_bin_size);
+	if (write_buffer(FUSEID_EBOOT_PBP_PATH, fuseid_dumper, eboot_len) < 0)
+	{
+		LOG("Error! Can't create EBOOT.PBP");
+		free(fuseid_dumper);
+		return 0;
+	}
+
+	free(fuseid_dumper);
+	return 1;
 }
