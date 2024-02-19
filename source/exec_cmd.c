@@ -10,6 +10,7 @@
 #include "common.h"
 #include "utils.h"
 #include "sfo.h"
+#include "ps1card.h"
 
 static char host_buf[256];
 
@@ -519,61 +520,58 @@ static void importTrophy(const char* path, const char* trop_dir)
 	show_message("Trophy %s successfully copied to:\n" TROPHY_PATH_HDD, trop_dir, apollo_config.user_id);
 }
 
-/*
-static void copySavePFS(const save_entry_t* save)
+static void exportAllSavesVMC(const save_entry_t* save, int dev, int all)
 {
-	char src_path[256];
-	char hdd_path[256];
-	char mount[32];
-	sfo_patch_t patch = {
-		.user_id = apollo_config.user_id,
-		.account_id = apollo_config.account_id,
-	};
+	char outPath[256];
+	int done = 0, err_count = 0;
+	list_node_t *node;
+	save_entry_t *item;
+	uint64_t progress = 0;
+	list_t *list = ((void**)save->dir_name)[0];
 
-	if (!vita_SaveMount(save, mount))
-	{
-		LOG("[!] Error: can't create/mount save!");
-		return;
-	}
-	vita_SaveUmount(mount);
+	init_progress_bar("Exporting all VMC saves...");
+	_set_dest_path(outPath, dev, PS1_SAVES_PATH_USB);
+	mkdirs(outPath);
 
-	snprintf(src_path, sizeof(src_path), "%s%s", save->path, save->dir_name);
-	snprintf(hdd_path, sizeof(hdd_path), "/user/home/%08x/savedata/%s/sdimg_%s", apollo_config.user_id, save->title_id, save->dir_name);
-	LOG("Copying <%s> to %s...", src_path, hdd_path);
-	if (copy_file(src_path, hdd_path) != SUCCESS)
+	LOG("Exporting all saves from '%s' to %s...", save->path, outPath);
+	for (node = list_head(list); (item = list_get(node)); node = list_next(node))
 	{
-		LOG("[!] Error: can't copy %s", hdd_path);
-		return;
+		update_progress_bar(progress++, list_count(list), item->name);
+		if (!all && !(item->flags & SAVE_FLAG_SELECTED))
+			continue;
+
+		if (item->type & FILE_TYPE_PS1)
+			(saveSingleSave(outPath, item->blocks, PS1SAVE_PSV) ? done++ : err_count++);
 	}
 
-	snprintf(src_path, sizeof(src_path), "%s%s.bin", save->path, save->dir_name);
-	snprintf(hdd_path, sizeof(hdd_path), "/user/home/%08x/savedata/%s/%s.bin", apollo_config.user_id, save->title_id, save->dir_name);
-	LOG("Copying <%s> to %s...", src_path, hdd_path);
-	if (copy_file(src_path, hdd_path) != SUCCESS)
-	{
-		LOG("[!] Error: can't copy %s", hdd_path);
-		return;
-	}
+	end_progress_bar();
 
-	if (!vita_SaveMount(save, mount))
-	{
-		LOG("[!] Error: can't remount save");
-		show_message("Error! Can't mount encrypted save.\n(incompatible save-game firmware version)");
-		return;
-	}
-
-	snprintf(hdd_path, sizeof(hdd_path), APOLLO_SANDBOX_PATH "sce_sys/param.sfo", mount);
-	if (show_dialog(1, "Resign save %s/%s?", save->title_id, save->dir_name))
-		patch_sfo(hdd_path, &patch);
-
-//	*strrchr(hdd_path, 'p') = 0;
-//	_update_save_details(hdd_path, mount);
-	vita_SaveUmount(mount);
-
-	show_message("Encrypted save copied successfully!\n%s/%s", save->title_id, save->dir_name);
-	return;
+	show_message("%d/%d Saves exported to\n%s", done, done+err_count, outPath);
 }
-*/
+
+static void exportVmcSave(const save_entry_t* save, int type, int dst_id)
+{
+	int ret = 0;
+	char outPath[256];
+	struct tm t;
+
+	_set_dest_path(outPath, dst_id, PS1_SAVES_PATH_USB);
+	mkdirs(outPath);
+	if (type != PS1SAVE_PSV)
+	{
+		// build file path
+		gmtime_r(&(time_t){time(NULL)}, &t);
+		sprintf(strrchr(outPath, '/'), "/%s_%d-%02d-%02d_%02d%02d%02d.%s", save->title_id,
+			t.tm_year+1900, t.tm_mon+1, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec,
+			(type == PS1SAVE_MCS) ? "mcs" : "psx");
+	}
+
+	if (saveSingleSave(outPath, save->blocks, type))
+		show_message("Save successfully exported to:\n%s", outPath);
+	else
+		show_message("Error exporting save:\n%s", save->path);
+}
+
 static void copyKeystone(const save_entry_t* entry, int import)
 {
 	char path_data[256];
@@ -607,7 +605,7 @@ static int webReqHandler(dWebRequest_t* req, dWebResponse_t* res, void* list)
 			md5_update(&ctx, (uint8_t*) item->name, strlen(item->name));
 
 		md5_finish(&ctx, (uint8_t*) hash);
-		asprintf(&res->data, APOLLO_LOCAL_CACHE "web%016lx%016lx.html", hash[0], hash[1]);
+		asprintf(&res->data, APOLLO_LOCAL_CACHE "web%016llx%016llx.html", hash[0], hash[1]);
 
 		if (file_exists(res->data) == SUCCESS)
 			return 1;
@@ -616,25 +614,25 @@ static int webReqHandler(dWebRequest_t* req, dWebResponse_t* res, void* list)
 		if (!f)
 			return 0;
 
-		fprintf(f, "<html><head><meta charset=\"UTF-8\"><style>h1, h2 { font-family: arial; } table { border-collapse: collapse; margin: 25px 0; font-size: 0.9em; font-family: sans-serif; min-width: 400px; box-shadow: 0 0 20px rgba(0, 0, 0, 0.15); } table thead tr { background-color: #009879; color: #ffffff; text-align: left; } table th, td { padding: 12px 15px; } table tbody tr { border-bottom: 1px solid #dddddd; } table tbody tr:nth-of-type(even) { background-color: #f3f3f3; } table tbody tr:last-of-type { border-bottom: 2px solid #009879; }</style>");
-		fprintf(f, "<script language=\"javascript\">document.addEventListener(\"DOMContentLoaded\",function(){var e;if(\"IntersectionObserver\"in window){e=document.querySelectorAll(\".lazy\");var n=new IntersectionObserver(function(e,t){e.forEach(function(e){if(e.isIntersecting){var t=e.target;t.src=t.dataset.src,t.classList.remove(\"lazy\"),n.unobserve(t)}})});e.forEach(function(e){n.observe(e)})}else{var t;function r(){t&&clearTimeout(t),t=setTimeout(function(){var n=window.pageYOffset;e.forEach(function(e){e.offsetTop<window.innerHeight+n&&(e.src=e.dataset.src,e.classList.remove(\"lazy\"))}),0==e.length&&(document.removeEventListener(\"scroll\",r),window.removeEventListener(\"resize\",r),window.removeEventListener(\"orientationChange\",r))},20)}e=document.querySelectorAll(\".lazy\"),document.addEventListener(\"scroll\",r),window.addEventListener(\"resize\",r),window.addEventListener(\"orientationChange\",r)}});</script>");
+		fprintf(f, "<html><head><meta charset=\"UTF-8\"><style>h1, h2 { font-family: arial; } img { display: none; } table { border-collapse: collapse; margin: 25px 0; font-size: 0.9em; font-family: sans-serif; min-width: 400px; box-shadow: 0 0 20px rgba(0, 0, 0, 0.15); } table thead tr { background-color: #009879; color: #ffffff; text-align: left; } table th, td { padding: 12px 15px; } table tbody tr { border-bottom: 1px solid #dddddd; } table tbody tr:nth-of-type(even) { background-color: #f3f3f3; } table tbody tr:last-of-type { border-bottom: 2px solid #009879; }</style>");
+		fprintf(f, "<script language=\"javascript\">function show(sid,src){var im=document.getElementById('img'+sid);im.src=src;im.style.display='block';document.getElementById('btn'+sid).style.display='none';}</script>");
 		fprintf(f, "<title>Apollo Save Tool</title></head><body><h1>.:: Apollo Save Tool</h1><h2>Index of %s</h2><table><thead><tr><th>Name</th><th>Icon</th><th>Title ID</th><th>Folder</th><th>Location</th></tr></thead><tbody>", selected_entry->path);
 
 		int i = 0;
 		for (node = list_head(list); (item = list_get(node)); node = list_next(node), i++)
 		{
-			if (item->type == FILE_TYPE_MENU || !(item->flags & (SAVE_FLAG_PSV|SAVE_FLAG_PSP|SAVE_FLAG_PS1)) || item->flags & SAVE_FLAG_LOCKED)
+			if (item->type == FILE_TYPE_MENU || item->type == FILE_TYPE_VMC || !(item->flags & (SAVE_FLAG_PSV|SAVE_FLAG_PSP|SAVE_FLAG_PS1)) || item->flags & SAVE_FLAG_LOCKED)
 				continue;
 
 			fprintf(f, "<tr><td><a href=\"/zip/%08x/%s_%s.zip\">%s</a></td>", i, item->title_id, item->dir_name, item->name);
-			fprintf(f, "<td><img class=\"lazy\" data-src=\"");
+			fprintf(f, "<td><button type=\"button\" id=\"btn%d\" onclick=\"show(%d,'/", i, i, i);
 
 			if (item->flags & SAVE_FLAG_PSV)
-				fprintf(f, "/PSV/%s/icon0.png\" width=\"128\" height=\"128", item->title_id);
+				fprintf(f, "PSV/%s/icon0.png')\">Show Icon</button><img width=\"128\" height=\"128", item->title_id);
 			else
-				fprintf(f, "/icon/%08x/ICON0.PNG\" width=\"%d\" height=\"80", i, (item->flags & SAVE_FLAG_PSP) ? 144 : 80);
+				fprintf(f, "icon/%08x/ICON0.PNG')\">Show Icon</button><img width=\"%d\" height=\"80", i, (item->flags & SAVE_FLAG_PSP) ? 144 : 80);
 
-			fprintf(f, "\" alt=\"%s\"></td>", item->name);
+			fprintf(f, "\" id=\"img%d\" alt=\"%s\"></td>", i, item->name);
 			fprintf(f, "<td>%s</td>", item->title_id);
 			fprintf(f, "<td>%s</td>", item->dir_name);
 			fprintf(f, "<td>%.4s</td></tr>", item->path);
@@ -1179,6 +1177,9 @@ static void resignSave(save_entry_t* entry)
     if (!apply_cheat_patches(entry))
         show_message("Error! Cheat codes couldn't be applied");
 
+    if (entry->type == FILE_TYPE_PSP && !psp_ResignSavedata(entry->path))
+        show_message("Error! PSP Save couldn't be resigned");
+
     show_message("Save %s successfully modified!", entry->title_id);
 }
 
@@ -1221,32 +1222,33 @@ static void resignAllSaves(const save_entry_t* save, int all)
 		show_message("All saves successfully resigned!");
 }
 
-static void import_mcr2vmp(const save_entry_t* save, const char* src, int dst_id)
+static void import_mcr2vmp(const save_entry_t* save, const char* src)
 {
-	char mcrPath[256], vmpPath[256];
+	char mcrPath[256];
+	uint8_t *data = NULL;
+	size_t size = 0;
 
 	snprintf(mcrPath, sizeof(mcrPath), PS1_SAVES_PATH_HDD "%s/%s", save->title_id, src);
-	snprintf(vmpPath, sizeof(vmpPath), "%sSCEVMC%d.VMP", save->path, dst_id);
+	read_buffer(mcrPath, &data, &size);
 
-	if (ps1_mcr2vmp(mcrPath, vmpPath))
-		show_message("Memory card successfully imported to:\n%s", vmpPath);
+	if (openMemoryCardStream(data, size, 0) && saveMemoryCard(save->path, 0, 0))
+		show_message("Memory card successfully imported to:\n%s", save->path);
 	else
 		show_message("Error importing memory card:\n%s", mcrPath);
 }
 
-static void export_vmp2mcr(const save_entry_t* save, const char* src_vmp)
+static void export_vmp2mcr(const save_entry_t* save)
 {
-	char mcrPath[256], vmpPath[256];
+	char mcrPath[256];
 
-	snprintf(vmpPath, sizeof(vmpPath), "%s%s", save->path, src_vmp);
-	snprintf(mcrPath, sizeof(mcrPath), PS1_SAVES_PATH_HDD "%s/%s", save->title_id, src_vmp);
+	snprintf(mcrPath, sizeof(mcrPath), PS1_SAVES_PATH_HDD "%s/%s", save->title_id, strrchr(save->path, '/') + 1);
 	strcpy(strrchr(mcrPath, '.'), ".MCR");
 	mkdirs(mcrPath);
 
-	if (ps1_vmp2mcr(vmpPath, mcrPath))
+	if (saveMemoryCard(mcrPath, PS1CARD_RAW, 0))
 		show_message("Memory card successfully exported to:\n%s", mcrPath);
 	else
-		show_message("Error exporting memory card:\n%s", vmpPath);
+		show_message("Error exporting memory card:\n%s", save->path);
 }
 
 static void resignVMP(const save_entry_t* save, const char* src_vmp)
@@ -1404,14 +1406,13 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			code->activated = 0;
 			break;
 
-		case CMD_IMP_MCR2VMP0:
-		case CMD_IMP_MCR2VMP1:
-			import_mcr2vmp(selected_entry, code->options[0].name[code->options[0].sel], codecmd[0] == CMD_IMP_MCR2VMP1);
+		case CMD_IMP_MCR2VMP:
+			import_mcr2vmp(selected_entry, code->options[0].name[code->options[0].sel]);
 			code->activated = 0;
 			break;
 
 		case CMD_EXP_VMP2MCR:
-			export_vmp2mcr(selected_entry, code->options[0].name[code->options[0].sel]);
+			export_vmp2mcr(selected_entry);
 			code->activated = 0;
 			break;
 
@@ -1444,6 +1445,28 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 		case CMD_COPY_SAVES_USB:
 		case CMD_COPY_ALL_SAVES_USB:
 			copyAllSavesUSB(selected_entry, codecmd[1], codecmd[0] == CMD_COPY_ALL_SAVES_USB);
+			code->activated = 0;
+			break;
+
+		case CMD_EXP_SAVES_VMC:
+		case CMD_EXP_ALL_SAVES_VMC:
+			exportAllSavesVMC(selected_entry, codecmd[1], codecmd[0] == CMD_EXP_ALL_SAVES_VMC);
+			code->activated = 0;
+			break;
+
+		case CMD_EXP_VMCSAVE:
+			exportVmcSave(selected_entry, code->options[0].id, codecmd[1]);
+			code->activated = 0;
+			break;
+
+		case CMD_IMP_VMCSAVE:
+			if (openSingleSave(code->file, (int*) host_buf))
+			{
+				saveMemoryCard(selected_entry->dir_name, 0, 0);
+				show_message("Save successfully imported:\n%s", code->file);
+			}
+			else
+				show_message("Error! Couldn't import save:\n%s", code->file);
 			code->activated = 0;
 			break;
 

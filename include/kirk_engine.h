@@ -90,7 +90,6 @@ typedef struct
 	u8  unk5[16];               //80
 } KIRK_CMD1_ECDSA_HEADER; //0x90
 
-
 typedef struct
 {
 	u8 r[0x14];
@@ -118,7 +117,6 @@ typedef struct
 	u8 multiplier[0x14];
 	ECDSA_POINT public_key;
 } KIRK_CMD13_BUFFER;
-
 
 typedef struct
 {
@@ -202,7 +200,7 @@ int kirk_CMD10(u8* inbuff, int insize);
 int kirk_CMD11(u8* outbuff, u8* inbuff, int size);
 int kirk_CMD14(u8* outbuff, int outsize);
 
-int kirk_init(); //CMD 0xF?
+int kirk_init(void); //CMD 0xF?
 
 //sce-like funcs
 int sceUtilsSetFuseID(u8*fuse);

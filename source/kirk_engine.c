@@ -652,6 +652,14 @@ int kirk_init(void)
   // Get device Fuse ID
   uint64_t fuseId = (0xBC100090);
 
+  // try FUSEID.BIN (e.g. Adrenaline)
+  FILE* fp = fopen("ux0:app/NP0APOLLO/data/FUSEID.BIN", "rb");
+  if (fp)
+  {
+    fread(&fuseId, 1, sizeof(uint64_t), fp);
+    fclose(fp);
+  }
+
   return kirk_init2((u8*)"Lazy Dev should have initialized!", 33, (fuseId & 0xFFFFFFFF), (fuseId >> 32));
 }
 

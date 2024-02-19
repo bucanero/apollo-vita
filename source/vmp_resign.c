@@ -12,14 +12,28 @@
 #include <polarssl/sha1.h>
 
 #include "utils.h"
+#include "shiftjis.h"
 
+#define PSV_SEED_OFFSET 0x8
+#define PSV_HASH_OFFSET 0x1C
+#define PSV_TYPE_OFFSET 0x3C
 #define VMP_SEED_OFFSET 0xC
 #define VMP_HASH_OFFSET 0x20
 #define MCR_OFFSET      0x80
 #define MCR_MAGIC       0x0000434D
 #define VMP_MAGIC       0x564D5000
+#define PSV_MAGIC       0x50535600
 #define VMP_SIZE        0x20080
 #define MC_SIZE         0x20000
+
+static const char SJIS_REPLACEMENT_TABLE[] = 
+    " ,.,..:;?!\"*'`*^"
+    "-_????????*---/\\"
+    "~||--''\"\"()()[]{"
+    "}<><>[][][]+-+X?"
+    "-==<><>????*'\"CY"
+    "$c&%#&*@S*******"
+    "*******T><^_'='";
 
 static const uint8_t vmp_ps1key[0x10] = {
 	0xAB, 0x5A, 0xBC, 0x9F, 0xC1, 0xF4, 0x9D, 0xE6, 0xA0, 0x51, 0xDB, 0xAE, 0xFA, 0x51, 0x88, 0x59
@@ -43,16 +57,16 @@ static void XorWithIv(uint8_t* buf, const uint8_t* Iv)
 		buf[i] ^= Iv[i];
 }
  
-static void generateHash(const uint8_t *input, uint8_t *dest, size_t sz)
+static void generateHash(const uint8_t *input, uint8_t *salt_seed, uint8_t *dest, size_t sz)
 {
 	aes_context aes_ctx;
 	sha1_context sha1_ctx;
 	uint8_t salt[0x40];
 	uint8_t work_buf[0x14];
-	const uint8_t *salt_seed = input + VMP_SEED_OFFSET;
 
 	memset(salt , 0, sizeof(salt));
 	memset(&aes_ctx, 0, sizeof(aes_context));
+	memcpy(salt_seed, "www.bucanero.com.ar", 20);
 
 	LOG("Signing VMP Memory Card File...");
 	//idk why the normal cbc doesn't work.
@@ -102,15 +116,13 @@ int vmp_resign(const char *src_vmp)
 		return 0;
 	}
 
-	if (*(uint32_t*)input != VMP_MAGIC || sz != VMP_SIZE) {
+	if (sz != VMP_SIZE || *(uint32_t*)input != VMP_MAGIC) {
 		LOG("Not a VMP file");
 		free(input);
 		return 0;
 	}
-//	LOG("Old signature:");
-//	dump_data(input+VMP_HASH_OFFSET, 20);
 
-	generateHash(input, input + VMP_HASH_OFFSET, sz);
+	generateHash(input, input + VMP_SEED_OFFSET, input + VMP_HASH_OFFSET, sz);
 
 	LOG("New signature:");
 	dump_data(input+VMP_HASH_OFFSET, 20);
@@ -127,68 +139,139 @@ int vmp_resign(const char *src_vmp)
 	return 1;
 }
 
-int ps1_mcr2vmp(const char* mcrfile, const char* dstName)
+int psv_resign(const char *src_psv)
 {
-	uint32_t hdr[0x20];
-	uint8_t *input;
 	size_t sz;
-	FILE *pf;
+	uint8_t *input;
 
-	if (read_buffer(mcrfile, &input, &sz) < 0) {
+	if (read_buffer(src_psv, &input, &sz) < 0) {
 		LOG("Failed to open input file");
 		return 0;
 	}
 
-	if (*(uint32_t*)input != MCR_MAGIC || sz != MC_SIZE) {
-		LOG("Not a .mcr file");
+	if (sz < 0x2000 || *(uint32_t*)input != PSV_MAGIC || input[PSV_TYPE_OFFSET] != 0x01) {
+		LOG("Not a PS1 PSV file");
 		free(input);
 		return 0;
 	}
 
-	pf = fopen(dstName, "wb");
-	if (!pf) {
-		LOG("Failed to open output file");
-		free(input);
-		return 0;
-	}
+	generateHash(input, input + PSV_SEED_OFFSET, input + PSV_HASH_OFFSET, sz);
 
-	memset(hdr, 0, sizeof(hdr));
-	memcpy(&hdr[3], "bucanero.com.ar", 0x10);
-	hdr[0] = VMP_MAGIC;
-	hdr[1] = MCR_OFFSET;
+	LOG("New signature:");
+	dump_data(input + PSV_HASH_OFFSET, 20);
 
-	fwrite(hdr, sizeof(hdr), 1, pf);
-	fwrite(input, sz, 1, pf);
-	fclose(pf);
-	free(input);
-
-	return vmp_resign(dstName);
-}
-
-int ps1_vmp2mcr(const char* vmpfile, const char* dstName)
-{
-	uint8_t *input;
-	size_t sz;
-
-	if (read_buffer(vmpfile, &input, &sz) < 0) {
-		LOG("Failed to open input file");
-		return 0;
-	}
-
-	if (*(uint32_t*)input != VMP_MAGIC || sz != VMP_SIZE) {
-		LOG("Not a .VMP file");
-		free(input);
-		return 0;
-	}
-
-	if (write_buffer(dstName, input + 0x80, sz - 0x80) < 0) {
+	if (write_buffer(src_psv, input, sz) < 0) {
 		LOG("Failed to open output file");
 		free(input);
 		return 0;
 	}
 
 	free(input);
-	LOG("MCR exported: %s", dstName);
+	LOG("PSV resigned successfully: %s", src_psv);
 
 	return 1;
+}
+
+//Convert Shift-JIS characters to ASCII equivalent
+static void sjis2ascii(char* bData)
+{
+	uint16_t ch;
+	int i, j = 0;
+	int len = strlen(bData);
+	
+	for (i = 0; i < len; i += 2)
+	{
+		ch = (bData[i]<<8) | bData[i+1];
+
+		// 'A' .. 'Z'
+		// '0' .. '9'
+		if ((ch >= 0x8260 && ch <= 0x8279) || (ch >= 0x824F && ch <= 0x8258))
+		{
+			bData[j++] = (ch & 0xFF) - 0x1F;
+			continue;
+		}
+
+		// 'a' .. 'z'
+		if (ch >= 0x8281 && ch <= 0x829A)
+		{
+			bData[j++] = (ch & 0xFF) - 0x20;
+			continue;
+		}
+
+		if (ch >= 0x8140 && ch <= 0x81AC)
+		{
+			bData[j++] = SJIS_REPLACEMENT_TABLE[(ch & 0xFF) - 0x40];
+			continue;
+		}
+
+		if (ch == 0x0000)
+		{
+			//End of the string
+			bData[j] = 0;
+			return;
+		}
+
+		// Character not found
+		bData[j++] = bData[i];
+		bData[j++] = bData[i+1];
+	}
+
+	bData[j] = 0;
+	return;
+}
+
+// PSV files (PS1/PS2) savegame titles are stored in Shift-JIS
+char* sjis2utf8(char* input)
+{
+    // Simplify the input and decode standard ASCII characters
+    sjis2ascii(input);
+
+    int len = strlen(input);
+    char* output = malloc(3 * len); //ShiftJis won't give 4byte UTF8, so max. 3 byte per input char are needed
+    size_t indexInput = 0, indexOutput = 0;
+
+    while(indexInput < len)
+    {
+        char arraySection = ((uint8_t)input[indexInput]) >> 4;
+
+        size_t arrayOffset;
+        if(arraySection == 0x8) arrayOffset = 0x100; //these are two-byte shiftjis
+        else if(arraySection == 0x9) arrayOffset = 0x1100;
+        else if(arraySection == 0xE) arrayOffset = 0x2100;
+        else arrayOffset = 0; //this is one byte shiftjis
+
+        //determining real array offset
+        if(arrayOffset)
+        {
+            arrayOffset += (((uint8_t)input[indexInput]) & 0xf) << 8;
+            indexInput++;
+            if(indexInput >= len) break;
+        }
+        arrayOffset += (uint8_t)input[indexInput++];
+        arrayOffset <<= 1;
+
+        //unicode number is...
+        uint16_t unicodeValue = (shiftJIS_convTable[arrayOffset] << 8) | shiftJIS_convTable[arrayOffset + 1];
+
+        //converting to UTF8
+        if(unicodeValue < 0x80)
+        {
+            output[indexOutput++] = unicodeValue;
+        }
+        else if(unicodeValue < 0x800)
+        {
+            output[indexOutput++] = 0xC0 | (unicodeValue >> 6);
+            output[indexOutput++] = 0x80 | (unicodeValue & 0x3f);
+        }
+        else
+        {
+            output[indexOutput++] = 0xE0 | (unicodeValue >> 12);
+            output[indexOutput++] = 0x80 | ((unicodeValue & 0xfff) >> 6);
+            output[indexOutput++] = 0x80 | (unicodeValue & 0x3f);
+        }
+    }
+
+	//remove the unnecessary bytes
+    output[indexOutput] = 0;
+    return output;
 }

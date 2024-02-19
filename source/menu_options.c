@@ -58,10 +58,9 @@ static void _draw_OptionsMenu(u8 alpha)
     }
 }
 
-void Draw_OptionsMenu_Ani()
+void Draw_OptionsMenu_Ani(void)
 {
-    int ani = 0;
-    for (ani = 0; ani < MENU_ANI_MAX; ani++)
+    for (int ani = 0; ani < MENU_ANI_MAX; ani++)
     {
         SDL_RenderClear(renderer);
         DrawHeader_Ani(cat_opt_png_index, "Settings", NULL, APP_FONT_TITLE_COLOR, 0xffffffff, ani, 12);
@@ -82,7 +81,7 @@ void Draw_OptionsMenu_Ani()
     }
 }
 
-void Draw_OptionsMenu()
+void Draw_OptionsMenu(void)
 {
     DrawHeader(cat_opt_png_index, 0, "Settings", NULL, APP_FONT_TITLE_COLOR | 0xFF, 0xffffffff, 0);
     _draw_OptionsMenu(0xFF);

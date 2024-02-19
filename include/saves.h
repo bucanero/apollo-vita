@@ -26,16 +26,13 @@
 #define PSV_ICONS_PATH_HDD      "ur0:appmeta/%s"
 #define PS1_SAVES_PATH_HDD      APOLLO_PATH "PS1/"
 #define PSP_SAVES_PATH_HDD      "ux0:pspemu/" PSP_SAVES_PATH_USB
-
-#define PS1_IMP_PATH_USB        "PS1/SAVEDATA/"
-#define PS2_IMP_PATH_USB        "PS2/SAVEDATA/"
+#define PS1_SAVES_PATH_USB      "PS1/SAVEDATA/"
 
 #define TROPHY_PATH_HDD         "ur0:/user/%02x/trophy/"
 #define EXPORT_PATH             "savegames/EXPORT/"
 #define EXPORT_ZRIF_PATH        APOLLO_PATH "zrif/"
 
-#define IMP_PS2VMC_PATH_USB     USB_PATH "PS2/VMC/"
-#define IMPORT_RAP_PATH_USB     USB_PATH PS3_LICENSE_PATH
+#define PS1VMC_PATH_USB         "%s:data/PS1/VMC/"
 
 #define ONLINE_URL              "https://bucanero.github.io/apollo-saves/"
 #define ONLINE_PATCH_URL        "https://bucanero.github.io/apollo-patches/PSV/"
@@ -102,11 +99,14 @@ enum cmd_code_enum
     CMD_SETUP_PLUGIN,
     CMD_CONV_ISO2CSO,
     CMD_CONV_CSO2ISO,
+    CMD_EXP_VMCSAVE,
+    CMD_EXP_SAVES_VMC,
+    CMD_EXP_ALL_SAVES_VMC,
 
 // Import commands
     CMD_IMP_KEYSTONE,
-    CMD_IMP_MCR2VMP0,
-    CMD_IMP_MCR2VMP1,
+    CMD_IMP_MCR2VMP,
+    CMD_IMP_VMCSAVE,
     CMD_EXTRACT_ARCHIVE,
     CMD_URL_DOWNLOAD,
     CMD_NET_WEBSERVER,
@@ -123,7 +123,7 @@ enum cmd_code_enum
 #define SAVE_FLAG_OWNER         2
 #define SAVE_FLAG_SELECTED      4
 #define SAVE_FLAG_ZIP           8
-#define SAVE_FLAG_PS2           16
+#define SAVE_FLAG_VMC           16
 #define SAVE_FLAG_PSP           32
 #define SAVE_FLAG_PSV           64
 #define SAVE_FLAG_TROPHY        128
@@ -138,6 +138,7 @@ enum save_type_enum
     FILE_TYPE_TRP,
     FILE_TYPE_MENU,
     FILE_TYPE_PSP,
+    FILE_TYPE_PS1,
 
     // PS1 File Types
     FILE_TYPE_ZIP,
@@ -145,7 +146,7 @@ enum save_type_enum
     // License Files
     FILE_TYPE_RIF,
     FILE_TYPE_PRX,
-    FILE_TYPE_ACT,
+    FILE_TYPE_VMC,
 
     // ISO Files
     FILE_TYPE_ISO,
@@ -157,7 +158,7 @@ enum char_flag_enum
 {
     CHAR_TAG_NULL,
     CHAR_TAG_PS1,
-    CHAR_TAG_PS2,
+    CHAR_TAG_VMC,
     CHAR_TAG_PS3,
     CHAR_TAG_PSP,
     CHAR_TAG_PSV,
@@ -222,6 +223,7 @@ list_t * ReadUserList(const char* userPath);
 list_t * ReadOnlineList(const char* urlPath);
 list_t * ReadBackupList(const char* userPath);
 list_t * ReadTrophyList(const char* userPath);
+list_t * ReadVmcList(const char* userPath);
 void UnloadGameList(list_t * list);
 char * readTextFile(const char * path, long* size);
 int sortSaveList_Compare(const void* A, const void* B);
@@ -231,6 +233,7 @@ int ReadCodes(save_entry_t * save);
 int ReadTrophies(save_entry_t * game);
 int ReadOnlineSaves(save_entry_t * game);
 int ReadBackupCodes(save_entry_t * bup);
+int ReadVmcCodes(save_entry_t * game);
 
 int http_init(void);
 void http_end(void);
@@ -269,7 +272,8 @@ int orbis_UpdateSaveParams(const char* mountPath, const char* title, const char*
 int read_psp_game_key(const char* fkey, uint8_t* key);
 int psp_DecryptSavedata(const char* fpath, const char* fname, uint8_t* key);
 int psp_EncryptSavedata(const char* fpath, const char* fname, uint8_t* key);
+int psp_ResignSavedata(const char* fpath);
 
 int vmp_resign(const char *src_vmp);
-int ps1_mcr2vmp(const char* mcrfile, const char* vmp_path);
-int ps1_vmp2mcr(const char* vmpfile, const char* mcr_path);
+int psv_resign(const char *src_psv);
+char* sjis2utf8(char* input);

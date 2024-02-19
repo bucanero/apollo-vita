@@ -814,7 +814,7 @@ int saveSingleSave(const char* fileName, int slotNumber, int singleSaveType)
     free(outputData);
 
     if (singleSaveType == PS1SAVE_PSV)
-        return vmp_resign(fileName);
+        return psv_resign(fileName);
 
     return true;
 }

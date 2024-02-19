@@ -16,6 +16,15 @@
 #define JAR_COLUMNS 7
 
 
+void LoadRawTexture(int idx, void* data, int width, int height)
+{
+	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(data, width, height, 32, 4 * width,
+												0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
+
+	menu_textures[idx].texture = SDL_CreateTextureFromSurface(renderer, surface);
+	SDL_FreeSurface(surface);
+}
+
 int LoadMenuTexture(const char* path, int idx)
 {
 	int d;
@@ -32,12 +41,7 @@ int LoadMenuTexture(const char* path, int idx)
 		return 0;
 	}
 
-	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(buffer, menu_textures[idx].width, menu_textures[idx].height, 32, 4 * menu_textures[idx].width,
-												0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
-
-	menu_textures[idx].texture = SDL_CreateTextureFromSurface(renderer, surface);
-
-	SDL_FreeSurface(surface);
+	LoadRawTexture(idx, buffer, menu_textures[idx].width, menu_textures[idx].height);
 	stbi_image_free(buffer);
 
 	return 1;
@@ -68,7 +72,7 @@ static void _drawListBackground(int off, int icon)
 		case cat_sav_png_index:
 			DrawTexture(&menu_textures[help_png_index], help_png_x, help_png_y, 0, help_png_w, help_png_h, 0xFFFFFF00 | 0xFF);
 
-			if (menu_textures[icon_png_file_index].size)
+			if (menu_textures[icon_png_file_index].texture)
 			{
 				int off = (menu_textures[icon_png_file_index].width > 128) ? 20 : 0;
 				DrawTexture(&menu_textures[help_png_index], SCREEN_WIDTH - 204 - off, help_png_y + 4, 0, menu_textures[icon_png_file_index].width + 8, menu_textures[icon_png_file_index].height + 8, 0xFFFFFF00 | 0xFF);

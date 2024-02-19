@@ -9,12 +9,14 @@
 #include "vitapad.h"
 #include "common.h"
 #include "utils.h"
+#include "ps1card.h"
 
 extern save_list_t hdd_saves;
 extern save_list_t usb_saves;
 extern save_list_t trophies;
 extern save_list_t online_saves;
 extern save_list_t user_backup;
+extern save_list_t vmc_saves;
 
 extern int close_app;
 
@@ -47,16 +49,6 @@ void initMenuOptions(void)
 				menu_options_maxsel[i]++;
 		}
 	}
-}
-
-static void LoadFileTexture(const char* fname, int idx)
-{
-	LOG("Loading '%s'", fname);
-	if (menu_textures[idx].texture)
-		SDL_DestroyTexture(menu_textures[idx].texture);
-
-	menu_textures[idx].texture = NULL;
-	menu_textures[idx].size = LoadMenuTexture(fname, idx);
 }
 
 static int ReloadUserSaves(save_list_t* save_list)
@@ -117,6 +109,15 @@ static void SetMenu(int id)
 {
 	switch (menu_id) //Leaving menu
 	{
+		case MENU_VMC_SAVES:
+			if (id == MENU_MAIN_SCREEN)
+			{
+				LOG("Saving VMC changes...");
+				UnloadGameList(vmc_saves.list);
+				vmc_saves.list = NULL;
+				saveMemoryCard(vmc_saves.path, 0, 0);
+			}
+
 		case MENU_MAIN_SCREEN: //Main Menu
 		case MENU_TROPHIES:
 		case MENU_USB_SAVES: //USB Saves Menu
@@ -198,6 +199,14 @@ static void SetMenu(int id)
 				Draw_UserCheatsMenu_Ani(&online_saves);
 			break;
 
+		case MENU_VMC_SAVES: //VMC Menu
+			if (!vmc_saves.list && !ReloadUserSaves(&vmc_saves))
+				return;
+
+			if (apollo_config.doAni)
+				Draw_UserCheatsMenu_Ani(&vmc_saves);
+			break;
+
 		case MENU_CREDITS: //About Menu
 			// set to display the PSID on the About menu
 			sprintf((char*) menu_about_strings_project[3], "%016llx", apollo_config.account_id);
@@ -222,10 +231,16 @@ static void SetMenu(int id)
 
 		case MENU_PATCHES: //Cheat Selection Menu
 			//if entering from game list, don't keep index, otherwise keep
-			if (menu_id == MENU_USB_SAVES || menu_id == MENU_HDD_SAVES || menu_id == MENU_ONLINE_DB || menu_id == MENU_TROPHIES)
+			if (menu_id == MENU_USB_SAVES || menu_id == MENU_HDD_SAVES || menu_id == MENU_ONLINE_DB || menu_id == MENU_TROPHIES || menu_id == MENU_VMC_SAVES)
 				menu_old_sel[MENU_PATCHES] = 0;
 
-			char iconfile[256];
+			char iconfile[256] = {0};
+
+			if (menu_textures[icon_png_file_index].texture)
+			{
+				SDL_DestroyTexture(menu_textures[icon_png_file_index].texture);
+				menu_textures[icon_png_file_index].texture = NULL;
+			}
 			snprintf(iconfile, sizeof(iconfile), PSV_ICONS_PATH_HDD "/icon0.png", selected_entry->title_id);
 
 			if (selected_entry->flags & SAVE_FLAG_ONLINE)
@@ -238,13 +253,19 @@ static void SetMenu(int id)
 				if (selected_entry->flags & SAVE_FLAG_PSV && file_exists(iconfile) != SUCCESS)
 					http_download(selected_entry->path, "icon0.png", iconfile, 0);
 			}
+			else if (selected_entry->flags & SAVE_FLAG_VMC)
+			{
+				uint8_t* icon = getIconRGBA(selected_entry->blocks, 0);
+				LoadRawTexture(icon_png_file_index, icon, 16, 16);
+				menu_textures[icon_png_file_index].height = 64;
+				menu_textures[icon_png_file_index].width = 64;
+				free(icon);
+			}
 			else if (selected_entry->flags & (SAVE_FLAG_PSP | SAVE_FLAG_PS1))
 				snprintf(iconfile, sizeof(iconfile), "%sICON0.PNG", selected_entry->path);
 
 			if (file_exists(iconfile) == SUCCESS)
-				LoadFileTexture(iconfile, icon_png_file_index);
-			else
-				menu_textures[icon_png_file_index].size = 0;
+				LoadMenuTexture(iconfile, icon_png_file_index);
 
 			if (apollo_config.doAni && menu_id != MENU_PATCH_VIEW && menu_id != MENU_CODE_OPTIONS)
 				Draw_CheatsMenu_Selection_Ani();
@@ -347,6 +368,13 @@ static void doSaveMenu(save_list_t * save_list)
 	else if (vitaPadGetButtonPressed(SCE_CTRL_CROSS))
 	{
 		selected_entry = list_get_item(save_list->list, menu_sel);
+
+		if (selected_entry->type == FILE_TYPE_VMC && selected_entry->flags & SAVE_FLAG_VMC)
+		{
+			strncpy(vmc_saves.path, selected_entry->path, sizeof(vmc_saves.path));
+			SetMenu(MENU_VMC_SAVES);
+			return;
+		}
 
 		if (!selected_entry->codes && !save_list->ReadCodes(selected_entry))
 		{
@@ -812,6 +840,10 @@ void drawScene(void)
 
 		case MENU_HEX_EDITOR: //Hex Editor Menu
 			doHexEditor();
+			break;
+
+		case MENU_VMC_SAVES: //VMC Menu
+			doSaveMenu(&vmc_saves);
 			break;
 	}
 }

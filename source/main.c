@@ -50,6 +50,7 @@ extern const uint8_t _binary_data_haiku_s3m_size;
 		extern const uint8_t _binary_data_##name##_##type##_size; \
 		menu_textures[name##_##type##_index].buffer = &_binary_data_##name##_##type##_start; \
 		menu_textures[name##_##type##_index].size = (int) &_binary_data_##name##_##type##_size; \
+		menu_textures[name##_##type##_index].texture = NULL; \
 	}); \
 		if (!LoadMenuTexture(NULL, name##_##type##_index)) return 0;
 
@@ -57,6 +58,7 @@ void update_usb_path(char *p);
 void update_hdd_path(char *p);
 void update_trophy_path(char *p);
 void update_db_path(char *p);
+void update_vmc_path(char *p);
 
 app_config_t apollo_config = {
     .app_name = "APOLLO",
@@ -172,6 +174,19 @@ save_list_t user_backup = {
     .UpdatePath = NULL,
 };
 
+/*
+* PS1 VMC list
+*/
+save_list_t vmc_saves = {
+    .icon_id = cat_usb_png_index,
+    .title = "Virtual Memory Card",
+    .list = NULL,
+    .path = "",
+    .ReadList = &ReadVmcList,
+    .ReadCodes = &ReadVmcCodes,
+    .UpdatePath = &update_vmc_path,
+};
+
 
 static int initPad(void)
 {
@@ -275,7 +290,7 @@ static int LoadTextures_Menu(void)
 	load_menu_texture(tag_own, png);
 	load_menu_texture(tag_pce, png);
 	load_menu_texture(tag_ps1, png);
-	load_menu_texture(tag_ps2, png);
+	load_menu_texture(tag_vmc, png);
 	load_menu_texture(tag_psp, png);
 	load_menu_texture(tag_psv, png);
 	load_menu_texture(tag_warning, png);
@@ -372,11 +387,19 @@ void update_db_path(char* path)
 	strcpy(path, apollo_config.save_db);
 }
 
+void update_vmc_path(char* path)
+{
+	if (file_exists(path) == SUCCESS)
+		return;
+
+	path[0] = 0;
+}
+
 static void registerSpecialChars(void)
 {
 	// Register save tags
 	RegisterSpecialCharacter(CHAR_TAG_PS1, 2, 1.5, &menu_textures[tag_ps1_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_PS2, 2, 1.5, &menu_textures[tag_ps2_png_index]);
+	RegisterSpecialCharacter(CHAR_TAG_VMC, 2, 1.0, &menu_textures[tag_vmc_png_index]);
 	RegisterSpecialCharacter(CHAR_TAG_PSP, 2, 1.5, &menu_textures[tag_psp_png_index]);
 	RegisterSpecialCharacter(CHAR_TAG_PSV, 2, 1.5, &menu_textures[tag_psv_png_index]);
 	RegisterSpecialCharacter(CHAR_TAG_PCE, 2, 1.5, &menu_textures[tag_pce_png_index]);

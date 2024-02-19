@@ -107,9 +107,6 @@ void Draw_CheatsMenu_Options_Ani_Exit(void)
 		DrawTexture(&menu_textures[edit_shadow_png_index], left - (menu_textures[edit_shadow_png_index].width * 1) + 1, 0, 0, menu_textures[edit_shadow_png_index].width, SCREEN_HEIGHT, icon_a);
 		DrawHeader(cat_cheats_png_index, left, selected_centry->name, "Options", APP_FONT_TITLE_COLOR | icon_a, 0xffffffff, 1);
 
-		//DrawOptions(selected_centry->options[option_index], game_a, 18, menu_old_sel[7]);
-		//DrawScrollBar2(menu_old_sel[7], selected_centry->options[option_index].size, 18, 700, game_a);
-
 		SDL_RenderPresent(renderer);
 
 		if (left == SCREEN_WIDTH)
@@ -354,12 +351,11 @@ void DrawGameList(int selIndex, list_t * games, u8 alpha)
 				DrawString(MENU_ICON_OFF + MENU_TITLE_OFF - 30, game_y, UTF8_CHAR_STAR);
 
 			tmp[0] = ' ';
-			if (item->flags & SAVE_FLAG_PS2) tmp[0] = CHAR_TAG_PS2;
 			if (item->flags & SAVE_FLAG_PSP) tmp[0] = CHAR_TAG_PSP;
 			if (item->flags & SAVE_FLAG_PS1) tmp[0] = CHAR_TAG_PS1;
 			if (item->flags & SAVE_FLAG_PSV) tmp[0] = CHAR_TAG_PSV;
 			tmp[1] = (item->flags & SAVE_FLAG_OWNER) ? CHAR_TAG_OWNER : ' ';
-			tmp[2] = (item->flags & SAVE_FLAG_LOCKED) ? CHAR_TAG_LOCKED : ' ';
+			tmp[2] = (item->type == FILE_TYPE_VMC) ? CHAR_TAG_VMC : ' ';
 
 			DrawString(SCREEN_WIDTH - (MENU_ICON_OFF * 2), game_y, tmp);
 skip_draw:
