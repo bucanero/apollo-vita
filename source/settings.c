@@ -28,7 +28,7 @@ extern const uint8_t _binary_data_sgkeydumper_plugin_bin_size;
 
 char *strcasestr(const char *, const char *);
 static char* ext_src[MAX_USB_DEVICES+1] = {"ux0", "uma0", "imc0", "xmc0", "ur0", NULL};
-static char* sort_opt[] = {"Disabled", "by Name", "by Title ID", NULL};
+static char* sort_opt[] = {"Disabled", "by Name", "by Title ID", "by Type", NULL};
 
 static void log_callback(int sel);
 static void sort_callback(int sel);

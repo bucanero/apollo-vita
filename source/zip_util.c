@@ -134,16 +134,6 @@ int zip_append_directory(const char* basedir, const char* inputdir, const char* 
 	return (ret == ZIP_ER_OK);
 }
 
-static int on_extract_entry(const char *filename, void *arg)
-{
-	uint64_t* progress = (uint64_t*) arg;
-
-    LOG("Extracted: %s", filename);
-    update_progress_bar(++progress[0], progress[1], filename);
-
-    return 0;
-}
-
 int extract_zip(const char* zip_file, const char* dest_path)
 {
 	char path[256];
@@ -258,6 +248,7 @@ int extract_7zip(const char* fpath, const char* dest_path)
 int extract_rar(const char* rarFilePath, const char* dstPath)
 {
 	int err = 0;
+	uint64_t progress = 0, numFiles = 0;
 	HANDLE hArcData; //Archive Handle
 	struct RAROpenArchiveDataEx rarOpenArchiveData;
 	struct RARHeaderDataEx rarHeaderData;
@@ -265,7 +256,7 @@ int extract_rar(const char* rarFilePath, const char* dstPath)
 	memset(&rarOpenArchiveData, 0, sizeof(rarOpenArchiveData));
 	memset(&rarHeaderData, 0, sizeof(rarHeaderData));
 	rarOpenArchiveData.ArcName = (char*) rarFilePath;
-	rarOpenArchiveData.OpenMode = RAR_OM_EXTRACT;
+	rarOpenArchiveData.OpenMode = RAR_OM_LIST;
 
 	hArcData = RAROpenArchiveEx(&rarOpenArchiveData);
 	if (rarOpenArchiveData.OpenResult != ERAR_SUCCESS)
@@ -274,13 +265,23 @@ int extract_rar(const char* rarFilePath, const char* dstPath)
 		return 0;
 	}
 
+	while (RARReadHeaderEx(hArcData, &rarHeaderData) == ERAR_SUCCESS)
+	{
+		if (RARProcessFile(hArcData, RAR_SKIP, NULL, NULL) == ERAR_SUCCESS)
+			numFiles++;
+	}
+
+	RARCloseArchive(hArcData);
+	rarOpenArchiveData.OpenMode = RAR_OM_EXTRACT;
+	hArcData = RAROpenArchiveEx(&rarOpenArchiveData);
+
 	LOG("UnRAR Extract %s to '%s'...", rarFilePath, dstPath);
 	init_progress_bar("Extracting files...");
 
 	while (RARReadHeaderEx(hArcData, &rarHeaderData) == ERAR_SUCCESS)
 	{
 		LOG("Extracting '%s' (%ld bytes)", rarHeaderData.FileName, rarHeaderData.UnpSize + (((uint64_t)rarHeaderData.UnpSizeHigh) << 32));
-		update_progress_bar(0, 1, rarHeaderData.FileName);
+		update_progress_bar(progress++, numFiles, rarHeaderData.FileName);
 
 		if (RARProcessFile(hArcData, RAR_EXTRACT, (char*) dstPath, NULL) != ERAR_SUCCESS)
 		{
@@ -288,7 +289,7 @@ int extract_rar(const char* rarFilePath, const char* dstPath)
 			LOG("ERROR: UnRAR Extract Failed!");
 			continue;
 		}
-		update_progress_bar(1, 1, rarHeaderData.FileName);
+		update_progress_bar(progress, numFiles, rarHeaderData.FileName);
 	}
 	end_progress_bar();
 

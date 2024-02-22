@@ -4,6 +4,30 @@ All notable changes to the `apollo-vita` project will be documented in this file
 
 ## [Unreleased]()
 
+## [v1.4.0](https://github.com/bucanero/apollo-vita/releases/tag/v1.4.0) - 2024-02-24
+
+### Added
+
+* Manage PS1 Virtual Memory Card images (VMC)
+  - Supports `.VMP` and external formats (`.MCR`, `.VM1`, `.BIN`, `.VMC`, `.GME`, `.VGS`, `.SRM`, `.MCD`)
+  - List, import, and export PS1 saves inside VMC images
+  - Import - Supported formats: `.MCS`, `.PSV`, `.PSX`, `.PS1`, `.MCB`, `.PDA`
+  - Export - Supported formats: `.MCS`, `.PSV`, `.PSX`
+* Proper PSP save resigning using KIRK engine CMD5
+  - Uses unique per-console Fuse ID
+  - Fixes save ownership in games like Gran Turismo
+* Added PSP FuseID dumper tool installer
+* Save sort option by Type (Vita/PSP/PS1)
+* Online DB: added PS1 saves listing
+
+### Misc
+
+* Updated Apollo Patch Engine to v0.7.0
+  - Add `jenkins_oaat`, `lookup3_little2` hash functions
+  - Add `camellia_ecb` encryption
+  - Add RGG Studio decryption (PS4)
+  - Add Dead Rising checksum
+
 ## [v1.2.8](https://github.com/bucanero/apollo-vita/releases/tag/v1.2.8) - 2023-11-12
 
 ### Added

@@ -620,6 +620,11 @@ s32 main(s32 argc, const char* argv[])
 	registerSpecialChars();
 	initMenuOptions();
 
+	if (file_exists(APOLLO_PATH "fuseid.bin") != SUCCESS &&
+		file_exists("ux0:pspemu/PSP/GAME/FUSEID/FUSEID.BIN") == SUCCESS &&
+		copy_file("ux0:pspemu/PSP/GAME/FUSEID/FUSEID.BIN", APOLLO_PATH "fuseid.bin") == SUCCESS)
+		notification("PSP FuseID successfully imported!");
+
 	// Splash screen logo (fade-out)
 	drawSplashLogo(-1);
 	SDL_DestroyTexture(menu_textures[buk_scr_png_index].texture);

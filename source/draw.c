@@ -18,9 +18,7 @@
 
 void LoadRawTexture(int idx, void* data, int width, int height)
 {
-	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(data, width, height, 32, 4 * width,
-												0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
-
+	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(data, width, height, 32, 4 * width, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
 	menu_textures[idx].texture = SDL_CreateTextureFromSurface(renderer, surface);
 	SDL_FreeSurface(surface);
 }
@@ -287,7 +285,7 @@ int init_loading_screen(const char* message)
 	return (tid != NULL);
 }
 
-void stop_loading_screen()
+void stop_loading_screen(void)
 {
     if (please_wait != 1)
         return;
@@ -397,14 +395,14 @@ void drawSplashLogo(int mode)
 	}
 }
 
-void drawEndLogo()
+void drawEndLogo(void)
 {
 	SDL_Rect rect = {
 		.x = 0,
 		.w = SCREEN_WIDTH,
 	};
 
-	for (rect.h = 0; rect.h <= SCREEN_HEIGHT/2; rect.h += 3)
+	for (rect.h = 0; rect.h <= SCREEN_HEIGHT/2; rect.h += 5)
 	{
 		// clear the current display buffer
 		SDL_RenderClear(renderer);
@@ -444,7 +442,7 @@ static void _draw_MainMenu(uint8_t alpha)
 	drawJars(alpha);
 }
 
-void Draw_MainMenu_Ani()
+void Draw_MainMenu_Ani(void)
 {
 	int max = MENU_ANI_MAX, ani = 0;
 	for (ani = 0; ani < max; ani++)
@@ -491,12 +489,12 @@ void Draw_MainMenu_Ani()
 	}
 }
 
-void Draw_MainMenu()
+void Draw_MainMenu(void)
 {
 	_draw_MainMenu(0xFF);
 }
 
-void drawDialogBackground()
+void drawDialogBackground(void)
 {
 	SDL_RenderClear(renderer);
 	DrawBackground2D(0xFFFFFFFF);

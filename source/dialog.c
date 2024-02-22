@@ -66,10 +66,10 @@ static int running = 0;
 
 static int update_screen_thread(void* user_data)
 {
-    while (running == 1)
+    while (running == SCE_COMMON_DIALOG_STATUS_RUNNING)
         drawDialogBackground();
 
-    running = -1;
+    running = SCE_COMMON_DIALOG_ERROR_NOT_RUNNING;
     return (0);
 }
 
@@ -82,6 +82,9 @@ void init_progress_bar(const char* msg)
     progress_bar_param.barType = SCE_MSG_DIALOG_PROGRESSBAR_TYPE_PERCENTAGE;
     progress_bar_param.msg = (SceChar8 *) msg;
 
+    if (running > 0)
+        return;
+
     sceMsgDialogParamInit(&param);
     param.progBarParam = &progress_bar_param;
     param.mode = SCE_MSG_DIALOG_MODE_PROGRESS_BAR;
@@ -89,7 +92,7 @@ void init_progress_bar(const char* msg)
     if (sceMsgDialogInit(&param) < 0)
         return;
 
-    running = 1;
+    running = SCE_COMMON_DIALOG_STATUS_RUNNING;
     SDL_Thread* tid = SDL_CreateThread(&update_screen_thread, "progress_bar", NULL);
     SDL_DetachThread(tid);
 }
@@ -97,6 +100,9 @@ void init_progress_bar(const char* msg)
 void end_progress_bar(void)
 {
     SceCommonDialogStatus stat;
+
+    if (running != SCE_COMMON_DIALOG_STATUS_RUNNING)
+        return;
 
     do
     {
@@ -110,11 +116,17 @@ void end_progress_bar(void)
     
     sceMsgDialogTerm();
     running = 0;
+
+    while (running != SCE_COMMON_DIALOG_ERROR_NOT_RUNNING)
+        usleep(100);
 }
 
 void update_progress_bar(uint64_t progress, const uint64_t total_size, const char* msg)
 {
-    float bar_value = (100.0f * ((double) progress)) / ((double) total_size);
+    if (running != SCE_COMMON_DIALOG_STATUS_RUNNING)
+        return;
+
+    float bar_value = (100.0f * ((double) progress)) / ((double) (total_size ? total_size : ~0));
 
     if (sceMsgDialogGetStatus() == SCE_COMMON_DIALOG_STATUS_RUNNING)
     {
@@ -129,11 +141,8 @@ static void strWChar16ncpy(SceWChar16* out, const char* str2, int len)
 
     while (*str2 && len--)
     {
-        *str1 = *str2;
-        str1++;
-        *str1 = '\0';
-        str1++;
-        str2++;
+        *str1++ = *str2++;
+        *str1++ = '\0';
     }
 }
 

@@ -266,5 +266,6 @@ void drawDialogBackground(void);
 int load_app_settings(app_config_t* config);
 int save_app_settings(app_config_t* config);
 int install_sgkey_plugin(int mode);
+int install_fuseid_dumper(void);
 
 #endif

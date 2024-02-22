@@ -52,6 +52,7 @@ enum save_sort_enum
     SORT_DISABLED,
     SORT_BY_NAME,
     SORT_BY_TITLE_ID,
+    SORT_BY_TYPE,
 };
 
 enum cmd_code_enum
@@ -97,6 +98,7 @@ enum cmd_code_enum
     CMD_EXP_PSPKEY,
     CMD_DUMP_PSPKEY,
     CMD_SETUP_PLUGIN,
+    CMD_SETUP_FUSEDUMP,
     CMD_CONV_ISO2CSO,
     CMD_CONV_CSO2ISO,
     CMD_EXP_VMCSAVE,
@@ -112,7 +114,6 @@ enum cmd_code_enum
     CMD_NET_WEBSERVER,
 
 // SFO patches
-    SFO_UNLOCK_COPY,
     SFO_CHANGE_ACCOUNT_ID,
     SFO_REMOVE_PSID,
     SFO_CHANGE_TITLE_ID,
@@ -134,9 +135,9 @@ enum cmd_code_enum
 enum save_type_enum
 {
     FILE_TYPE_NULL,
+    FILE_TYPE_MENU,
     FILE_TYPE_PSV,
     FILE_TYPE_TRP,
-    FILE_TYPE_MENU,
     FILE_TYPE_PSP,
     FILE_TYPE_PS1,
 
@@ -227,6 +228,7 @@ list_t * ReadVmcList(const char* userPath);
 void UnloadGameList(list_t * list);
 char * readTextFile(const char * path, long* size);
 int sortSaveList_Compare(const void* A, const void* B);
+int sortSaveList_Compare_Type(const void* A, const void* B);
 int sortSaveList_Compare_TitleID(const void* A, const void* B);
 int sortCodeList_Compare(const void* A, const void* B);
 int ReadCodes(save_entry_t * save);

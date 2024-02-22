@@ -6,7 +6,7 @@
 
 **Apollo Save Tool** is an application to manage save-game files on the PlayStation Vita.
 
-This homebrew app allows to download, unlock, patch and resign save-game files directly on your Vita.
+This homebrew app allows you to download, unlock, patch and resign save-game files directly on your Vita.
 
 ![image](./docs/screenshots/screenshot-main.jpg)
 
@@ -17,15 +17,21 @@ This homebrew app allows to download, unlock, patch and resign save-game files d
 * **Easy to use:** no advanced setup needed.
 * **Standalone:** no computer required, everything happens on the PS Vita.
 * **Automatic settings:** auto-detection of User ID, and Account-ID settings.
-* **Multi-user:** supports multiple user accounts.
+* **Multi-format:** supports PS Vita saves, PSP saves (Adrenaline), and PS1 saves.
 
-## Save Management
+## Vita & PSP Save Management
 
 * **Save files listing:** quick access to all the save files on USB and the internal PS Vita memory (+ file details)
 * **Save param.sfo updating:** allows the user to update the `param.sfo` User ID and Account ID information.
 * **Save files patching:** complete support for Save Wizard and [Bruteforce Save Data](https://bruteforcesavedata.forumms.net/) cheat patches to enhance your save-games.
 * **Save import/export:** allows the user to decrypt and export save files, and import decrypted saves from other consoles.
 * **Save downloading:** easy access to an Online Database of save-game files to download straight to your Vita.
+
+## PS1 Virtual Memory Card Management
+
+* **VMC saves listing:** quick access to all save files on Virtual Memory Cards images.
+  - Supported VMC formats: `.VMP`, `.MCR`, `.VM1`, `.BIN`, `.VMC`, `.GME`, `.VGS`, `.SRM`, `.MCD`
+* **VMC saves import/export:** allows the user export saves on VMC images to `.MCS`/`.PSV`/`.PSX` formats, and import saves to VMCs from other tools and consoles (`.MCS`, `.PSV`, `.PSX`, `.PS1`, `.MCB`, `.PDA` supported).
 
 # Download
 
@@ -60,7 +66,28 @@ On first run, the application will detect and setup the required user settings.
 | **External Storage saves** | your saves must be stored on `<uma0/imc0/xmc0/ux0>:data/savegames/`. |
 | **User Storage saves** | save-games will be scanned from `ux0:pspemu/PSP/SAVEDATA/`. |
 
-**Note:** To decrypt PSP save files, game-specific save keys are required. You can dump the required keys using PSP plugins, such as:
+### PS1
+
+| PS1 | Folder |
+|-----|--------|
+| **External saves** | your saves must be stored on `<uma0/imc0/xmc0/ux0>:data/PS1/SAVEDATA/`. |
+| **Virtual Memory Cards** | VMC images will be scanned from `<uma0/imc0/xmc0/ux0>:data/PS1/VMC/`. |
+
+## PSP Saves Requirements
+
+If you want to properly hash and resign PSP saves, you need to dump the `FuseID` from Adrenaline.
+You can install the [FuseID dumper tool](https://github.com/bucanero/psp-fuseid-dumper/) using Apollo:
+1. `Tools` :arrow_right: `PSP Key Dumper tools` :arrow_right: `Install PSP FuseID Dumper` option
+2. Open Adrenaline and execute the _**FuseID dumper**_ application.
+3. Once the `FuseID.bin` has been dumped, Apollo will detect and import the file to use it when needed.
+
+### Save-game Key dumper
+
+To decrypt PSP save files, game-specific save keys are required.
+You can use Apollo to install and enable the PSP [save-game key dumper plugin](https://github.com/bucanero/psptools/releases/download/20220719/pspsgkey13.zip) on Adrenaline:
+- `Tools` :arrow_right: `PSP Key Dumper tools` :arrow_right: `Install Save-game Key Dumper` option
+
+**Note:** You can also dump the required keys using PSP plugins, such as:
 - [SGKeyDumper](https://github.com/bucanero/psptools/releases/download/20220719/pspsgkey13.zip)
 - [SGDeemer](https://github.com/bucanero/psptools/releases/download/20220719/SGDeemer111.rar)
 
@@ -111,6 +138,8 @@ The Online Database project aims to [add more save-games](https://github.com/buc
 * [Dnawrkshp](https://github.com/Dnawrkshp/): [Artemis PS3](https://github.com/Dnawrkshp/ArtemisPS3)
 * [Berion](https://www.psx-place.com/members/berion.1431/): GUI design
 * [flatz](https://github.com/flatz): [SFO tools](https://github.com/bucanero/pfd_sfo_tools/)
+* Draan/[Proxima](https://github.com/ProximaV): [KIRK engine](https://github.com/ProximaV/kirk-engine-full)
+* [ShendoXT](https://github.com/ShendoXT): [MemcardRex](https://github.com/ShendoXT/memcardrex)
 * [aldostools](https://aldostools.org/): [Bruteforce Save Data](https://bruteforcesavedata.forumms.net/)
 * [Nobody/Wild Light](https://github.com/nobodo): [Background music track](https://github.com/bucanero/apollo-vita/blob/main/data/haiku.s3m)
 
@@ -137,7 +166,7 @@ You can also set the `PSVITAIP` environment variable to your Vita's IP address, 
 
 # License
 
-[Apollo Save Tool](https://github.com/bucanero/apollo-vita/) (PS Vita) - Copyright (C) 2020-2023  [Damian Parrino](https://twitter.com/dparrino)
+[Apollo Save Tool](https://github.com/bucanero/apollo-vita/) (PS Vita) - Copyright (C) 2020-2024 [Damian Parrino](https://twitter.com/dparrino)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the [GNU General Public License][app_license] as published by

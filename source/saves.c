@@ -844,11 +844,11 @@ int ReadOnlineSaves(save_entry_t * game)
 		stat(path, &stats);
 		// re-download if file is +1 day old
 		if ((stats.st_mtime + ONLINE_CACHE_TIMEOUT) < time(NULL))
-			http_download(game->path, "saves.txt", path, 0);
+			http_download(game->path, "saves.txt", path, 1);
 	}
 	else
 	{
-		if (!http_download(game->path, "saves.txt", path, 0))
+		if (!http_download(game->path, "saves.txt", path, 1))
 			return -1;
 	}
 
@@ -930,7 +930,7 @@ list_t * ReadBackupList(const char* userPath)
 	item->type = FILE_TYPE_NET;
 	list_append(list, item);
 
-	item = _createSaveEntry(SAVE_FLAG_PSP, CHAR_ICON_COPY " Manage PSP Save-game Key Dumper plugin");
+	item = _createSaveEntry(SAVE_FLAG_PSP, CHAR_ICON_COPY " Manage PSP Key Dumper tools");
 	asprintf(&item->path, PSP_EMULATOR_PATH, "ux0");
 	item->title_id = strdup(item->path);
 	item->type = FILE_TYPE_PRX;
@@ -1020,6 +1020,8 @@ int ReadBackupCodes(save_entry_t * bup)
 		list_append(bup->codes, cmd);
 		cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_LOCK " Disable Save-game Key Dumper plugin", CMD_SETUP_PLUGIN);
 		cmd->codes[1] = 0;
+		list_append(bup->codes, cmd);
+		cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_USER " Install PSP FuseID Dumper application", CMD_SETUP_FUSEDUMP);
 		list_append(bup->codes, cmd);
 
 		return list_count(bup->codes);
@@ -1213,6 +1215,19 @@ int sortSaveList_Compare_TitleID(const void* a, const void* b)
 		return (1);
 
 	return strcasecmp(ta, tb);
+}
+
+int sortSaveList_Compare_Type(const void* a, const void* b)
+{
+	int ta = ((save_entry_t*) a)->type;
+	int tb = ((save_entry_t*) b)->type;
+
+	if (ta == tb)
+		return 0;
+	else if (ta < tb)
+		return -1;
+	else
+		return 1;
 }
 
 static void read_usb_encrypted_saves(const char* userPath, list_t *list, uint64_t account)
@@ -1477,19 +1492,19 @@ list_t * ReadUsbList(const char* userPath)
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_SIGN " Resign selected Saves", CMD_RESIGN_SAVES);
 	list_append(item->codes, cmd);
 
-	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_SIGN " Resign all decrypted Saves", CMD_RESIGN_ALL_SAVES);
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_SIGN " Resign all Saves", CMD_RESIGN_ALL_SAVES);
 	list_append(item->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy selected Saves to User Storage (ux0:user/)", CMD_COPY_SAVES_HDD);
 	list_append(item->codes, cmd);
 
-	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy all decrypted Saves to User Storage (ux0:user/)", CMD_COPY_ALL_SAVES_HDD);
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy all Saves to User Storage (ux0:user/)", CMD_COPY_ALL_SAVES_HDD);
 	list_append(item->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_NET " Start local Web Server", CMD_SAVE_WEBSERVER);
 	list_append(item->codes, cmd);
 
-	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_LOCK " Dump all decrypted Save Fingerprints", CMD_DUMP_FINGERPRINTS);
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_LOCK " Dump all Save Fingerprints", CMD_DUMP_FINGERPRINTS);
 	list_append(item->codes, cmd);
 	list_append(list, item);
 

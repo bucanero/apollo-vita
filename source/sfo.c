@@ -371,6 +371,7 @@ int patch_sfo(const char *in_file_path, sfo_patch_t* patches) {
 
 	sfo = sfo_alloc();
 	if (sfo_read(sfo, in_file_path) < 0) {
+		sfo_free(sfo);
 		LOG("Unable to read from '%s'", in_file_path);
 		return -1;
 	}

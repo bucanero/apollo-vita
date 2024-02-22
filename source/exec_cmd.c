@@ -42,7 +42,7 @@ static void downloadSave(const save_entry_t* entry, const char* file, int dst)
 {
 	char path[256];
 
-	_set_dest_path(path, dst, PSV_SAVES_PATH_USB);
+	_set_dest_path(path, dst, (entry->flags & SAVE_FLAG_PS1) ? PS1_SAVES_PATH_USB : PSV_SAVES_PATH_USB);
 	if (mkdirs(path) != SUCCESS)
 	{
 		show_message("Error! Export folder is not available:\n%s", path);
@@ -1186,7 +1186,7 @@ static void resignSave(save_entry_t* entry)
 static void resignAllSaves(const save_entry_t* save, int all)
 {
 	char sfoPath[256];
-	int err_count = 0;
+	int err_count = 0, done = 0;
 	list_node_t *node;
 	save_entry_t *item;
 	uint64_t progress = 0;
@@ -1203,7 +1203,16 @@ static void resignAllSaves(const save_entry_t* save, int all)
 	for (node = list_head(list); (item = list_get(node)); node = list_next(node))
 	{
 		update_progress_bar(progress++, list_count(list), item->name);
-		if (item->type != FILE_TYPE_PSV || (item->flags & SAVE_FLAG_LOCKED) || !(all || item->flags & SAVE_FLAG_SELECTED))
+		if ((item->flags & SAVE_FLAG_LOCKED) || !(all || item->flags & SAVE_FLAG_SELECTED))
+			continue;
+
+		if (item->type == FILE_TYPE_PSP)
+		{
+			psp_ResignSavedata(item->path) ? done++ : err_count++;
+			continue;
+		}
+
+		if (item->type != FILE_TYPE_PSV)
 			continue;
 
 		snprintf(sfoPath, sizeof(sfoPath), "%s" "sce_sys/param.sfo", item->path);
@@ -1211,15 +1220,12 @@ static void resignAllSaves(const save_entry_t* save, int all)
 			continue;
 
 		LOG("Patching SFO '%s'...", sfoPath);
-		err_count += (patch_sfo(sfoPath, &patch) != SUCCESS);
+		(patch_sfo(sfoPath, &patch) == SUCCESS) ? done++ : err_count++;
 	}
 
 	end_progress_bar();
 
-	if (err_count)
-		show_message("Error: %d Saves couldn't be resigned", err_count);
-	else
-		show_message("All saves successfully resigned!");
+	show_message("%d/%d Saves successfully resigned", done, done+err_count);
 }
 
 static void import_mcr2vmp(const save_entry_t* save, const char* src)
@@ -1249,18 +1255,6 @@ static void export_vmp2mcr(const save_entry_t* save)
 		show_message("Memory card successfully exported to:\n%s", mcrPath);
 	else
 		show_message("Error exporting memory card:\n%s", save->path);
-}
-
-static void resignVMP(const save_entry_t* save, const char* src_vmp)
-{
-	char vmpPath[256];
-
-	snprintf(vmpPath, sizeof(vmpPath), "%s%s", save->path, src_vmp);
-
-	if (vmp_resign(vmpPath))
-		show_message("Memory card successfully resigned:\n%s", vmpPath);
-	else
-		show_message("Error resigning memory card:\n%s", vmpPath);
 }
 
 static int _copy_save_file(const char* src_path, const char* dst_path, const char* filename)
@@ -1406,6 +1400,11 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			code->activated = 0;
 			break;
 
+		case CMD_SETUP_FUSEDUMP:
+			show_message(install_fuseid_dumper() ? "PSP FuseID app successfully installed" : "Error! PSP app couldn't be installed");
+			code->activated = 0;
+			break;
+
 		case CMD_IMP_MCR2VMP:
 			import_mcr2vmp(selected_entry, code->options[0].name[code->options[0].sel]);
 			code->activated = 0;
@@ -1417,7 +1416,10 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			break;
 
 		case CMD_RESIGN_VMP:
-			resignVMP(selected_entry, code->options[0].name[code->options[0].sel]);
+			if (vmp_resign(selected_entry->path))
+				show_message("Memory card successfully resigned:\n%s", selected_entry->path);
+			else
+				show_message("Error resigning memory card:\n%s", selected_entry->path);
 			code->activated = 0;
 			break;
 
