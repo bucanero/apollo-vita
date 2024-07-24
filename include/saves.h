@@ -80,6 +80,7 @@ enum cmd_code_enum
     CMD_EXP_FINGERPRINT,
     CMD_HEX_EDIT_FILE,
     CMD_IMPORT_DATA_FILE,
+    CMD_DELETE_VMCSAVE,
 
 // Bulk commands
     CMD_RESIGN_SAVES,
@@ -131,6 +132,7 @@ enum cmd_code_enum
 #define SAVE_FLAG_ONLINE        256
 #define SAVE_FLAG_PS1           512
 #define SAVE_FLAG_HDD           1024
+#define SAVE_FLAG_UPDATED       2048
 
 enum save_type_enum
 {

@@ -540,7 +540,7 @@ static void exportAllSavesVMC(const save_entry_t* save, int dev, int all)
 		if (!all && !(item->flags & SAVE_FLAG_SELECTED))
 			continue;
 
-		if (item->type & FILE_TYPE_PS1)
+		if (item->type == FILE_TYPE_PS1)
 			(saveSingleSave(outPath, item->blocks, PS1SAVE_PSV) ? done++ : err_count++);
 	}
 
@@ -570,6 +570,17 @@ static void exportVmcSave(const save_entry_t* save, int type, int dst_id)
 		show_message("Save successfully exported to:\n%s", outPath);
 	else
 		show_message("Error exporting save:\n%s", save->path);
+}
+
+static void deleteVmcSave(const save_entry_t* save)
+{
+	if (!show_dialog(DIALOG_TYPE_YESNO, "Do you want to delete %s?", save->dir_name))
+		return;
+
+	if ((save->flags & SAVE_FLAG_PS1) && formatSave(save->blocks))
+		show_message("Save successfully deleted:\n%s", save->dir_name);
+	else
+		show_message("Error! Couldn't delete save:\n%s", save->dir_name);
 }
 
 static void copyKeystone(const save_entry_t* entry, int import)
@@ -1237,7 +1248,7 @@ static void import_mcr2vmp(const save_entry_t* save, const char* src)
 	snprintf(mcrPath, sizeof(mcrPath), PS1_SAVES_PATH_HDD "%s/%s", save->title_id, src);
 	read_buffer(mcrPath, &data, &size);
 
-	if (openMemoryCardStream(data, size, 0) && saveMemoryCard(save->path, 0, 0))
+	if (openMemoryCardStream(data, size, 0))
 		show_message("Memory card successfully imported to:\n%s", save->path);
 	else
 		show_message("Error importing memory card:\n%s", mcrPath);
@@ -1407,6 +1418,7 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 
 		case CMD_IMP_MCR2VMP:
 			import_mcr2vmp(selected_entry, code->options[0].name[code->options[0].sel]);
+			selected_entry->flags |= SAVE_FLAG_UPDATED;
 			code->activated = 0;
 			break;
 
@@ -1463,12 +1475,17 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 
 		case CMD_IMP_VMCSAVE:
 			if (openSingleSave(code->file, (int*) host_buf))
-			{
-				saveMemoryCard(selected_entry->dir_name, 0, 0);
 				show_message("Save successfully imported:\n%s", code->file);
-			}
 			else
 				show_message("Error! Couldn't import save:\n%s", code->file);
+
+			selected_entry->flags |= SAVE_FLAG_UPDATED;
+			code->activated = 0;
+			break;
+
+		case CMD_DELETE_VMCSAVE:
+			deleteVmcSave(selected_entry);
+			selected_entry->flags |= SAVE_FLAG_UPDATED;
 			code->activated = 0;
 			break;
 
