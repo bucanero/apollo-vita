@@ -95,13 +95,13 @@ static code_entry_t* LoadRawPatch(void)
 	return centry;
 }
 
-static code_entry_t* LoadSaveDetails(void)
+static code_entry_t* LoadSaveDetails(const save_entry_t* save)
 {
 	code_entry_t* centry = calloc(1, sizeof(code_entry_t));
-	centry->name = strdup(selected_entry->title_id);
+	centry->name = strdup(save->title_id);
 
-	if (!get_save_details(selected_entry, &centry->codes))
-		asprintf(&centry->codes, "Error getting details (%s)", selected_entry->name);
+	if (!get_save_details(save, &centry->codes))
+		asprintf(&centry->codes, "Error getting details (%s)", save->name);
 
 	LOG("%s", centry->codes);
 	return (centry);
@@ -117,7 +117,6 @@ static void SetMenu(int id)
 				LOG("Saving VMC changes...");
 				UnloadGameList(vmc_saves.list);
 				vmc_saves.list = NULL;
-				saveMemoryCard(vmc_saves.path, 0, 0);
 			}
 
 		case MENU_MAIN_SCREEN: //Main Menu
@@ -131,7 +130,15 @@ static void SetMenu(int id)
 
 		case MENU_SETTINGS: //Options Menu
 		case MENU_CREDITS: //About Menu
+			break;
+
 		case MENU_PATCHES: //Cheat Selection Menu
+			if (selected_entry->flags & SAVE_FLAG_UPDATED && id == MENU_VMC_SAVES)
+			{
+				selected_entry->flags ^= SAVE_FLAG_UPDATED;
+				saveMemoryCard(vmc_saves.path, 0, 0);
+				ReloadUserSaves(&vmc_saves);
+			}
 			break;
 
 		case MENU_SAVE_DETAILS:
@@ -396,7 +403,7 @@ static void doSaveMenu(save_list_t * save_list)
 		selected_entry = list_get_item(save_list->list, menu_sel);
 		if (selected_entry->type != FILE_TYPE_MENU)
 		{
-			selected_centry = LoadSaveDetails();
+			selected_centry = LoadSaveDetails(selected_entry);
 			SetMenu(MENU_SAVE_DETAILS);
 			return;
 		}
@@ -735,8 +742,7 @@ static void doPatchMenu(void)
 				list_node_t* node;
 
 				for (node = list_head(selected_entry->codes); (code = list_get(node)); node = list_next(node))
-					if (wildcard_match_icase(code->name, "*(REQUIRED)*"))
-					// && !strchr(code->file, '*')
+					if (wildcard_match_icase(code->name, "*(REQUIRED)*") && code->options_count == 0)
 						code->activated = 1;
 			}
 			/*
@@ -766,7 +772,7 @@ static void doPatchMenu(void)
 			if (selected_centry->codes[0] == CMD_VIEW_DETAILS)
 			{
 				selected_centry->activated = 0;
-				selected_centry = LoadSaveDetails();
+				selected_centry = LoadSaveDetails(selected_entry);
 				SetMenu(MENU_SAVE_DETAILS);
 				return;
 			}
