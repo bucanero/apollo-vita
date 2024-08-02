@@ -80,7 +80,7 @@ enum cmd_code_enum
     CMD_EXP_FINGERPRINT,
     CMD_HEX_EDIT_FILE,
     CMD_IMPORT_DATA_FILE,
-    CMD_DELETE_VMCSAVE,
+    CMD_DELETE_SAVE,
 
 // Bulk commands
     CMD_RESIGN_SAVES,

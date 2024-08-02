@@ -465,6 +465,9 @@ static void add_psp_commands(save_entry_t* item)
 {
 	code_entry_t* cmd;
 
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_WARN " Delete Save Game", CMD_DELETE_SAVE);
+	list_append(item->codes, cmd);
+
 	cmd = _createCmdCode(PATCH_NULL, "----- " UTF8_CHAR_STAR " Game Key Backup " UTF8_CHAR_STAR " -----", CMD_CODE_NULL);
 	list_append(item->codes, cmd);
 
@@ -796,7 +799,7 @@ int ReadVmcCodes(save_entry_t * save)
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_USER " View Save Details", CMD_VIEW_DETAILS);
 	list_append(save->codes, cmd);
 
-	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_WARN " Delete Save Game", CMD_DELETE_VMCSAVE);
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_WARN " Delete Save Game", CMD_DELETE_SAVE);
 	list_append(save->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_NULL, "----- " UTF8_CHAR_STAR " Save Backup " UTF8_CHAR_STAR " -----", CMD_CODE_NULL);
@@ -1217,16 +1220,32 @@ int sortSaveList_Compare_TitleID(const void* a, const void* b)
 	if (!tb)
 		return (1);
 
-	return strcasecmp(ta, tb);
+	int ret = strcasecmp(ta, tb);
+
+	return (ret ? ret : sortSaveList_Compare(a, b));
+}
+
+static int parseTypeFlags(int flags)
+{
+	if (flags & SAVE_FLAG_VMC)
+		return FILE_TYPE_VMC;
+	else if (flags & SAVE_FLAG_PS1)
+		return FILE_TYPE_PS1;
+	else if (flags & SAVE_FLAG_PSP)
+		return FILE_TYPE_PSP;
+	else if (flags & SAVE_FLAG_PSV)
+		return FILE_TYPE_PSV;
+
+	return 0;
 }
 
 int sortSaveList_Compare_Type(const void* a, const void* b)
 {
-	int ta = ((save_entry_t*) a)->type;
-	int tb = ((save_entry_t*) b)->type;
+	int ta = parseTypeFlags(((save_entry_t*) a)->flags);
+	int tb = parseTypeFlags(((save_entry_t*) b)->flags);
 
 	if (ta == tb)
-		return 0;
+		return sortSaveList_Compare(a, b);
 	else if (ta < tb)
 		return -1;
 	else
@@ -1840,6 +1859,17 @@ int get_save_details(const save_entry_t* save, char **details)
 			save->name,
 			save->title_id,
 			save->dir_name);
+		return 1;
+	}
+
+	if (save->flags & SAVE_FLAG_ONLINE)
+	{
+		asprintf(details, "%s\n----- Online Database -----\n"
+			"Game: %s\n"
+			"Title ID: %s\n",
+			save->path,
+			save->name,
+			save->title_id);
 		return 1;
 	}
 

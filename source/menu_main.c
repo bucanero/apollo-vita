@@ -133,11 +133,25 @@ static void SetMenu(int id)
 			break;
 
 		case MENU_PATCHES: //Cheat Selection Menu
-			if (selected_entry->flags & SAVE_FLAG_UPDATED && id == MENU_VMC_SAVES)
+			if (selected_entry->flags & SAVE_FLAG_UPDATED)
 			{
+				switch (id)
+				{
+				case MENU_VMC_SAVES:
+					saveMemoryCard(vmc_saves.path, 0, 0);
+					ReloadUserSaves(&vmc_saves);
+					break;
+				
+				case MENU_USB_SAVES:
+					ReloadUserSaves(&usb_saves);
+					break;
+
+				case MENU_HDD_SAVES:
+					ReloadUserSaves(&hdd_saves);
+					break;
+				}
+
 				selected_entry->flags ^= SAVE_FLAG_UPDATED;
-				saveMemoryCard(vmc_saves.path, 0, 0);
-				ReloadUserSaves(&vmc_saves);
 			}
 			break;
 
@@ -758,6 +772,13 @@ static void doPatchMenu(void)
 			{
 				option_index = 0;
 				SetMenu(MENU_CODE_OPTIONS);
+				return;
+			}
+
+			if (selected_centry->codes[0] == CMD_DELETE_SAVE)
+			{
+				selected_centry->activated = 0;
+				SetMenu(last_menu_id[MENU_PATCHES]);
 				return;
 			}
 

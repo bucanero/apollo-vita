@@ -572,15 +572,27 @@ static void exportVmcSave(const save_entry_t* save, int type, int dst_id)
 		show_message("Error exporting save:\n%s", save->path);
 }
 
-static void deleteVmcSave(const save_entry_t* save)
+static int deleteSave(const save_entry_t* save)
 {
-	if (!show_dialog(DIALOG_TYPE_YESNO, "Do you want to delete %s?", save->dir_name))
-		return;
+	int ret = 0;
 
-	if ((save->flags & SAVE_FLAG_PS1) && formatSave(save->blocks))
+	if (!show_dialog(DIALOG_TYPE_YESNO, "Do you want to delete %s?", save->dir_name))
+		return 0;
+
+	if (save->flags & SAVE_FLAG_PSP)
+	{
+		clean_directory(save->path);
+		ret = (remove(save->path) == SUCCESS);
+	}
+	else if (save->flags & SAVE_FLAG_PS1)
+		ret = formatSave(save->blocks);
+
+	if (ret)
 		show_message("Save successfully deleted:\n%s", save->dir_name);
 	else
 		show_message("Error! Couldn't delete save:\n%s", save->dir_name);
+
+	return ret;
 }
 
 static void copyKeystone(const save_entry_t* entry, int import)
@@ -1483,10 +1495,11 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			code->activated = 0;
 			break;
 
-		case CMD_DELETE_VMCSAVE:
-			deleteVmcSave(selected_entry);
-			selected_entry->flags |= SAVE_FLAG_UPDATED;
-			code->activated = 0;
+		case CMD_DELETE_SAVE:
+			if (deleteSave(selected_entry))
+				selected_entry->flags |= SAVE_FLAG_UPDATED;
+			else
+				code->activated = 0;
 			break;
 
 		case CMD_EXP_FINGERPRINT:
