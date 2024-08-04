@@ -2,6 +2,7 @@
 
 [![Downloads][img_downloads]][app_downloads] [![Release][img_latest]][app_latest] [![License][img_license]][app_license]
 [![Build app package](https://github.com/bucanero/apollo-vita/actions/workflows/build.yml/badge.svg)](https://github.com/bucanero/apollo-vita/actions/workflows/build.yml)
+![PSV](https://img.shields.io/badge/-PS%20Vita-003791?style=flat&logo=PlayStation)
 [![Twitter](https://img.shields.io/twitter/follow/dparrino?label=Follow)](https://twitter.com/dparrino)
 
 **Apollo Save Tool** is an application to manage save-game files on the PlayStation Vita.
@@ -31,7 +32,9 @@ This homebrew app allows you to download, unlock, patch and resign save-game fil
 
 * **VMC saves listing:** quick access to all save files on Virtual Memory Cards images.
   - Supported VMC formats: `.VMP`, `.MCR`, `.VM1`, `.BIN`, `.VMC`, `.GME`, `.VGS`, `.SRM`, `.MCD`
-* **VMC saves import/export:** allows the user export saves on VMC images to `.MCS`/`.PSV`/`.PSX` formats, and import saves to VMCs from other tools and consoles (`.MCS`, `.PSV`, `.PSX`, `.PS1`, `.MCB`, `.PDA` supported).
+* **Import saves to VMC:** enables importing saves (`.MCS`, `.PSV`, `.PSX`, `.PS1`, `.MCB`, `.PDA` formats) to VMCs from other tools and consoles.
+* **Export VMC saves:** allows the user to export saves on VMC images to `.MCS`/`.PSV`/`.PSX` formats.
+* **Delete VMC saves:** remove any PS1 save file stored on VMC images.
 
 # Download
 
@@ -47,7 +50,7 @@ My GitHub projects are open to a [sponsor program](https://patreon.com/dparrino)
 
 # Setup instructions
 
-No special setup is needed. Just download the latest `apollo-vita.vpk` package and install it on your PlayStation Vita.
+No special setup is needed. Just download the latest [`apollo-vita.vpk`](https://github.com/bucanero/apollo-vita/releases/latest/download/apollo-vita.vpk) package and install it on your PlayStation Vita.
 On first run, the application will detect and setup the required user settings.
 
 ## Data folders
