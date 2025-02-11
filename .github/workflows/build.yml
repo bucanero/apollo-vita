@@ -8,22 +8,22 @@ jobs:
     steps:
 
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Checkout apollo-lib
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: bucanero/apollo-lib
         path: apollo-lib
 
     - name: Checkout dbglogger
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: bucanero/dbglogger
         path: dbglogger
 
     - name: Checkout vdpm
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: vitasdk/vdpm
         path: vdpm
@@ -83,7 +83,7 @@ jobs:
         make
 
     - name: Push package artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: apollo-vita-build_${{ env.sha_name }}
         path: apollo-vita.vpk
