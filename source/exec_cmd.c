@@ -995,6 +995,7 @@ void importLicenses(const char* fname, const char* exdata_path)
 */
 static int apply_sfo_patches(save_entry_t* entry, sfo_patch_t* patch)
 {
+    option_value_t* optval;
     code_entry_t* code;
     char in_file_path[256];
     char tmp_dir[SFO_DIRECTORY_SIZE];
@@ -1017,11 +1018,12 @@ static int apply_sfo_patches(save_entry_t* entry, sfo_patch_t* patch)
             if (entry->flags & SAVE_FLAG_OWNER)
                 entry->flags ^= SAVE_FLAG_OWNER;
 
-            sscanf(code->options->value[code->options->sel], "%lx", &patch->account_id);
+            optval = list_get_item(code->options[0].opts, code->options[0].sel);
+            memcpy(&patch->account_id, optval->value, SFO_ACCOUNT_ID_SIZE);
             break;
 
         case SFO_REMOVE_PSID:
-            bzero(tmp_psid, SFO_PSID_SIZE);
+            memset(tmp_psid, 0, SFO_PSID_SIZE);
             patch->psid = tmp_psid;
             break;
 
@@ -1030,7 +1032,8 @@ static int apply_sfo_patches(save_entry_t* entry, sfo_patch_t* patch)
             snprintf(in_file_path, sizeof(in_file_path), "%s", entry->path);
             strncpy(tmp_dir, patch->directory, SFO_DIRECTORY_SIZE);
 
-            strncpy(entry->title_id, code->options[0].name[code->options[0].sel], 9);
+            optval = list_get_item(code->options[0].opts, code->options[0].sel);
+            strncpy(entry->title_id, optval->name, 9);
             strncpy(patch->directory, entry->title_id, 9);
             strncpy(tmp_dir, entry->title_id, 9);
             *strrchr(tmp_dir, '/') = 0;
@@ -1130,8 +1133,11 @@ static int apply_cheat_patches(const save_entry_t* entry)
 			filename = code->file;
 
 		if (strchr(filename, '*'))
-			filename = code->options[0].name[code->options[0].sel];
-
+		{
+			option_value_t* optval = list_get_item(code->options[0].opts, code->options[0].sel);
+			filename = optval->name;
+		}
+		
 		if (strstr(code->file, "~extracted\\"))
 			snprintf(tmpfile, sizeof(tmpfile), "%s[%s]%s", APOLLO_LOCAL_CACHE, entry->title_id, filename);
 		else
@@ -1369,6 +1375,8 @@ static void downloadLink(const char* path)
 
 void execCodeCommand(code_entry_t* code, const char* codecmd)
 {
+	option_value_t* optval;
+
 	if (selected_entry->flags & SAVE_FLAG_PSV && selected_entry->flags & SAVE_FLAG_HDD && !vita_SaveMount(selected_entry))
 	{
 		LOG("Error Mounting Save! Check Save Mount Patches");
@@ -1378,7 +1386,8 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 	switch (codecmd[0])
 	{
 		case CMD_DECRYPT_FILE:
-			decryptSaveFile(selected_entry, code->options[0].name[code->options[0].sel]);
+			optval = list_get_item(code->options[0].opts, code->options[0].sel);
+			decryptSaveFile(selected_entry, optval->name);
 			code->activated = 0;
 			break;
 
@@ -1429,7 +1438,8 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			break;
 
 		case CMD_IMP_MCR2VMP:
-			import_mcr2vmp(selected_entry, code->options[0].name[code->options[0].sel]);
+			optval = list_get_item(code->options[0].opts, code->options[0].sel);
+			import_mcr2vmp(selected_entry, optval->name);
 			selected_entry->flags |= SAVE_FLAG_UPDATED;
 			code->activated = 0;
 			break;
@@ -1535,7 +1545,8 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 			break;
 
 		case CMD_IMPORT_DATA_FILE:
-			encryptSaveFile(selected_entry, code->options[0].name[code->options[0].sel]);
+			optval = list_get_item(code->options[0].opts, code->options[0].sel);
+			encryptSaveFile(selected_entry, optval->name);
 			code->activated = 0;
 			break;
 
