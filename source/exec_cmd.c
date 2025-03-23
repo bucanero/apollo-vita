@@ -1019,7 +1019,7 @@ static int apply_sfo_patches(save_entry_t* entry, sfo_patch_t* patch)
                 entry->flags ^= SAVE_FLAG_OWNER;
 
             optval = list_get_item(code->options[0].opts, code->options[0].sel);
-            memcpy(&patch->account_id, optval->value, SFO_ACCOUNT_ID_SIZE);
+            sscanf(optval->value, "%" PRIx64, &patch->account_id);
             break;
 
         case SFO_REMOVE_PSID:

@@ -697,7 +697,7 @@ static void doCodeOptionsMenu(void)
 				return;
 			}
 
-			execCodeCommand(code,  optval->value);
+			execCodeCommand(code, optval->value);
 		}
 
 		option_index++;
