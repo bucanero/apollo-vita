@@ -81,6 +81,7 @@ enum cmd_code_enum
     CMD_HEX_EDIT_FILE,
     CMD_IMPORT_DATA_FILE,
     CMD_DELETE_SAVE,
+    CMD_UPLOAD_SAVE,
 
 // Bulk commands
     CMD_RESIGN_SAVES,
