@@ -236,30 +236,31 @@ static option_entry_t* _initOptions(int count)
 	return options;
 }
 
-static option_entry_t* _createOptions(int count, const char* name, char value)
+static void _createOptions(code_entry_t* code, const char* name, char value)
 {
 	option_value_t* optval;
-	option_entry_t* options = _initOptions(count);
+	code->options_count = 1;
+	code->options = _initOptions(1);
 
 	optval = malloc(sizeof(option_value_t));
 	asprintf(&optval->name, "%s (%s)", name, UMA0_PATH);
 	asprintf(&optval->value, "%c%c", value, STORAGE_UMA0);
-	list_append(options[0].opts, optval);
+	list_append(code->options[0].opts, optval);
 
 	optval = malloc(sizeof(option_value_t));
 	asprintf(&optval->name, "%s (%s)", name, UX0_PATH);
 	asprintf(&optval->value, "%c%c", value, STORAGE_UX0);
-	list_append(options[0].opts, optval);
+	list_append(code->options[0].opts, optval);
 
 	if (dir_exists(IMC0_PATH) == SUCCESS)
 	{
 		optval = malloc(sizeof(option_value_t));
 		asprintf(&optval->name, "%s (%s)", name, IMC0_PATH);
 		asprintf(&optval->value, "%c%c", value, STORAGE_IMC0);
-		list_append(options[0].opts, optval);
+		list_append(code->options[0].opts, optval);
 	}
 
-	return options;
+	return;
 }
 
 static save_entry_t* _createSaveEntry(uint16_t flag, const char* name)
@@ -363,8 +364,7 @@ static void _addBackupCommands(save_entry_t* item)
 	list_append(item->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy save game", CMD_CODE_NULL);
-	cmd->options_count = 1;
-	cmd->options = _createOptions(1, "Copy Save to Backup Storage", CMD_COPY_SAVE_USB);
+	_createOptions(cmd, "Copy Save to Backup Storage", CMD_COPY_SAVE_USB);
 	if (!(item->flags & SAVE_FLAG_HDD))
 	{
 		optval = malloc(sizeof(option_value_t));
@@ -375,8 +375,7 @@ static void _addBackupCommands(save_entry_t* item)
 	list_append(item->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_ZIP " Export save game to Zip", CMD_CODE_NULL);
-	cmd->options_count = 1;
-	cmd->options = _createOptions(1, "Export Zip to Backup Storage", CMD_EXPORT_ZIP_USB);
+	_createOptions(cmd, "Export Zip to Backup Storage", CMD_EXPORT_ZIP_USB);
 	optval = malloc(sizeof(option_value_t));
 	asprintf(&optval->name, "Export Zip to User Storage (ux0:data/)");
 	asprintf(&optval->value, "%c%c", CMD_EXPORT_ZIP_USB, STORAGE_UX0);
@@ -652,14 +651,12 @@ int ReadTrophies(save_entry_t * game)
 */
 	trophy = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Backup Trophy Set to Backup Storage", CMD_CODE_NULL);
 	trophy->file = strdup(game->path);
-	trophy->options_count = 1;
-	trophy->options = _createOptions(1, "Copy Trophy to Backup Storage", CMD_EXP_TROPHY_USB);
+	_createOptions(trophy, "Copy Trophy to Backup Storage", CMD_EXP_TROPHY_USB);
 	list_append(game->codes, trophy);
 
 	trophy = _createCmdCode(PATCH_COMMAND, CHAR_ICON_ZIP " Export Trophy Set to Zip", CMD_CODE_NULL);
 	trophy->file = strdup(game->path);
-	trophy->options_count = 1;
-	trophy->options = _createOptions(1, "Save .Zip to Backup Storage", CMD_ZIP_TROPHY_USB);
+	_createOptions(trophy, "Save .Zip to Backup Storage", CMD_ZIP_TROPHY_USB);
 	list_append(game->codes, trophy);
 
 	trophy = _createCmdCode(PATCH_NULL, "----- " UTF8_CHAR_STAR " Trophies " UTF8_CHAR_STAR " -----", CMD_CODE_NULL);
@@ -822,20 +819,17 @@ int ReadVmcCodes(save_entry_t * save)
 	list_append(save->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Export save game to MCS format", CMD_CODE_NULL);
-	cmd->options_count = 1;
-	cmd->options = _createOptions(1, "Copy Save to Mass Storage", CMD_EXP_VMCSAVE);
+	_createOptions(cmd, "Copy Save to Mass Storage", CMD_EXP_VMCSAVE);
 	cmd->options[0].id = PS1SAVE_MCS;
 	list_append(save->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Export save game to PSV format", CMD_CODE_NULL);
-	cmd->options_count = 1;
-	cmd->options = _createOptions(1, "Copy Save to Mass Storage", CMD_EXP_VMCSAVE);
+	_createOptions(cmd, "Copy Save to Mass Storage", CMD_EXP_VMCSAVE);
 	cmd->options[0].id = PS1SAVE_PSV;
 	list_append(save->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Export save game to PSX format", CMD_CODE_NULL);
-	cmd->options_count = 1;
-	cmd->options = _createOptions(1, "Copy Save to Mass Storage", CMD_EXP_VMCSAVE);
+	_createOptions(cmd, "Copy Save to Mass Storage", CMD_EXP_VMCSAVE);
 	cmd->options[0].id = PS1SAVE_AR;
 	list_append(save->codes, cmd);
 
@@ -901,8 +895,7 @@ int ReadOnlineSaves(save_entry_t * game)
 			item = _createCmdCode(PATCH_COMMAND, path, CMD_CODE_NULL);
 			asprintf(&item->file, "%.12s", content);
 
-			item->options_count = 1;
-			item->options = _createOptions(1, "Download to Backup Storage", CMD_DOWNLOAD_USB);
+			_createOptions(item, "Download to Backup Storage", CMD_DOWNLOAD_USB);
 			optval = malloc(sizeof(option_value_t));
 			asprintf(&optval->name, "Download to User Storage (ux0:data/)");
 			asprintf(&optval->value, "%c%c", CMD_DOWNLOAD_USB, STORAGE_UX0);
@@ -1587,13 +1580,11 @@ list_t * ReadUserList(const char* userPath)
 	((void**)item->dir_name)[0] = list;
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy selected Saves to Backup Storage", CMD_CODE_NULL);
-	cmd->options_count = 1;
-	cmd->options = _createOptions(1, "Copy Saves to Backup Storage", CMD_COPY_SAVES_USB);
+	_createOptions(cmd, "Copy Saves to Backup Storage", CMD_COPY_SAVES_USB);
 	list_append(item->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Copy all Saves to Backup Storage", CMD_CODE_NULL);
-	cmd->options_count = 1;
-	cmd->options = _createOptions(1, "Copy Saves to Backup Storage", CMD_COPY_ALL_SAVES_USB);
+	_createOptions(cmd, "Copy Saves to Backup Storage", CMD_COPY_ALL_SAVES_USB);
 	list_append(item->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_NET " Start local Web Server", CMD_SAVE_WEBSERVER);
@@ -1740,12 +1731,10 @@ list_t * ReadVmcList(const char* userPath)
 	item->title_id = strdup(strrchr(filePath, '/')+1);
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Export selected Saves to Backup Storage", CMD_CODE_NULL);
-	cmd->options_count = 1;
-	cmd->options = _createOptions(1, "Copy Saves to Backup Storage", CMD_EXP_SAVES_VMC);
+	_createOptions(cmd, "Copy Saves to Backup Storage", CMD_EXP_SAVES_VMC);
 	list_append(item->codes, cmd);
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Export all Saves to Backup Storage", CMD_CODE_NULL);
-	cmd->options_count = 1;
-	cmd->options = _createOptions(1, "Copy Saves to Backup Storage", CMD_EXP_ALL_SAVES_VMC);
+	_createOptions(cmd, "Copy Saves to Backup Storage", CMD_EXP_ALL_SAVES_VMC);
 	list_append(item->codes, cmd);
 	add_vmp_commands(item);
 	list_append(list, item);
@@ -1809,12 +1798,10 @@ list_t * ReadTrophyList(const char* userPath)
 	((void**)item->dir_name)[0] = list;
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Backup selected Trophies to Backup Storage", CMD_CODE_NULL);
-	cmd->options_count = 1;
-	cmd->options = _createOptions(1, "Copy Trophies to Backup Storage", CMD_COPY_TROPHIES_USB);
+	_createOptions(cmd, "Copy Trophies to Backup Storage", CMD_COPY_TROPHIES_USB);
 	list_append(item->codes, cmd);
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Backup all Trophies to Backup Storage", CMD_CODE_NULL);
-	cmd->options_count = 1;
-	cmd->options = _createOptions(1, "Copy Trophies to Backup Storage", CMD_COPY_ALL_TROP_USB);
+	_createOptions(cmd, "Copy Trophies to Backup Storage", CMD_COPY_ALL_TROP_USB);
 	list_append(item->codes, cmd);
 	list_append(list, item);
 

@@ -201,11 +201,11 @@ enum code_type_enum
 typedef struct save_entry
 {
     char * name;
-	char * title_id;
-	char * path;
-	char * dir_name;
+    char * title_id;
+    char * path;
+    char * dir_name;
     uint32_t blocks;
-	uint16_t flags;
+    uint16_t flags;
     uint16_t type;
     list_t * codes;
 } save_entry_t;
@@ -215,7 +215,7 @@ typedef struct
     list_t * list;
     char path[128];
     char* title;
-    uint8_t icon_id;
+    uint8_t id;
     void (*UpdatePath)(char *);
     int (*ReadCodes)(save_entry_t *);
     list_t* (*ReadList)(const char*);
@@ -257,7 +257,7 @@ void end_progress_bar(void);
 #define show_message(...)	show_dialog(DIALOG_TYPE_OK, __VA_ARGS__)
 
 int init_loading_screen(const char* msg);
-void stop_loading_screen();
+void stop_loading_screen(void);
 
 void execCodeCommand(code_entry_t* code, const char* codecmd);
 
