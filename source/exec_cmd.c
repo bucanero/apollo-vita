@@ -581,7 +581,7 @@ static int deleteSave(const save_entry_t* save)
 
 	if (save->flags & SAVE_FLAG_PSP)
 	{
-		clean_directory(save->path);
+		clean_directory(save->path, "");
 		ret = (remove(save->path) == SUCCESS);
 	}
 	else if (save->flags & SAVE_FLAG_PS1)
