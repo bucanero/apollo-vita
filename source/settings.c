@@ -27,6 +27,7 @@ extern const uint8_t _binary_data_sgkeydumper_plugin_bin_size;
 #define SGKEY_DUMP_PLUGIN_TEXT       "ms0:/seplugins/SGKeyDumper.prx"
 
 char *strcasestr(const char *, const char *);
+static char * db_opt[] = {"Online DB", "FTP Server", NULL};
 static char* ext_src[MAX_USB_DEVICES+1] = {"ux0", "uma0", "imc0", "xmc0", "ur0", NULL};
 static char* sort_opt[] = {"Disabled", "by Name", "by Title ID", "by Type", NULL};
 
@@ -37,6 +38,8 @@ static void owner_callback(int sel);
 static void db_url_callback(int sel);
 static void clearcache_callback(int sel);
 static void upd_appdata_callback(int sel);
+static void server_callback(int sel);
+static void ftp_url_callback(int sel);
 
 menu_option_t menu_options[] = {
 	{ .name = "\nBackground Music", 
@@ -62,6 +65,12 @@ menu_option_t menu_options[] = {
 		.type = APP_OPTION_LIST,
 		.value = &apollo_config.storage,
 		.callback = owner_callback
+	},
+	{ .name = "Online Saves Server",
+		.options = db_opt,
+		.type = APP_OPTION_LIST,
+		.value = &apollo_config.online_opt,
+		.callback = server_callback
 	},
 	{ .name = "Version Update Check", 
 		.options = NULL, 
@@ -112,6 +121,12 @@ static void ani_callback(int sel)
 	apollo_config.doAni = !sel;
 }
 
+static void server_callback(int sel)
+{
+	apollo_config.online_opt = sel;
+	clean_directory(APOLLO_LOCAL_CACHE, ".txt");
+}
+
 static void db_url_callback(int sel)
 {
 	if (osk_dialog_get_text("Enter the URL of the online database", apollo_config.save_db, sizeof(apollo_config.save_db)))
@@ -121,10 +136,54 @@ static void db_url_callback(int sel)
 		strcat(apollo_config.save_db, "/");
 }
 
+static void ftp_url_callback(int sel)
+{
+	int ret;
+	char tmp[512];
+
+	strncpy(tmp, apollo_config.ftp_url[0] ? apollo_config.ftp_url : "ftp://user:pass@192.168.0.10:21/folder/", sizeof(tmp));
+	if (!osk_dialog_get_text("Enter the URL of the FTP server", tmp, sizeof(tmp)))
+		return;
+
+	strncpy(apollo_config.ftp_url, tmp, sizeof(apollo_config.ftp_url));
+
+	if (apollo_config.ftp_url[strlen(apollo_config.ftp_url)-1] != '/')
+		strcat(apollo_config.ftp_url, "/");
+
+	// test the connection
+	init_loading_screen("Testing connection...");
+	ret = http_download(apollo_config.ftp_url, "apollo.txt", APOLLO_LOCAL_CACHE "users.ftp", 0);
+	char *data = readTextFile(APOLLO_LOCAL_CACHE "users.ftp", NULL);
+	if (!data)
+		data = strdup("; Apollo Save Tool (PS3) v" APOLLO_VERSION "\r\n");
+
+	snprintf(tmp, sizeof(tmp), "%016lX", apollo_config.account_id);
+	if (strstr(data, tmp) == NULL)
+	{
+		LOG("Updating users index...");
+		FILE* fp = fopen(APOLLO_LOCAL_CACHE "users.ftp", "w");
+		if (fp)
+		{
+			fwrite(data, 1, strlen(data), fp);
+			fprintf(fp, "%s\r\n", tmp);
+			fclose(fp);
+		}
+
+		ret = ftp_upload(APOLLO_LOCAL_CACHE "users.ftp", apollo_config.ftp_url, "apollo.txt", 0);
+	}
+	free(data);
+	stop_loading_screen();
+
+	if (ret)
+		show_message("FTP server URL changed to:\n%s", apollo_config.ftp_url);
+	else
+		show_message("Error! Couldn't connect to FTP server\n%s\n\nCheck debug logs for more information", apollo_config.ftp_url);
+}
+
 static void clearcache_callback(int sel)
 {
 	LOG("Cleaning folder '%s'...", APOLLO_LOCAL_CACHE);
-	clean_directory(APOLLO_LOCAL_CACHE);
+	clean_directory(APOLLO_LOCAL_CACHE, "");
 
 	show_message("Local cache folder cleaned:\n" APOLLO_LOCAL_CACHE);
 }

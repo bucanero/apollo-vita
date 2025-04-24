@@ -64,11 +64,14 @@ app_config_t apollo_config = {
     .app_name = "APOLLO",
     .app_ver = APOLLO_VERSION,
     .save_db = ONLINE_URL,
+    .ftp_url = "",
     .music = 1,
     .doSort = 1,
     .doAni = 1,
     .update = 1,
     .storage = 0,
+    .online_opt = 0,
+    .dbglog = 0,
     .user_id = 0,
     .idps = {0, 0},
     .psid = {0, 0},
@@ -384,6 +387,12 @@ void update_trophy_path(char* path)
 
 void update_db_path(char* path)
 {
+	if (apollo_config.online_opt)
+	{
+		sprintf(path, "%s%016lX/", apollo_config.ftp_url, apollo_config.account_id);
+		return;
+	}
+
 	strcpy(path, apollo_config.save_db);
 }
 
