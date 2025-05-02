@@ -60,17 +60,11 @@ menu_option_t menu_options[] = {
 		.value = &apollo_config.doSort, 
 		.callback = sort_callback 
 	},
-	{ .name = "\nExternal Saves Source",
+	{ .name = "External Saves Source",
 		.options = (char**) ext_src,
 		.type = APP_OPTION_LIST,
 		.value = &apollo_config.storage,
 		.callback = owner_callback
-	},
-	{ .name = "Online Saves Server",
-		.options = db_opt,
-		.type = APP_OPTION_LIST,
-		.value = &apollo_config.online_opt,
-		.callback = server_callback
 	},
 	{ .name = "Version Update Check", 
 		.options = NULL, 
@@ -78,25 +72,37 @@ menu_option_t menu_options[] = {
 		.value = &apollo_config.update, 
 		.callback = update_callback 
 	},
+	{ .name = "\nSet User FTP Server URL",
+		.options = NULL,
+		.type = APP_OPTION_CALL,
+		.value = NULL,
+		.callback = ftp_url_callback
+	},
+	{ .name = "Online Saves Server",
+		.options = db_opt,
+		.type = APP_OPTION_LIST,
+		.value = &apollo_config.online_opt,
+		.callback = server_callback
+	},
+	{ .name = "Update Application Data", 
+		.options = NULL, 
+		.type = APP_OPTION_CALL, 
+		.value = NULL, 
+		.callback = upd_appdata_callback 
+	},
 	{ .name = "Change Online Database URL",
 		.options = NULL,
 		.type = APP_OPTION_CALL,
 		.value = NULL,
 		.callback = db_url_callback 
 	},
-	{ .name = "\nUpdate Application Data", 
-		.options = NULL, 
-		.type = APP_OPTION_CALL, 
-		.value = NULL, 
-		.callback = upd_appdata_callback 
-	},
-	{ .name = "Clear Local Cache", 
+	{ .name = "\nClear Local Cache", 
 		.options = NULL, 
 		.type = APP_OPTION_CALL, 
 		.value = NULL, 
 		.callback = clearcache_callback 
 	},
-	{ .name = "\nEnable Debug Log",
+	{ .name = "Enable Debug Log",
 		.options = NULL,
 		.type = APP_OPTION_CALL,
 		.value = NULL,
@@ -129,11 +135,13 @@ static void server_callback(int sel)
 
 static void db_url_callback(int sel)
 {
-	if (osk_dialog_get_text("Enter the URL of the online database", apollo_config.save_db, sizeof(apollo_config.save_db)))
-		show_message("Online database URL changed to:\n%s", apollo_config.save_db);
+	if (!osk_dialog_get_text("Enter the URL of the online database", apollo_config.save_db, sizeof(apollo_config.save_db)))
+		return;
 
 	if (apollo_config.save_db[strlen(apollo_config.save_db)-1] != '/')
 		strcat(apollo_config.save_db, "/");
+
+	show_message("Online database URL changed to:\n%s", apollo_config.save_db);
 }
 
 static void ftp_url_callback(int sel)
@@ -153,19 +161,18 @@ static void ftp_url_callback(int sel)
 	// test the connection
 	init_loading_screen("Testing connection...");
 	ret = http_download(apollo_config.ftp_url, "apollo.txt", APOLLO_LOCAL_CACHE "users.ftp", 0);
-	char *data = readTextFile(APOLLO_LOCAL_CACHE "users.ftp", NULL);
+	char *data = ret ? readTextFile(APOLLO_LOCAL_CACHE "users.ftp", NULL) : NULL;
 	if (!data)
-		data = strdup("; Apollo Save Tool (PS3) v" APOLLO_VERSION "\r\n");
+		data = strdup("; Apollo Save Tool (" APOLLO_PLATFORM ") v" APOLLO_VERSION "\r\n");
 
-	snprintf(tmp, sizeof(tmp), "%016lX", apollo_config.account_id);
+	snprintf(tmp, sizeof(tmp), "%016" PRIX64, apollo_config.account_id);
 	if (strstr(data, tmp) == NULL)
 	{
 		LOG("Updating users index...");
 		FILE* fp = fopen(APOLLO_LOCAL_CACHE "users.ftp", "w");
 		if (fp)
 		{
-			fwrite(data, 1, strlen(data), fp);
-			fprintf(fp, "%s\r\n", tmp);
+			fprintf(fp, "%s%s\r\n", data, tmp);
 			fclose(fp);
 		}
 
@@ -175,7 +182,10 @@ static void ftp_url_callback(int sel)
 	stop_loading_screen();
 
 	if (ret)
+	{
+		server_callback(1);
 		show_message("FTP server URL changed to:\n%s", apollo_config.ftp_url);
+	}
 	else
 		show_message("Error! Couldn't connect to FTP server\n%s\n\nCheck debug logs for more information", apollo_config.ftp_url);
 }
@@ -303,7 +313,7 @@ int save_app_settings(app_config_t* config)
 		.path = filePath,
 	};
 
-	LOG("Apollo Save Tool v%s - Patch Engine v%s", APOLLO_VERSION, APOLLO_LIB_VERSION);
+	LOG("Apollo Save Tool %s v%s - Patch Engine v%s", APOLLO_PLATFORM, APOLLO_VERSION, APOLLO_LIB_VERSION);
 	snprintf(filePath, sizeof(filePath), APOLLO_SANDBOX_PATH, title);
 	if (!vita_SaveMount(&se)) {
 		LOG("sceSaveDataMount2 ERROR");

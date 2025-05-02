@@ -300,7 +300,7 @@ int extract_7zip(const char* fpath, const char* dest_path)
 	init_progress_bar("Extracting files...");
 
 	// Extract 7-Zip archive contents
-	ret = Extract7zFileEx(fpath, dest_path, &callback_7z, 0x10000);
+	ret = un7z_ExtractArchive(fpath, dest_path, &callback_7z, UNZIP_BUF_SIZE);
 	end_progress_bar();
 
 	return (ret == SUCCESS);

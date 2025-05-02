@@ -89,13 +89,6 @@ uint32_t* free_mem;                         // Pointer after last texture
 
 
 char user_id_str[SCE_SYSTEM_PARAM_USERNAME_MAXSIZE] = "Apollo";
-char psid_str[SFO_PSID_SIZE*2+2] = "0000000000000000 0000000000000000";
-char account_id_str[SFO_ACCOUNT_ID_SIZE*2+1] = "0000000000000000";
-
-const char * menu_about_strings_project[] = { "User ID", user_id_str,
-											"Account ID", account_id_str,
-											"Console IDPS", psid_str,
-											NULL };
 
 const char * menu_pad_help[TOTAL_MENU_IDS] = { NULL,												//Main
 								"\x10 Select    \x13 Back    \x12 Details    \x11 Refresh",			//Trophy list
@@ -389,7 +382,7 @@ void update_db_path(char* path)
 {
 	if (apollo_config.online_opt)
 	{
-		sprintf(path, "%s%016lX/", apollo_config.ftp_url, apollo_config.account_id);
+		sprintf(path, "%s%016" PRIX64 "/", apollo_config.ftp_url, apollo_config.account_id);
 		return;
 	}
 
