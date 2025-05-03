@@ -276,6 +276,7 @@ int get_save_details(const save_entry_t *save, char** details);
 int vita_SaveUmount();
 int vita_SaveMount(const save_entry_t *save);
 int orbis_UpdateSaveParams(const char* mountPath, const char* title, const char* subtitle, const char* details);
+int get_name_title_id(const char* titleid, char* name);
 
 int read_psp_game_key(const char* fkey, uint8_t* key);
 int psp_DecryptSavedata(const char* fpath, const char* fname, uint8_t* key);

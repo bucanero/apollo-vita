@@ -55,6 +55,31 @@ static sqlite3* open_sqlite_db(const char* db_path)
 	return db;
 }
 
+static int get_name_fallback(const char* titleid, char* name)
+{
+	FILE* fp;
+	int ret = 0;
+	char path[256];
+
+	snprintf(path, sizeof(path), APOLLO_DATA_PATH "%s", "psvtitleid.txt");
+	fp = fopen(path, "r");
+	if (!fp)
+		return 0;
+
+	while(!ret && fgets(path, sizeof(path), fp))
+	{
+		if (strncmp(path, titleid, 9) != 0)
+			continue;
+
+		path[strlen(path)-1] = 0;
+		strncpy(name, path+10, 0x80);
+		ret = 1;
+	}
+	fclose(fp);
+
+	return ret;
+}
+
 static int get_appdb_title(sqlite3* db, const char* titleid, char* name)
 {
 	sqlite3_stmt* res;
@@ -68,13 +93,24 @@ static int get_appdb_title(sqlite3* db, const char* titleid, char* name)
 	{
 		LOG("Failed to fetch data: %s", sqlite3_errmsg(db));
 		sqlite3_free(query);
-		return 0;
+		return get_name_fallback(titleid, name);
 	}
 
 	strncpy(name, (const char*) sqlite3_column_text(res, 1), 0x80);
 	sqlite3_free(query);
 
 	return 1;
+}
+
+int get_name_title_id(const char* titleid, char* name)
+{
+	int ret;
+	sqlite3* appdb = open_sqlite_db(USER_PATH_HDD);
+
+	ret = get_appdb_title(appdb, titleid, name);
+	sqlite3_close(appdb);
+
+	return ret;
 }
 
 int vita_SaveUmount(void)
@@ -373,6 +409,12 @@ static void _addBackupCommands(save_entry_t* item)
 		list_append(cmd->options[0].opts, optval);
 	}
 	list_append(item->codes, cmd);
+
+	if (apollo_config.ftp_url[0] && item->flags & (SAVE_FLAG_HDD|SAVE_FLAG_PSP))
+	{
+		cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_NET " Upload save backup to FTP", CMD_UPLOAD_SAVE);
+		list_append(item->codes, cmd);
+	}
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_ZIP " Export save game to Zip", CMD_CODE_NULL);
 	_createOptions(cmd, "Export Zip to Backup Storage", CMD_EXPORT_ZIP_USB);

@@ -11,6 +11,7 @@
 #include "utils.h"
 #include "sfo.h"
 #include "ps1card.h"
+#include "svpng.h"
 
 static char host_buf[256];
 
@@ -1255,6 +1256,207 @@ static void resignAllSaves(const save_entry_t* save, int all)
 	end_progress_bar();
 
 	show_message("%d/%d Saves successfully resigned", done, done+err_count);
+}
+
+static char* get_title_name_icon(const save_entry_t* item)
+{
+	char *ret = NULL;
+	char iconfile[256];
+	char local_file[256];
+
+	LOG("Getting data for '%s'...", item->title_id);
+
+	if (get_name_title_id(item->title_id, local_file))
+		ret = strdup(local_file);
+	else
+		ret = strdup(item->name);
+
+	LOG("Get Vita icon %s (%s)", item->title_id, ret);
+	snprintf(local_file, sizeof(local_file), APOLLO_LOCAL_CACHE "%.9s.PNG", item->title_id);
+	if (file_exists(local_file) == SUCCESS)
+		return ret;
+
+	snprintf(iconfile, sizeof(iconfile), PSV_ICONS_PATH_HDD "/icon0.png", item->title_id);
+	copy_file(iconfile, local_file);
+
+	return ret;
+}
+
+static char* get_title_icon_psx(const save_entry_t* entry)
+{
+	FILE* fp;
+	uint8_t* icon = NULL;
+	char *ret = NULL;
+	char path[256];
+	char type[4] = {'-', '1', 'p', 'v'};
+
+	LOG("Getting data for '%s'...", entry->title_id);
+	snprintf(path, sizeof(path), APOLLO_DATA_PATH "ps%ctitleid.txt", type[entry->type]);
+	fp = fopen(path, "r");
+	if (fp)
+	{
+		while(!ret && fgets(path, sizeof(path), fp))
+		{
+			if (strncmp(path, entry->title_id, 9) != 0)
+				continue;
+
+			path[strlen(path)-1] = 0;
+			ret = strdup(path+10);
+		}
+		fclose(fp);
+	}
+
+	if (!ret)
+		ret = strdup(entry->name);
+
+	LOG("Get ps%c icon %s (%s)", type[entry->type], entry->title_id, ret);
+	snprintf(path, sizeof(path), APOLLO_LOCAL_CACHE "%.9s.PNG", entry->title_id);
+	if (file_exists(path) == SUCCESS)
+		return ret;
+
+	fp = fopen(path, "wb");
+	if (entry->type == FILE_TYPE_PS1)
+	{
+		icon = getIconRGBA(entry->blocks, 0);
+		svpng(fp, 16, 16, icon, 1);
+	}
+	else
+	{
+		//PSP
+		size_t sz;
+		snprintf(path, sizeof(path), "%sICON0.PNG", entry->path);
+		if (read_buffer(path, &icon, &sz) == SUCCESS)
+			fwrite(icon, sz, 1, fp);
+	}
+	free(icon);
+	fclose(fp);
+
+	return ret;
+}
+
+static void get_psv_filename(char* psvName, const char* path, const char* dirName)
+{
+	char tmpName[4];
+
+	sprintf(psvName, "%s%.12s", path, dirName);
+	for (const char *ch = &dirName[12]; *ch; *ch++)
+	{
+		snprintf(tmpName, sizeof(tmpName), "%02X", *ch);
+		strcat(psvName, tmpName);
+	}
+	strcat(psvName, ".PSV");
+}
+
+static void uploadSaveFTP(const save_entry_t* save)
+{
+	FILE* fp;
+	char *tmp;
+	char remote[256];
+	char local[256];
+	int ret = 0;
+	struct tm t;
+	char type[4] = {'-', '1', 'P', 'V'};
+
+	if (!show_dialog(DIALOG_TYPE_YESNO, "Do you want to upload %s?", save->dir_name))
+		return;
+
+	init_loading_screen("Sync with FTP Server...");
+
+	snprintf(remote, sizeof(remote), "%s%016" PRIX64 "/PS%c/", apollo_config.ftp_url, apollo_config.account_id, type[save->type]);
+	http_download(remote, "games.txt", APOLLO_LOCAL_CACHE "games.ftp", 0);
+
+	snprintf(remote, sizeof(remote), "%s%016" PRIX64 "/PS%c/%s/", apollo_config.ftp_url, apollo_config.account_id, type[save->type], save->title_id);
+	http_download(remote, "saves.txt", APOLLO_LOCAL_CACHE "saves.ftp", 0);
+	http_download(remote, "checksum.sfv", APOLLO_LOCAL_CACHE "sfv.ftp", 0);
+
+	gmtime_r(&(time_t){time(NULL)}, &t);
+	snprintf(local, sizeof(local), APOLLO_LOCAL_CACHE "%s_%d-%02d-%02d-%02d%02d%02d.zip",
+			(save->type == FILE_TYPE_PS1) ? save->title_id : save->dir_name,
+			t.tm_year+1900, t.tm_mon+1, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec);
+
+	if (save->type != FILE_TYPE_PS1)
+	{
+		tmp = strdup(save->path);
+		*strrchr(tmp, '/') = 0;
+		*strrchr(tmp, '/') = 0;
+	
+		ret = zip_directory(tmp, save->path, local);
+		free(tmp);
+	}
+	else
+	{
+		tmp = malloc(256);
+
+		ret = saveSingleSave(APOLLO_LOCAL_CACHE, save->blocks, PS1SAVE_PSV);
+		get_psv_filename(tmp, APOLLO_LOCAL_CACHE, save->dir_name);
+		ret &= zip_file(tmp, local);
+
+		unlink_secure(tmp);
+		free(tmp);
+	}
+
+	stop_loading_screen();
+	if (!ret)
+	{
+		show_message("Error! Couldn't zip save:\n%s", save->dir_name);
+		return;
+	}
+
+	tmp = strrchr(local, '/')+1;
+	uint32_t crc = file_crc32(local);
+
+	LOG("Updating %s save index...", save->title_id);
+	fp = fopen(APOLLO_LOCAL_CACHE "saves.ftp", "a");
+	if (fp)
+	{
+		fprintf(fp, "%s=[%s] %d-%02d-%02d %02d:%02d:%02d %s (CRC: %08X)\r\n", tmp, save->dir_name, 
+				t.tm_year+1900, t.tm_mon+1, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec, save->name, crc);
+		fclose(fp);
+	}
+
+	LOG("Updating .sfv CRC32: %08X", crc);
+	fp = fopen(APOLLO_LOCAL_CACHE "sfv.ftp", "a");
+	if (fp)
+	{
+		fprintf(fp, "%s %08X\n", tmp, crc);
+		fclose(fp);
+	}
+
+	ret = ftp_upload(local, remote, tmp, 1);
+	ret &= ftp_upload(APOLLO_LOCAL_CACHE "saves.ftp", remote, "saves.txt", 1);
+	ret &= ftp_upload(APOLLO_LOCAL_CACHE "sfv.ftp", remote, "checksum.sfv", 1);
+
+	unlink_secure(local);
+	tmp = readTextFile(APOLLO_LOCAL_CACHE "games.ftp", NULL);
+	if (!tmp)
+		tmp = strdup("");
+
+	if (strstr(tmp, save->title_id) == NULL)
+	{
+		LOG("Updating games index...");
+		free(tmp);
+		tmp = (save->type == FILE_TYPE_PSV) ? get_title_name_icon(save) : get_title_icon_psx(save);
+
+		snprintf(local, sizeof(local), APOLLO_LOCAL_CACHE "%.9s.PNG", save->title_id);
+		ret &= ftp_upload(local, remote, (save->type == FILE_TYPE_PSP) ? "ICON0.PNG" : "icon0.png", 1);
+
+		fp = fopen(APOLLO_LOCAL_CACHE "games.ftp", "a");
+		if (fp)
+		{
+			fprintf(fp, "%s=%s\r\n", save->title_id, tmp);
+			fclose(fp);
+		}
+
+		snprintf(remote, sizeof(remote), "%s%016" PRIX64 "/PS%c/", apollo_config.ftp_url, apollo_config.account_id, type[save->type]);
+		ret &= ftp_upload(APOLLO_LOCAL_CACHE "games.ftp", remote, "games.txt", 1);
+	}
+	free(tmp);
+	clean_directory(APOLLO_LOCAL_CACHE, ".ftp");
+
+	if (ret)
+		show_message("Save successfully uploaded:\n%s", save->dir_name);
+	else
+		show_message("Error! Couldn't upload save:\n%s", save->dir_name);
 }
 
 static void import_mcr2vmp(const save_entry_t* save, const char* src)
