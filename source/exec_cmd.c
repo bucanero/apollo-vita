@@ -244,9 +244,9 @@ static int _copy_save_psp(const save_entry_t* save)
 
 static void downloadSaveHDD(const save_entry_t* entry, const char* file)
 {
+	int ret;
 	save_entry_t save;
 	char path[256];
-	char save_path[256];
 	char titleid[0x10];
 	char dirname[0x30];
 	sfo_context_t* sfo;
@@ -273,14 +273,14 @@ static void downloadSaveHDD(const save_entry_t* entry, const char* file)
 			(char*) sfo_get_param_value(sfo, "SAVEDATA_DIRECTORY") : 
 			(char*) sfo_get_param_value(sfo, "PARENT_DIRECTORY") + 1, sizeof(dirname));
 	snprintf(titleid, sizeof(titleid), "%.9s", dirname);
-	save.path = save_path;
+	save.path = path;
 	save.title_id = titleid;
 	save.dir_name = dirname;
 	sfo_free(sfo);
 
 	if (entry->flags & SAVE_FLAG_PSV)
 	{
-		snprintf(save_path, sizeof(save_path), APOLLO_SANDBOX_PATH, save.dir_name);
+		snprintf(path, sizeof(path), APOLLO_SANDBOX_PATH, save.dir_name);
 		if (dir_exists(save.path) != SUCCESS)
 		{
 			show_message("Error! save game folder is not available:\n%s", save.path);
@@ -301,7 +301,7 @@ static void downloadSaveHDD(const save_entry_t* entry, const char* file)
 	}
 	else
 	{
-		snprintf(save_path, sizeof(save_path), PSP_SAVES_PATH_HDD "%s/", save.dir_name);
+		snprintf(path, sizeof(path), PSP_SAVES_PATH_HDD "%s/", save.dir_name);
 		if ((dir_exists(save.path) == SUCCESS) &&
 			!show_dialog(DIALOG_TYPE_YESNO, "Save game already exists:\n%s\n\nOverwrite?", save.dir_name))
 			return;
@@ -309,17 +309,16 @@ static void downloadSaveHDD(const save_entry_t* entry, const char* file)
 		strncpy(path, PSP_SAVES_PATH_HDD, sizeof(path));
 	}
 
-	if (!extract_zip(APOLLO_LOCAL_CACHE "tmpsave.zip", path))
-	{
-		show_message("Error extracting save game!");
-		return;
-	}
-
+	ret = extract_zip(APOLLO_LOCAL_CACHE "tmpsave.zip", path);
 	unlink_secure(APOLLO_LOCAL_CACHE "tmpsave.zip");
+
 	if (entry->flags & SAVE_FLAG_PSV)
 		vita_SaveUmount();
 
-	show_message("Save game successfully downloaded to:\n%s/%s", save.title_id, save.dir_name);
+	if (ret)
+		show_message("Save game successfully downloaded to:\n%s%s", path, save.dir_name);
+	else
+		show_message("Error extracting save game!");
 }
 
 static void copySaveHDD(const save_entry_t* save)
