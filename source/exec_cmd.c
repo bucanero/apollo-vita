@@ -287,7 +287,7 @@ static void downloadSaveHDD(const save_entry_t* entry, const char* file)
 			return;
 		}
 
-		if (!show_dialog(DIALOG_TYPE_YESNO, "Save game already exists:\n%s/%s\n\nOverwrite?", save.title_id, save.dir_name))
+		if (!show_dialog(DIALOG_TYPE_YESNO, "Save game already exists:\n%s\n\nOverwrite?", save.dir_name))
 			return;
 
 		if (!vita_SaveMount(&save))
@@ -303,7 +303,7 @@ static void downloadSaveHDD(const save_entry_t* entry, const char* file)
 	{
 		snprintf(save_path, sizeof(save_path), PSP_SAVES_PATH_HDD "%s/", save.dir_name);
 		if ((dir_exists(save.path) == SUCCESS) &&
-			!show_dialog(DIALOG_TYPE_YESNO, "Save game already exists:\n%s/%s\n\nOverwrite?", save.title_id, save.dir_name))
+			!show_dialog(DIALOG_TYPE_YESNO, "Save game already exists:\n%s\n\nOverwrite?", save.dir_name))
 			return;
 
 		strncpy(path, PSP_SAVES_PATH_HDD, sizeof(path));
