@@ -961,8 +961,16 @@ int ReadOnlineSaves(save_entry_t * game)
 
 			_createOptions(item, "Download to Backup Storage", CMD_DOWNLOAD_USB);
 			optval = malloc(sizeof(option_value_t));
-			asprintf(&optval->name, "Download to User Storage (ux0:data/)");
-			asprintf(&optval->value, "%c%c", (apollo_config.online_opt && game->flags & (SAVE_FLAG_PSV|SAVE_FLAG_PSP)) ? CMD_DOWNLOAD_HDD : CMD_DOWNLOAD_USB, STORAGE_UX0);
+			if (apollo_config.online_opt && game->flags & (SAVE_FLAG_PSV|SAVE_FLAG_PSP))
+			{
+				asprintf(&optval->name, "Download to User Storage (ux0:%s/)", (item->flags & SAVE_FLAG_PSP) ? "pspemu" : "user");
+				asprintf(&optval->value, "%c%c", CMD_DOWNLOAD_HDD, STORAGE_UX0);
+			}
+			else
+			{
+				optval->name = strdup("Download to User Storage (ux0:data/)");
+				asprintf(&optval->value, "%c%c", CMD_DOWNLOAD_USB, STORAGE_UX0);
+			}
 			list_append(item->options[0].opts, optval);
 			list_append(game->codes, item);
 
@@ -1313,13 +1321,13 @@ int sortSaveList_Compare_TitleID(const void* a, const void* b)
 static int parseTypeFlags(int flags)
 {
 	if (flags & SAVE_FLAG_VMC)
-		return FILE_TYPE_VMC;
+		return 4;
 	else if (flags & SAVE_FLAG_PS1)
-		return FILE_TYPE_PS1;
+		return 3;
 	else if (flags & SAVE_FLAG_PSP)
-		return FILE_TYPE_PSP;
+		return 2;
 	else if (flags & SAVE_FLAG_PSV)
-		return FILE_TYPE_PSV;
+		return 1;
 
 	return 0;
 }

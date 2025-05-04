@@ -132,6 +132,7 @@ static void zipSave(const save_entry_t* entry, int dst)
 
 static void copySave(const save_entry_t* save, int dev)
 {
+	int ret;
 	char* copy_path;
 	char exp_path[256];
 
@@ -153,12 +154,15 @@ static void copySave(const save_entry_t* save, int dev)
 	asprintf(&copy_path, "%s%s_%s/", exp_path, save->title_id, save->dir_name);
 
 	LOG("Copying <%s> to %s...", save->path, copy_path);
-	copy_directory(save->path, save->path, copy_path);
+	ret = (copy_directory(save->path, save->path, copy_path) == SUCCESS);
 
 	free(copy_path);
 
 	stop_loading_screen();
-	show_message("Files successfully copied to:\n%s", exp_path);
+	if (ret)
+		show_message("Files successfully copied to:\n%s", exp_path);
+	else
+		show_message("Error! Can't copy save game to:\n%s", exp_path);
 }
 
 static int get_psp_save_key(const save_entry_t* entry, uint8_t* key)
@@ -209,6 +213,7 @@ static int get_psp_save_key(const save_entry_t* entry, uint8_t* key)
 
 static int _copy_save_hdd(const save_entry_t* save)
 {
+	int ret;
 	char copy_path[256];
 	save_entry_t entry = {
 		.title_id = save->title_id,
@@ -221,10 +226,10 @@ static int _copy_save_hdd(const save_entry_t* save)
 		return 0;
 
 	LOG("Copying <%s> to %s...", save->path, copy_path);
-	copy_directory(save->path, save->path, copy_path);
+	ret = (copy_directory(save->path, save->path, copy_path) == SUCCESS);
 
 	vita_SaveUmount();
-	return 1;
+	return ret;
 }
 
 static int _copy_save_psp(const save_entry_t* save)
@@ -235,6 +240,86 @@ static int _copy_save_psp(const save_entry_t* save)
 
 	LOG("Copying <%s> to %s...", save->path, copy_path);
 	return (copy_directory(save->path, save->path, copy_path) == SUCCESS);
+}
+
+static void downloadSaveHDD(const save_entry_t* entry, const char* file)
+{
+	save_entry_t save;
+	char path[256];
+	char save_path[256];
+	char titleid[0x10];
+	char dirname[0x30];
+	sfo_context_t* sfo;
+
+	if (!http_download(entry->path, file, APOLLO_LOCAL_CACHE "tmpsave.zip", 1))
+	{
+		show_message("Error downloading save game from:\n%s%s", entry->path, file);
+		return;
+	}
+
+	sfo = sfo_alloc();
+	if (!extract_sfo(APOLLO_LOCAL_CACHE "tmpsave.zip", APOLLO_LOCAL_CACHE) ||
+		sfo_read(sfo, APOLLO_LOCAL_CACHE "param.sfo") < 0)
+	{
+		LOG("Unable to read SFO from '%s'", APOLLO_LOCAL_CACHE);
+		sfo_free(sfo);
+
+		show_message("Error extracting save game!");
+		return;
+	}
+
+	memset(&save, 0, sizeof(save_entry_t));
+	strncpy(dirname, (entry->flags & SAVE_FLAG_PSP) ?
+			(char*) sfo_get_param_value(sfo, "SAVEDATA_DIRECTORY") : 
+			(char*) sfo_get_param_value(sfo, "PARENT_DIRECTORY") + 1, sizeof(dirname));
+	snprintf(titleid, sizeof(titleid), "%.9s", dirname);
+	save.path = save_path;
+	save.title_id = titleid;
+	save.dir_name = dirname;
+	sfo_free(sfo);
+
+	if (entry->flags & SAVE_FLAG_PSV)
+	{
+		snprintf(save_path, sizeof(save_path), APOLLO_SANDBOX_PATH, save.dir_name);
+		if (dir_exists(save.path) != SUCCESS)
+		{
+			show_message("Error! save game folder is not available:\n%s", save.path);
+			return;
+		}
+
+		if (!show_dialog(DIALOG_TYPE_YESNO, "Save game already exists:\n%s/%s\n\nOverwrite?", save.title_id, save.dir_name))
+			return;
+
+		if (!vita_SaveMount(&save))
+		{
+			show_message("Error mounting save game folder!");
+			return;
+		}
+
+		snprintf(path, sizeof(path), APOLLO_SANDBOX_PATH, "~");
+		*strrchr(path, '~') = 0;
+	}
+	else
+	{
+		snprintf(save_path, sizeof(save_path), PSP_SAVES_PATH_HDD "%s/", save.dir_name);
+		if ((dir_exists(save.path) == SUCCESS) &&
+			!show_dialog(DIALOG_TYPE_YESNO, "Save game already exists:\n%s/%s\n\nOverwrite?", save.title_id, save.dir_name))
+			return;
+
+		strncpy(path, PSP_SAVES_PATH_HDD, sizeof(path));
+	}
+
+	if (!extract_zip(APOLLO_LOCAL_CACHE "tmpsave.zip", path))
+	{
+		show_message("Error extracting save game!");
+		return;
+	}
+
+	unlink_secure(APOLLO_LOCAL_CACHE "tmpsave.zip");
+	if (entry->flags & SAVE_FLAG_PSV)
+		vita_SaveUmount();
+
+	show_message("Save game successfully downloaded to:\n%s/%s", save.title_id, save.dir_name);
 }
 
 static void copySaveHDD(const save_entry_t* save)
@@ -1595,6 +1680,16 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 
 		case CMD_DOWNLOAD_USB:
 			downloadSave(selected_entry, code->file, codecmd[1]);
+			code->activated = 0;
+			break;
+
+		case CMD_DOWNLOAD_HDD:
+			downloadSaveHDD(selected_entry, code->file);
+			code->activated = 0;
+			break;
+
+		case CMD_UPLOAD_SAVE:
+			uploadSaveFTP(selected_entry);
 			code->activated = 0;
 			break;
 

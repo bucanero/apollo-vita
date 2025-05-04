@@ -600,6 +600,12 @@ s32 main(s32 argc, const char* argv[])
 	// Load application settings
 	load_app_settings(&apollo_config);
 
+	if (apollo_config.dbglog)
+	{
+		dbglogger_init_mode(FILE_LOGGER, APOLLO_PATH "apollo.log", 0);
+		notification("Debug Logging Enabled\n%s", APOLLO_PATH "apollo.log");
+	}
+
 	// Unpack application data on first run
 	if (file_exists(APOLLO_LOCAL_CACHE "appdata.zip") == SUCCESS)
 	{

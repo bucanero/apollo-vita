@@ -177,6 +177,13 @@ static int unpack_zip_file(struct zip_file* zfd, const char* path, uint8_t* buf)
 	tfd = fopen(path, "wb");
 	if(!tfd) {
 		zip_fclose(zfd);
+
+		// skip keystone and sealedkey files error
+		// when extracting to the mounted save path (workaround)
+		if (strncmp(path, APOLLO_SANDBOX_PATH, 21) == 0 && 
+			(strcmp(strrchr(path, '/'), "/keystone") == 0 || strcmp(strrchr(path, '/'), "/sealedkey") == 0))
+			return 1;
+
 		LOG("Error opening file '%s'.", path);
 		return 0;
 	}
@@ -256,7 +263,7 @@ int extract_sfo(const char* zip_file, const char* dest_path)
 	char path[256];
 	uint8_t* buffer;
 	struct zip* archive = zip_open(zip_file, ZIP_CHECKCONS, NULL);
-	int file = zip_name_locate(archive, "param.sfo", ZIP_FL_NODIR);
+	int file = zip_name_locate(archive, "param.sfo", ZIP_FL_NODIR | ZIP_FL_NOCASE);
 
 	if (file < 0) {
 		LOG("PARAM.SFO not found!");
