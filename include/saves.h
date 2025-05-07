@@ -81,6 +81,7 @@ enum cmd_code_enum
     CMD_HEX_EDIT_FILE,
     CMD_IMPORT_DATA_FILE,
     CMD_DELETE_SAVE,
+    CMD_UPLOAD_SAVE,
 
 // Bulk commands
     CMD_RESIGN_SAVES,
@@ -137,11 +138,11 @@ enum cmd_code_enum
 enum save_type_enum
 {
     FILE_TYPE_NULL,
-    FILE_TYPE_MENU,
-    FILE_TYPE_PSV,
-    FILE_TYPE_TRP,
-    FILE_TYPE_PSP,
     FILE_TYPE_PS1,
+    FILE_TYPE_PSP,
+    FILE_TYPE_PSV,
+    FILE_TYPE_MENU,
+    FILE_TYPE_TRP,
 
     // PS1 File Types
     FILE_TYPE_ZIP,
@@ -242,12 +243,15 @@ int ReadVmcCodes(save_entry_t * game);
 int http_init(void);
 void http_end(void);
 int http_download(const char* url, const char* filename, const char* local_dst, int show_progress);
+int ftp_upload(const char* local_file, const char* url, const char* filename, int show_progress);
 
 int extract_7zip(const char* zip_file, const char* dest_path);
 int extract_rar(const char* rar_file, const char* dest_path);
 int extract_zip(const char* zip_file, const char* dest_path);
 int zip_directory(const char* basedir, const char* inputdir, const char* output_zipfile);
 int zip_append_directory(const char* basedir, const char* inputdir, const char* output_filename);
+int zip_file(const char* input, const char* output_zipfile);
+ int extract_sfo(const char* zip_file, const char* dest_path);
 
 int show_dialog(int dialog_type, const char * format, ...);
 int osk_dialog_get_text(const char* title, char* text, uint32_t size);
@@ -272,6 +276,7 @@ int get_save_details(const save_entry_t *save, char** details);
 int vita_SaveUmount();
 int vita_SaveMount(const save_entry_t *save);
 int orbis_UpdateSaveParams(const char* mountPath, const char* title, const char* subtitle, const char* details);
+int get_name_title_id(const char* titleid, char* name);
 
 int read_psp_game_key(const char* fkey, uint8_t* key);
 int psp_DecryptSavedata(const char* fpath, const char* fname, uint8_t* key);

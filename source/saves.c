@@ -55,6 +55,31 @@ static sqlite3* open_sqlite_db(const char* db_path)
 	return db;
 }
 
+static int get_name_fallback(const char* titleid, char* name)
+{
+	FILE* fp;
+	int ret = 0;
+	char path[256];
+
+	snprintf(path, sizeof(path), APOLLO_DATA_PATH "%s", "psvtitleid.txt");
+	fp = fopen(path, "r");
+	if (!fp)
+		return 0;
+
+	while(!ret && fgets(path, sizeof(path), fp))
+	{
+		if (strncmp(path, titleid, 9) != 0)
+			continue;
+
+		path[strlen(path)-1] = 0;
+		strncpy(name, path+10, 0x80);
+		ret = 1;
+	}
+	fclose(fp);
+
+	return ret;
+}
+
 static int get_appdb_title(sqlite3* db, const char* titleid, char* name)
 {
 	sqlite3_stmt* res;
@@ -68,7 +93,7 @@ static int get_appdb_title(sqlite3* db, const char* titleid, char* name)
 	{
 		LOG("Failed to fetch data: %s", sqlite3_errmsg(db));
 		sqlite3_free(query);
-		return 0;
+		return get_name_fallback(titleid, name);
 	}
 
 	strncpy(name, (const char*) sqlite3_column_text(res, 1), 0x80);
@@ -77,7 +102,18 @@ static int get_appdb_title(sqlite3* db, const char* titleid, char* name)
 	return 1;
 }
 
-int vita_SaveUmount()
+int get_name_title_id(const char* titleid, char* name)
+{
+	int ret;
+	sqlite3* appdb = open_sqlite_db(USER_PATH_HDD);
+
+	ret = get_appdb_title(appdb, titleid, name);
+	sqlite3_close(appdb);
+
+	return ret;
+}
+
+int vita_SaveUmount(void)
 {
 	if (pfs_mount_point[0] == 0)
 		return 0;
@@ -374,6 +410,12 @@ static void _addBackupCommands(save_entry_t* item)
 	}
 	list_append(item->codes, cmd);
 
+	if (apollo_config.ftp_url[0] && item->flags & (SAVE_FLAG_HDD|SAVE_FLAG_PSP))
+	{
+		cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_NET " Upload save backup to FTP", CMD_UPLOAD_SAVE);
+		list_append(item->codes, cmd);
+	}
+
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_ZIP " Export save game to Zip", CMD_CODE_NULL);
 	_createOptions(cmd, "Export Zip to Backup Storage", CMD_EXPORT_ZIP_USB);
 	optval = malloc(sizeof(option_value_t));
@@ -512,6 +554,7 @@ option_entry_t* get_file_entries(const char* path, const char* mask)
  */
 int ReadCodes(save_entry_t * save)
 {
+	list_node_t* node;
 	code_entry_t * code;
 	char filePath[256];
 	char * buffer = NULL;
@@ -542,9 +585,23 @@ int ReadCodes(save_entry_t * save)
 	code = _createCmdCode(PATCH_COMMAND, CHAR_ICON_USER " View Raw Patch File", CMD_VIEW_RAW_PATCH);
 	list_append(save->codes, code);
 
+	node = list_tail(save->codes);
 	LOG("Loading BSD codes '%s'...", filePath);
 	load_patch_code_list(buffer, save->codes, &get_file_entries, save->path);
 	free (buffer);
+
+	for (node = list_next(node); (code = list_get(node)); node = list_next(node))
+		if (strchr(code->file, '\\') != NULL && code->file[1] != '~')
+		{
+			buffer = strdup(code->file);
+			strchr(buffer, '\\')[0] = 0;
+			if(!wildcard_match_icase(save->dir_name, buffer))
+			{
+				LOG("(%s) Disabled code '%s'", buffer, code->name);
+				code->flags |= (APOLLO_CODE_FLAG_ALERT | APOLLO_CODE_FLAG_DISABLED);
+			}
+			free(buffer);
+		}
 
 skip_end:
 	if (save->flags & SAVE_FLAG_PSV && save->flags & SAVE_FLAG_HDD)
@@ -818,6 +875,12 @@ int ReadVmcCodes(save_entry_t * save)
 	cmd = _createCmdCode(PATCH_NULL, "----- " UTF8_CHAR_STAR " Save Backup " UTF8_CHAR_STAR " -----", CMD_CODE_NULL);
 	list_append(save->codes, cmd);
 
+	if (apollo_config.ftp_url[0])
+	{
+		cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_NET " Upload save backup to FTP", CMD_UPLOAD_SAVE);
+		list_append(save->codes, cmd);
+	}
+
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Export save game to MCS format", CMD_CODE_NULL);
 	_createOptions(cmd, "Copy Save to Mass Storage", CMD_EXP_VMCSAVE);
 	cmd->options[0].id = PS1SAVE_MCS;
@@ -855,7 +918,7 @@ int ReadOnlineSaves(save_entry_t * game)
 	char path[256];
 	snprintf(path, sizeof(path), APOLLO_LOCAL_CACHE "%s.txt", game->title_id);
 
-	if (file_exists(path) == SUCCESS && strcmp(apollo_config.save_db, ONLINE_URL) == 0)
+	if (apollo_config.online_opt == 0 && file_exists(path) == SUCCESS && strcmp(apollo_config.save_db, ONLINE_URL) == 0)
 	{
 		struct stat stats;
 		stat(path, &stats);
@@ -881,7 +944,7 @@ int ReadOnlineSaves(save_entry_t * game)
 
 	while (ptr < end && *ptr)
 	{
-		const char* content = ptr;
+		char *tmp, *content = ptr;
 
 		while (ptr < end && *ptr != '\n' && *ptr != '\r')
 		{
@@ -889,16 +952,25 @@ int ReadOnlineSaves(save_entry_t * game)
 		}
 		*ptr++ = 0;
 
-		if (content[12] == '=')
+		if ((tmp = strchr(content, '=')) != NULL)
 		{
-			snprintf(path, sizeof(path), CHAR_ICON_ZIP " %s", content + 13);
+			*tmp++ = 0;
+			snprintf(path, sizeof(path), CHAR_ICON_ZIP " %s", tmp);
 			item = _createCmdCode(PATCH_COMMAND, path, CMD_CODE_NULL);
-			asprintf(&item->file, "%.12s", content);
+			item->file = strdup(content);
 
 			_createOptions(item, "Download to Backup Storage", CMD_DOWNLOAD_USB);
 			optval = malloc(sizeof(option_value_t));
-			asprintf(&optval->name, "Download to User Storage (ux0:data/)");
-			asprintf(&optval->value, "%c%c", CMD_DOWNLOAD_USB, STORAGE_UX0);
+			if (apollo_config.online_opt && game->flags & (SAVE_FLAG_PSV|SAVE_FLAG_PSP))
+			{
+				asprintf(&optval->name, "Download to User Storage (ux0:%s/)", (item->flags & SAVE_FLAG_PSP) ? "pspemu" : "user");
+				asprintf(&optval->value, "%c%c", CMD_DOWNLOAD_HDD, STORAGE_UX0);
+			}
+			else
+			{
+				optval->name = strdup("Download to User Storage (ux0:data/)");
+				asprintf(&optval->value, "%c%c", CMD_DOWNLOAD_USB, STORAGE_UX0);
+			}
 			list_append(item->options[0].opts, optval);
 			list_append(game->codes, item);
 
@@ -1249,13 +1321,13 @@ int sortSaveList_Compare_TitleID(const void* a, const void* b)
 static int parseTypeFlags(int flags)
 {
 	if (flags & SAVE_FLAG_VMC)
-		return FILE_TYPE_VMC;
+		return 4;
 	else if (flags & SAVE_FLAG_PS1)
-		return FILE_TYPE_PS1;
+		return 3;
 	else if (flags & SAVE_FLAG_PSP)
-		return FILE_TYPE_PSP;
+		return 2;
 	else if (flags & SAVE_FLAG_PSV)
-		return FILE_TYPE_PSV;
+		return 1;
 
 	return 0;
 }
@@ -1616,7 +1688,7 @@ static void _ReadOnlineListEx(const char* urlPath, uint16_t flag, list_t *list)
 
 	snprintf(path, sizeof(path), APOLLO_LOCAL_CACHE "%04X_games.txt", flag);
 
-	if (file_exists(path) == SUCCESS && strcmp(apollo_config.save_db, ONLINE_URL) == 0)
+	if (apollo_config.online_opt == 0 && file_exists(path) == SUCCESS && strcmp(apollo_config.save_db, ONLINE_URL) == 0)
 	{
 		struct stat stats;
 		stat(path, &stats);
@@ -1761,6 +1833,9 @@ list_t * ReadVmcList(const char* userPath)
 		item->title_id = strdup(mcdata[i].saveProdCode);
 		asprintf(&item->path, "%s\n%s/", userPath, mcdata[i].saveName);
 		free(tmp);
+
+		if(strlen(item->title_id) == 10 && item->title_id[4] == '-')
+			memmove(&item->title_id[4], &item->title_id[5], 6);
 
 		LOG("[%s] F(%X) name '%s'", item->title_id, item->flags, item->name);
 		list_append(list, item);

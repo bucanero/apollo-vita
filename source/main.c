@@ -64,11 +64,14 @@ app_config_t apollo_config = {
     .app_name = "APOLLO",
     .app_ver = APOLLO_VERSION,
     .save_db = ONLINE_URL,
+    .ftp_url = "",
     .music = 1,
     .doSort = 1,
     .doAni = 1,
     .update = 1,
     .storage = 0,
+    .online_opt = 0,
+    .dbglog = 0,
     .user_id = 0,
     .idps = {0, 0},
     .psid = {0, 0},
@@ -86,13 +89,6 @@ uint32_t* free_mem;                         // Pointer after last texture
 
 
 char user_id_str[SCE_SYSTEM_PARAM_USERNAME_MAXSIZE] = "Apollo";
-char psid_str[SFO_PSID_SIZE*2+2] = "0000000000000000 0000000000000000";
-char account_id_str[SFO_ACCOUNT_ID_SIZE*2+1] = "0000000000000000";
-
-const char * menu_about_strings_project[] = { "User ID", user_id_str,
-											"Account ID", account_id_str,
-											"Console IDPS", psid_str,
-											NULL };
 
 const char * menu_pad_help[TOTAL_MENU_IDS] = { NULL,												//Main
 								"\x10 Select    \x13 Back    \x12 Details    \x11 Refresh",			//Trophy list
@@ -384,6 +380,12 @@ void update_trophy_path(char* path)
 
 void update_db_path(char* path)
 {
+	if (apollo_config.online_opt)
+	{
+		sprintf(path, "%s%016" PRIX64 "/", apollo_config.ftp_url, apollo_config.account_id);
+		return;
+	}
+
 	strcpy(path, apollo_config.save_db);
 }
 
@@ -597,6 +599,12 @@ s32 main(s32 argc, const char* argv[])
 
 	// Load application settings
 	load_app_settings(&apollo_config);
+
+	if (apollo_config.dbglog)
+	{
+		dbglogger_init_mode(FILE_LOGGER, APOLLO_PATH "apollo.log", 0);
+		notification("Debug Logging Enabled\n%s", APOLLO_PATH "apollo.log");
+	}
 
 	// Unpack application data on first run
 	if (file_exists(APOLLO_LOCAL_CACHE "appdata.zip") == SUCCESS)

@@ -164,37 +164,43 @@ uint32_t file_crc32(const char* input)
 
 int copy_directory(const char* startdir, const char* inputdir, const char* outputdir)
 {
-	char fullname[256];
+    char fullname[256];
     char out_name[256];
-	struct dirent *dirp;
-	int len = strlen(startdir);
-	DIR *dp = opendir(inputdir);
+    struct dirent *dirp;
+    int len = strlen(startdir);
+    DIR *dp = opendir(inputdir);
 
-	if (!dp) {
-		return FAILED;
-	}
+    if (!dp) {
+        return FAILED;
+    }
 
-	while ((dirp = readdir(dp)) != NULL) {
-		if ((strcmp(dirp->d_name, ".")  != 0) && (strcmp(dirp->d_name, "..") != 0)) {
-  			snprintf(fullname, sizeof(fullname), "%s%s", inputdir, dirp->d_name);
+    while ((dirp = readdir(dp)) != NULL) {
+        if ((strcmp(dirp->d_name, ".")  != 0) && (strcmp(dirp->d_name, "..") != 0)) {
+            snprintf(fullname, sizeof(fullname), "%s%s", inputdir, dirp->d_name);
 
-  			if (dirp->d_stat.st_mode & SCE_S_IFDIR) {
+            if (dirp->d_stat.st_mode & SCE_S_IFDIR) {
                 strcat(fullname, "/");
-    			copy_directory(startdir, fullname, outputdir);
-  			} else {
-  			    snprintf(out_name, sizeof(out_name), "%s%s", outputdir, &fullname[len]);
-    			if (copy_file(fullname, out_name) != SUCCESS) {
-     				return FAILED;
-    			}
-  			}
-		}
-	}
-	closedir(dp);
+                if (copy_directory(startdir, fullname, outputdir) != SUCCESS) {
+                    return FAILED;
+                }
+            } else {
+                snprintf(out_name, sizeof(out_name), "%s%s", outputdir, &fullname[len]);
+                if (copy_file(fullname, out_name) != SUCCESS) {
+                    // skip keystone and sealedkey files error
+                    // when extracting to the mounted save path (workaround)
+                    if (strncmp(outputdir, "ux0:user/00/savedata/", 21) != 0 || 
+                        !(strcmp(dirp->d_name, "keystone") == 0 || strcmp(dirp->d_name, "sealedkey") == 0))
+                        return FAILED;
+                }
+            }
+        }
+    }
+    closedir(dp);
 
     return SUCCESS;
 }
 
-int clean_directory(const char* inputdir)
+int clean_directory(const char* inputdir, const char* filter)
 {
 	DIR *d;
 	struct dirent *dir;
@@ -206,7 +212,7 @@ int clean_directory(const char* inputdir)
 
 	while ((dir = readdir(d)) != NULL)
 	{
-		if (strcmp(dir->d_name, ".") != 0 && strcmp(dir->d_name, "..") != 0)
+		if (strcmp(dir->d_name, ".") != 0 && strcmp(dir->d_name, "..") != 0 && strstr(dir->d_name, filter) != NULL)
 		{
 			snprintf(dataPath, sizeof(dataPath), "%s" "%s", inputdir, dir->d_name);
 			unlink_secure(dataPath);
