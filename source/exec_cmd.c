@@ -27,6 +27,10 @@ static int _set_dest_path(char* path, int dest, const char* folder)
 		sprintf(path, "%s%s", IMC0_PATH, folder);
 		break;
 
+	case STORAGE_XMC0:
+		sprintf(path, "%s%s", XMC0_PATH, folder);
+		break;
+
 	case STORAGE_UX0:
 		sprintf(path, "%s%s", UX0_PATH, folder);
 		break;

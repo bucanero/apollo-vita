@@ -99,6 +99,10 @@ static int get_appdb_title(sqlite3* db, const char* titleid, char* name)
 	strncpy(name, (const char*) sqlite3_column_text(res, 1), 0x80);
 	sqlite3_free(query);
 
+	query = strchr(name, '\n');
+	if (query)
+		*query = ' ';
+
 	return 1;
 }
 
@@ -279,13 +283,13 @@ static void _createOptions(code_entry_t* code, const char* name, char value)
 	code->options = _initOptions(1);
 
 	optval = malloc(sizeof(option_value_t));
-	asprintf(&optval->name, "%s (%s)", name, UMA0_PATH);
-	asprintf(&optval->value, "%c%c", value, STORAGE_UMA0);
+	asprintf(&optval->name, "%s (%s)", name, UX0_PATH);
+	asprintf(&optval->value, "%c%c", value, STORAGE_UX0);
 	list_append(code->options[0].opts, optval);
 
 	optval = malloc(sizeof(option_value_t));
-	asprintf(&optval->name, "%s (%s)", name, UX0_PATH);
-	asprintf(&optval->value, "%c%c", value, STORAGE_UX0);
+	asprintf(&optval->name, "%s (%s)", name, UMA0_PATH);
+	asprintf(&optval->value, "%c%c", value, STORAGE_UMA0);
 	list_append(code->options[0].opts, optval);
 
 	if (dir_exists(IMC0_PATH) == SUCCESS)
@@ -293,6 +297,14 @@ static void _createOptions(code_entry_t* code, const char* name, char value)
 		optval = malloc(sizeof(option_value_t));
 		asprintf(&optval->name, "%s (%s)", name, IMC0_PATH);
 		asprintf(&optval->value, "%c%c", value, STORAGE_IMC0);
+		list_append(code->options[0].opts, optval);
+	}
+
+	if (dir_exists(XMC0_PATH) == SUCCESS)
+	{
+		optval = malloc(sizeof(option_value_t));
+		asprintf(&optval->name, "%s (%s)", name, XMC0_PATH);
+		asprintf(&optval->value, "%c%c", value, STORAGE_XMC0);
 		list_append(code->options[0].opts, optval);
 	}
 
@@ -418,10 +430,6 @@ static void _addBackupCommands(save_entry_t* item)
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_ZIP " Export save game to Zip", CMD_CODE_NULL);
 	_createOptions(cmd, "Export Zip to Backup Storage", CMD_EXPORT_ZIP_USB);
-	optval = malloc(sizeof(option_value_t));
-	asprintf(&optval->name, "Export Zip to User Storage (ux0:data/)");
-	asprintf(&optval->value, "%c%c", CMD_EXPORT_ZIP_USB, STORAGE_UX0);
-	list_append(cmd->options[0].opts, optval);
 	list_append(item->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " Export decrypted save files", CMD_CODE_NULL);

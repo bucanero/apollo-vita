@@ -14,6 +14,7 @@
 #define UX0_PATH                "ux0:data/"
 #define UMA0_PATH               "uma0:data/"
 #define IMC0_PATH               "imc0:data/"
+#define XMC0_PATH               "xmc0:data/"
 #define USB_PATH                "%s:data/savegames/"
 #define USER_PATH_HDD           "ur0:shell/db/app.db"
 
@@ -44,6 +45,7 @@ enum storage_enum
 {
     STORAGE_UMA0,
     STORAGE_IMC0,
+    STORAGE_XMC0,
     STORAGE_UX0,
 };
 

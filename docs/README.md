@@ -158,12 +158,17 @@ You need to have installed:
 - [libZip](https://github.com/vitasdk/packages/tree/master/libzip) library
 - [dbglogger](https://github.com/bucanero/dbglogger) library
 
+> [!TIP]
+> **Developers:** You can find detailed technical documentation about the project in [this Wiki page](https://deepwiki.com/bucanero/apollo-vita/).
+
 Run `cmake . && make` to create a release build. If you want to include the [latest save patches](https://github.com/bucanero/apollo-patches) in your `.vpk` file, run `make createzip`.
 
 To enable debug logging, pass `-DAPOLLO_ENABLE_LOGGING=ON` argument to cmake. The application will send debug messages to
 UDP multicast address `239.255.0.100:30000`. To receive them you can use [socat][] on your computer:
 
-    $ socat udp4-recv:30000,ip-add-membership=239.255.0.100:0.0.0.0 -
+```bash
+$ socat udp4-recv:30000,ip-add-membership=239.255.0.100:0.0.0.0 -
+```
 
 You can also set the `PSVITAIP` environment variable to your Vita's IP address, and use `make send` to upload `eboot.bin` directly to the `ux0:app/NP0APOLLO` folder.
 

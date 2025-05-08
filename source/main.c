@@ -587,6 +587,7 @@ s32 main(s32 argc, const char* argv[])
 	if (!initialize_vitashell_modules())
 		notification("Error loading VitaShell modules!");
 
+	mkdirs(APOLLO_PATH);
 	mkdirs(APOLLO_DATA_PATH);
 	mkdirs(APOLLO_LOCAL_CACHE);
 	
