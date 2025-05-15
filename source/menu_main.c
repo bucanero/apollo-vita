@@ -467,7 +467,7 @@ static void doMainMenu(void)
 		return;
 	}
 
-	else if(vitaPadGetButtonPressed(SCE_CTRL_CIRCLE) && show_dialog(DIALOG_TYPE_YESNO, "Exit to XMB?"))
+	else if(vitaPadGetButtonPressed(SCE_CTRL_CIRCLE) && show_dialog(DIALOG_TYPE_YESNO, "Exit to the LiveArea?"))
 		close_app = 1;
 	
 	Draw_MainMenu();
