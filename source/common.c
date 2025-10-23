@@ -30,6 +30,28 @@ int is_char_letter(char c)
 	return FAILED;
 }
 
+char * safe_strncpy(char *dst, const char* src, size_t size)
+{
+    strncpy(dst, src, size);
+    dst[size - 1] = '\0';
+    return dst;
+}
+
+char * rstrip(char *s)
+{
+    char *p = s + strlen(s);
+    while (p > s && isspace(*--p))
+        *p = '\0';
+    return s;
+}
+
+char * lskip(const char *s)
+{
+    while (*s != '\0' && isspace(*s))
+        ++s;
+    return (char *)s;
+}
+
 //----------------------------------------
 //FILE UTILS
 //----------------------------------------

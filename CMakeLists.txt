@@ -69,7 +69,6 @@ add_resources(apollo_res ${res_files})
 add_executable(${PROJECT_NAME}
   ${apollo_res}
   source/common.c
-  source/config.c
   source/dialog.c
   source/draw.c
   source/exec_cmd.c

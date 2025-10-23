@@ -9,6 +9,9 @@
 //----------------------------------------
 int is_char_integer(char c);
 int is_char_letter(char c);
+char * safe_strncpy(char *dst, const char* src, size_t size);
+char * rstrip(char *s);
+char * lskip(const char *s);
 
 //----------------------------------------
 //FILE UTILS
