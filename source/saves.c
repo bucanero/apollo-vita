@@ -226,7 +226,7 @@ static char* endsWith(const char * a, const char * b)
  *	path:			Path to file
  * Return:			Pointer to the newly allocated buffer
  */
-char * readTextFile(const char * path, long* size)
+char * readTextFile(const char * path)
 {
 	FILE *f = fopen(path, "rb");
 
@@ -247,8 +247,6 @@ char * readTextFile(const char * path, long* size)
 	fclose(f);
 
 	string[fsize] = 0;
-	if (size)
-		*size = fsize;
 
 	return string;
 }
@@ -584,7 +582,7 @@ int ReadCodes(save_entry_t * save)
 		addVitaCommands(save);
 
 	snprintf(filePath, sizeof(filePath), APOLLO_DATA_PATH "%s.savepatch", save->title_id);
-	if ((buffer = readTextFile(filePath, NULL)) == NULL)
+	if ((buffer = readTextFile(filePath)) == NULL)
 		goto skip_end;
 
 	code = _createCmdCode(PATCH_NULL, "----- " UTF8_CHAR_STAR " Cheats " UTF8_CHAR_STAR " -----", CMD_CODE_NULL);	
@@ -940,59 +938,40 @@ int ReadOnlineSaves(save_entry_t * game)
 			return 0;
 	}
 
-	long fsize;
-	char *data = readTextFile(path, &fsize);
+	char *data = readTextFile(path);
 	if (!data)
 		return 0;
 	
-	char *ptr = data;
-	char *end = data + fsize;
-
 	game->codes = list_alloc();
 
-	while (ptr < end && *ptr)
+	for (char *ptr, *line = strtok(data, "\r\n"); line; line = strtok(NULL, "\r\n"))
 	{
-		char *tmp, *content = ptr;
+		// skip invalid lines
+		if ((ptr = strchr(line, '=')) == NULL)
+			continue;
 
-		while (ptr < end && *ptr != '\n' && *ptr != '\r')
-		{
-			ptr++;
-		}
 		*ptr++ = 0;
 
-		if ((tmp = strchr(content, '=')) != NULL)
-		{
-			*tmp++ = 0;
-			snprintf(path, sizeof(path), CHAR_ICON_ZIP " %s", tmp);
-			item = _createCmdCode(PATCH_COMMAND, path, CMD_CODE_NULL);
-			item->file = strdup(content);
+		snprintf(path, sizeof(path), CHAR_ICON_ZIP " %s", ptr);
+		item = _createCmdCode(PATCH_COMMAND, path, CMD_CODE_NULL);
+		item->file = strdup(line);
 
-			_createOptions(item, "Download to Backup Storage", CMD_DOWNLOAD_USB);
-			optval = malloc(sizeof(option_value_t));
-			if (apollo_config.online_opt && game->flags & (SAVE_FLAG_PSV|SAVE_FLAG_PSP))
-			{
-				asprintf(&optval->name, "Download to User Storage (ux0:%s/)", (item->flags & SAVE_FLAG_PSP) ? "pspemu" : "user");
-				asprintf(&optval->value, "%c%c", CMD_DOWNLOAD_HDD, STORAGE_UX0);
-			}
-			else
-			{
-				optval->name = strdup("Download to User Storage (ux0:data/)");
-				asprintf(&optval->value, "%c%c", CMD_DOWNLOAD_USB, STORAGE_UX0);
-			}
-			list_append(item->options[0].opts, optval);
-			list_append(game->codes, item);
-
-			LOG("[%s%s] %s", game->path, item->file, item->name + 1);
-		}
-
-		if (ptr < end && *ptr == '\r')
+		_createOptions(item, "Download to Backup Storage", CMD_DOWNLOAD_USB);
+		optval = malloc(sizeof(option_value_t));
+		if (apollo_config.online_opt && game->flags & (SAVE_FLAG_PSV|SAVE_FLAG_PSP))
 		{
-			ptr++;
+			asprintf(&optval->name, "Download to User Storage (ux0:%s/)", (item->flags & SAVE_FLAG_PSP) ? "pspemu" : "user");
+			asprintf(&optval->value, "%c%c", CMD_DOWNLOAD_HDD, STORAGE_UX0);
 		}
-		if (ptr < end && *ptr == '\n')
+		else
 		{
-			ptr++;
+			optval->name = strdup("Download to User Storage (ux0:data/)");
+			asprintf(&optval->value, "%c%c", CMD_DOWNLOAD_USB, STORAGE_UX0);
 		}
+		list_append(item->options[0].opts, optval);
+		list_append(game->codes, item);
+
+		LOG("[%s%s] %s", game->path, item->file, item->name + 1);
 	}
 
 	free(data);
@@ -1710,43 +1689,24 @@ static void _ReadOnlineListEx(const char* urlPath, uint16_t flag, list_t *list)
 			return;
 	}
 	
-	long fsize;
-	char *data = readTextFile(path, &fsize);
+	char *data = readTextFile(path);
 	if (!data)
 		return;
 	
-	char *ptr = data;
-	char *end = data + fsize;
-
-	while (ptr < end && *ptr)
+	for (char *ptr, *line = strtok(data, "\r\n"); line; line = strtok(NULL, "\r\n"))
 	{
-		char *tmp, *content = ptr;
+		// skip invalid lines
+		if ((ptr = strchr(line, '=')) == NULL)
+			continue;
 
-		while (ptr < end && *ptr != '\n' && *ptr != '\r')
-		{
-			ptr++;
-		}
 		*ptr++ = 0;
 
-		if ((tmp = strchr(content, '=')) != NULL)
-		{
-			*tmp++ = 0;
-			item = _createSaveEntry(flag | SAVE_FLAG_ONLINE, tmp);
-			item->title_id = strdup(content);
-			asprintf(&item->path, "%s%s/", urlPath, item->title_id);
+		item = _createSaveEntry(flag | SAVE_FLAG_ONLINE, ptr);
+		item->title_id = strdup(line);
+		asprintf(&item->path, "%s%s/", urlPath, item->title_id);
 
-			LOG("+ [%s] %s", item->title_id, item->name);
-			list_append(list, item);
-		}
-
-		if (ptr < end && *ptr == '\r')
-		{
-			ptr++;
-		}
-		if (ptr < end && *ptr == '\n')
-		{
-			ptr++;
-		}
+		LOG("+ [%s] %s", item->title_id, item->name);
+		list_append(list, item);
 	}
 
 	free(data);

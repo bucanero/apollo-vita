@@ -26,9 +26,9 @@ extern const uint8_t _binary_data_sgkeydumper_plugin_bin_size;
 #define SGKEY_DUMP_PLUGIN_TEXT       "ms0:/seplugins/SGKeyDumper.prx"
 
 char *strcasestr(const char *, const char *);
-static char * db_opt[] = {"Online DB", "FTP Server", NULL};
-static char* ext_src[MAX_USB_DEVICES+1] = {"ux0", "uma0", "imc0", "xmc0", "ur0", NULL};
-static char* sort_opt[] = {"Disabled", "by Name", "by Title ID", "by Type", NULL};
+static const char* db_opt[] = {"Online DB", "FTP Server", NULL};
+static const char* ext_src[MAX_USB_DEVICES+1] = {"ux0", "uma0", "imc0", "xmc0", "ur0", NULL};
+static const char* sort_opt[] = {"Disabled", "by Name", "by Title ID", "by Type", NULL};
 
 static void log_callback(int sel);
 static void sort_callback(int sel);
@@ -160,7 +160,7 @@ static void ftp_url_callback(int sel)
 	// test the connection
 	init_loading_screen("Testing connection...");
 	ret = http_download(apollo_config.ftp_url, "apollo.txt", APOLLO_LOCAL_CACHE "users.ftp", 0);
-	char *data = ret ? readTextFile(APOLLO_LOCAL_CACHE "users.ftp", NULL) : NULL;
+	char *data = ret ? readTextFile(APOLLO_LOCAL_CACHE "users.ftp") : NULL;
 	if (!data)
 		data = strdup("; Apollo Save Tool (" APOLLO_PLATFORM ") v" APOLLO_VERSION "\r\n");
 
@@ -227,15 +227,11 @@ void update_callback(int sel)
 		return;
 	}
 
-	char *buffer;
-	long size = 0;
-
-	buffer = readTextFile(APOLLO_LOCAL_CACHE "ver.check", &size);
-
+	char *buffer = readTextFile(APOLLO_LOCAL_CACHE "ver.check");
 	if (!buffer)
 		return;
 
-	LOG("received %ld bytes", size);
+	LOG("received %ld bytes", strlen(buffer));
 
 	static const char find[] = "\"name\":\"Apollo Save Tool v";
 	const char* start = strstr(buffer, find);

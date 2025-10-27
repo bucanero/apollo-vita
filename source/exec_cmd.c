@@ -1515,7 +1515,7 @@ static void uploadSaveFTP(const save_entry_t* save)
 	ret &= ftp_upload(APOLLO_LOCAL_CACHE "sfv.ftp", remote, "checksum.sfv", 1);
 
 	unlink_secure(local);
-	tmp = readTextFile(APOLLO_LOCAL_CACHE "games.ftp", NULL);
+	tmp = readTextFile(APOLLO_LOCAL_CACHE "games.ftp");
 	if (!tmp)
 		tmp = strdup("");
 

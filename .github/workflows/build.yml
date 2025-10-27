@@ -55,6 +55,7 @@ jobs:
         ./vdpm un7zip
         ./vdpm libxml2
         ./vdpm libxmp-lite
+        ./vdpm mini18n
 
     - name: Install zip
       run: |
