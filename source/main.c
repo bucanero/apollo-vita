@@ -18,6 +18,7 @@
 #include <psp2/kernel/processmgr.h>
 #include <psp2/kernel/modulemgr.h>
 #include <libxmp-lite/xmp.h>
+#include <mini18n.h>
 
 #include "saves.h"
 #include "sfo.h"
@@ -110,7 +111,7 @@ const char * menu_pad_help[TOTAL_MENU_IDS] = { NULL,												//Main
 */
 save_list_t hdd_saves = {
     .id = MENU_HDD_SAVES,
-    .title = "Internal Saves",
+    .title = NULL,
     .list = NULL,
     .path = "",
     .ReadList = &ReadUserList,
@@ -123,7 +124,7 @@ save_list_t hdd_saves = {
 */
 save_list_t usb_saves = {
     .id = MENU_USB_SAVES,
-    .title = "External Saves",
+    .title = NULL,
     .list = NULL,
     .path = "",
     .ReadList = &ReadUsbList,
@@ -136,7 +137,7 @@ save_list_t usb_saves = {
 */
 save_list_t trophies = {
     .id = MENU_TROPHIES,
-    .title = "Trophies",
+    .title = NULL,
     .list = NULL,
     .path = "",
     .ReadList = &ReadTrophyList,
@@ -149,7 +150,7 @@ save_list_t trophies = {
 */
 save_list_t online_saves = {
     .id = MENU_ONLINE_DB,
-    .title = "Online Database",
+    .title = NULL,
     .list = NULL,
     .path = ONLINE_URL,
     .ReadList = &ReadOnlineList,
@@ -162,7 +163,7 @@ save_list_t online_saves = {
 */
 save_list_t user_backup = {
     .id = MENU_USER_BACKUP,
-    .title = "User Tools",
+    .title = NULL,
     .list = NULL,
     .path = "",
     .ReadList = &ReadBackupList,
@@ -175,7 +176,7 @@ save_list_t user_backup = {
 */
 save_list_t vmc_saves = {
     .id = MENU_VMC_SAVES,
-    .title = "Virtual Memory Card",
+    .title = NULL,
     .list = NULL,
     .path = "",
     .ReadList = &ReadVmcList,
@@ -397,6 +398,22 @@ void update_vmc_path(char* path)
 	path[0] = 0;
 }
 
+static void initLocalization(void)
+{
+	char path[256];
+
+	snprintf(path, sizeof(path), APOLLO_DATA_PATH "lang_%s.po", get_user_language());
+	if (mini18n_set_locale(path) != SUCCESS)
+		LOG("Localization file not found: %s", path);
+
+	hdd_saves.title = _("Internal Saves");
+	usb_saves.title = _("External Saves");
+	trophies.title = _("Trophies");
+	user_backup.title = _("User Tools");
+	online_saves.title = _("Online Database");
+	vmc_saves.title = _("Virtual Memory Card");
+}
+
 static void registerSpecialChars(void)
 {
 	// Register save tags
@@ -430,7 +447,7 @@ static void registerSpecialChars(void)
 static void terminate(void)
 {
 	LOG("Exiting...");
-
+	mini18n_close();
 	sceAudioOutReleasePort(audio);
 	sceKernelExitProcess(0);
 }

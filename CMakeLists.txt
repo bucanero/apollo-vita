@@ -118,6 +118,7 @@ target_link_libraries(${PROJECT_NAME}
   un7zip
   stdc++
   xmp-lite
+  mini18n
   xml2
   bz2
   z
