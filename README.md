@@ -4,6 +4,7 @@
 [![Build app package](https://github.com/bucanero/apollo-vita/actions/workflows/build.yml/badge.svg)](https://github.com/bucanero/apollo-vita/actions/workflows/build.yml)
 ![PSV](https://img.shields.io/badge/-PS%20Vita-003791?style=flat&logo=PlayStation)
 [![Twitter](https://img.shields.io/twitter/follow/dparrino?label=Follow)](https://twitter.com/dparrino)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/bucanero/apollo-vita)
 
 **Apollo Save Tool** is an application to manage save-game files on the PlayStation Vita.
 
