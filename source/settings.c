@@ -308,6 +308,7 @@ static void log_callback(int sel)
 	}
 
 	dbglogger_init_mode(FILE_LOGGER, APOLLO_PATH "apollo.log", 1);
+	show_message("%s\n\n%s", _("Debug Logging Enabled"), APOLLO_PATH "apollo.log");
 }
 
 int save_app_settings(app_config_t* config)
@@ -538,7 +539,7 @@ int install_fuseid_dumper(void)
 		return 0;
 
 	if (un7z_ExtractAsset(&_binary_data_fuse_dumper_eboot_bin_start, (int) &_binary_data_fuse_dumper_eboot_bin_size,
-		FUSEID_EBOOT_PBP_PATH, NULL, UN7Z_IN_BUF_SIZE) != SZ_OK)
+		FUSEID_EBOOT_PBP_PATH, NULL, UN7Z_IN_BUF_SIZE) != SUCCESS)
 	{
 		LOG("Error! Can't create EBOOT.PBP");
 		return 0;
