@@ -1046,43 +1046,7 @@ void exportLicenseZRif(const char* fname, const char* exp_path)
 	else
 		show_message(_("Error! zRIF not exported!"));
 }
-/*
-void importLicenses(const char* fname, const char* exdata_path)
-{
-	DIR *d;
-	struct dirent *dir;
-	char lic_path[256];
 
-	if (dir_exists(exdata_path) != SUCCESS)
-	{
-		show_message("Error! Import folder is not available:\n%s", exdata_path);
-		return;
-	}
-
-	snprintf(lic_path, sizeof(lic_path), EXDATA_PATH_HDD, apollo_config.user_id);
-	d = opendir(exdata_path);
-	if (!d)
-		return;
-
-    init_loading_screen("Importing user licenses...");
-
-	LOG("Importing RAPs from folder '%s'...", exdata_path);
-	while ((dir = readdir(d)) != NULL)
-	{
-		if (strcmp(dir->d_name, ".") != 0 && strcmp(dir->d_name, "..") != 0 &&
-			(!fname || (strcmp(dir->d_name, fname)) == 0) &&
-			strcasecmp(strrchr(dir->d_name, '.'), ".rap") == 0)
-		{
-			LOG("Importing %s", dir->d_name);
-//			rap2rif((u8*) apollo_config.idps, exdata_path, dir->d_name, lic_path);
-		}
-	}
-	closedir(d);
-
-    stop_loading_screen();
-	show_message("Files successfully copied to:\n%s", lic_path);
-}
-*/
 static int apply_sfo_patches(save_entry_t* entry, sfo_patch_t* patch)
 {
     option_value_t* optval;
