@@ -135,7 +135,7 @@ The Online Database project aims to [add more save-games](https://github.com/buc
 
 # Credits
 
-* [Bucanero](http://www.bucanero.com.ar/): [Project developer](https://github.com/bucanero)
+* [Bucanero](https://github.com/bucanero): [Project developer](https://bucanero.github.io/apollo-vita/)
 
 ## Acknowledgments
 
@@ -157,6 +157,7 @@ You need to have installed:
 - [cURL](https://github.com/vitasdk/packages/tree/master/curl) library
 - [libxmp-lite](https://github.com/vitasdk/packages/tree/master/libxmp-lite) library
 - [libZip](https://github.com/vitasdk/packages/tree/master/libzip) library
+- [mini18n](https://github.com/bucanero/mini18n) library
 - [dbglogger](https://github.com/bucanero/dbglogger) library
 
 > [!TIP]
