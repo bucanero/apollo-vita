@@ -346,6 +346,7 @@ static void SetMenu(int id)
 			break;
 
 		case MENU_SAVE_DETAILS: //Save Detail View Menu
+			menu_old_sel[MENU_SAVE_DETAILS] = 0;
 			if (apollo_config.doAni)
 				Draw_CheatsMenu_View_Ani(selected_entry->name);
 			break;
