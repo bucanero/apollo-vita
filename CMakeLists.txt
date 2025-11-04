@@ -134,6 +134,7 @@ vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} ${PROJECT_NAME}.self
   FILE sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
   FILE data/appdata.zip cache/appdata.zip
   FILE data/langs/lang_es.po data/lang_es.po
+  FILE data/langs/lang_ru.po data/lang_ru.po
   FILE libs/user.suprx sce_module/user.suprx
   FILE libs/kernel.skprx sce_module/kernel.skprx
 )
