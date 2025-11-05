@@ -20,9 +20,10 @@ enum app_option_type
 
 typedef struct
 {
-	char * name;
-	char * * options;
-	int type;
+	const char * name;
+	const char * * options;
+	enum app_option_type type;
+	uint8_t spacer;
 	uint8_t * value;
 	void(*callback)(int);
 } menu_option_t;

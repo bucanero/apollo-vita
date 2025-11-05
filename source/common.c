@@ -7,6 +7,8 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <zlib.h>
+#include <psp2/apputil.h>
+#include <psp2/system_param.h>
 
 #include "types.h"
 #include "common.h"
@@ -28,6 +30,28 @@ int is_char_letter(char c)
 	if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
 		return SUCCESS;
 	return FAILED;
+}
+
+char * safe_strncpy(char *dst, const char* src, size_t size)
+{
+    strncpy(dst, src, size);
+    dst[size - 1] = '\0';
+    return dst;
+}
+
+char * rstrip(char *s)
+{
+    char *p = s + strlen(s);
+    while (p > s && isspace(*--p))
+        *p = '\0';
+    return s;
+}
+
+char * lskip(const char *s)
+{
+    while (*s != '\0' && isspace(*s))
+        ++s;
+    return (char *)s;
 }
 
 //----------------------------------------
@@ -221,4 +245,74 @@ int clean_directory(const char* inputdir, const char* filter)
 	closedir(d);
 
     return SUCCESS;
+}
+
+const char * get_user_language(void)
+{
+    int language;
+
+    if(sceAppUtilSystemParamGetInt(SCE_SYSTEM_PARAM_ID_LANG, &language) < 0)
+        return "en";
+
+    switch (language)
+    {
+    case SCE_SYSTEM_PARAM_LANG_JAPANESE:             //  0   Japanese
+        return "ja";
+
+    case SCE_SYSTEM_PARAM_LANG_ENGLISH_US:           //  1   English (United States)
+    case SCE_SYSTEM_PARAM_LANG_ENGLISH_GB:           // 18   English (United Kingdom)
+        return "en";
+
+    case SCE_SYSTEM_PARAM_LANG_FRENCH:               //  2   French
+        return "fr";
+
+    case SCE_SYSTEM_PARAM_LANG_SPANISH:              //  3   Spanish
+        return "es";
+
+    case SCE_SYSTEM_PARAM_LANG_GERMAN:               //  4   German
+        return "de";
+
+    case SCE_SYSTEM_PARAM_LANG_ITALIAN:              //  5   Italian
+        return "it";
+
+    case SCE_SYSTEM_PARAM_LANG_DUTCH:                //  6   Dutch
+        return "nl";
+
+    case SCE_SYSTEM_PARAM_LANG_RUSSIAN:              //  8   Russian
+        return "ru";
+
+    case SCE_SYSTEM_PARAM_LANG_KOREAN:               //  9   Korean
+        return "ko";
+
+    case SCE_SYSTEM_PARAM_LANG_CHINESE_T:            // 10   Chinese (traditional)
+    case SCE_SYSTEM_PARAM_LANG_CHINESE_S:            // 11   Chinese (simplified)
+        return "zh";
+
+    case SCE_SYSTEM_PARAM_LANG_FINNISH:              // 12   Finnish
+        return "fi";
+
+    case SCE_SYSTEM_PARAM_LANG_SWEDISH:              // 13   Swedish
+        return "sv";
+
+    case SCE_SYSTEM_PARAM_LANG_DANISH:               // 14   Danish
+        return "da";
+
+    case SCE_SYSTEM_PARAM_LANG_NORWEGIAN:            // 15   Norwegian
+        return "no";
+
+    case SCE_SYSTEM_PARAM_LANG_POLISH:               // 16   Polish
+        return "pl";
+
+    case SCE_SYSTEM_PARAM_LANG_PORTUGUESE_PT:        //  7   Portuguese (Portugal)
+    case SCE_SYSTEM_PARAM_LANG_PORTUGUESE_BR:        // 17   Portuguese (Brazil)
+        return "pt";
+
+    case SCE_SYSTEM_PARAM_LANG_TURKISH:              // 19   Turkish
+        return "tr";
+
+    default:
+        break;
+    }
+
+    return "en";
 }

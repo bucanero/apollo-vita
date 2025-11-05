@@ -4,6 +4,7 @@
 [![Build app package](https://github.com/bucanero/apollo-vita/actions/workflows/build.yml/badge.svg)](https://github.com/bucanero/apollo-vita/actions/workflows/build.yml)
 ![PSV](https://img.shields.io/badge/-PS%20Vita-003791?style=flat&logo=PlayStation)
 [![Twitter](https://img.shields.io/twitter/follow/dparrino?label=Follow)](https://twitter.com/dparrino)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/bucanero/apollo-vita)
 
 **Apollo Save Tool** is an application to manage save-game files on the PlayStation Vita.
 
@@ -19,6 +20,7 @@ This homebrew app allows you to download, unlock, patch and resign save-game fil
 * **Standalone:** no computer required, everything happens on the PS Vita.
 * **Automatic settings:** auto-detection of User ID, and Account-ID settings.
 * **Multi-format:** supports PS Vita saves, PSP saves (Adrenaline), and PS1 saves.
+* **Localization support:** English, Italian, Japanese, Russian, Spanish.
 
 ## Vita & PSP Save Management
 
@@ -134,7 +136,7 @@ The Online Database project aims to [add more save-games](https://github.com/buc
 
 # Credits
 
-* [Bucanero](http://www.bucanero.com.ar/): [Project developer](https://github.com/bucanero)
+* [Bucanero](https://github.com/bucanero): [Project developer](https://bucanero.github.io/apollo-vita/)
 
 ## Acknowledgments
 
@@ -146,6 +148,12 @@ The Online Database project aims to [add more save-games](https://github.com/buc
 * [aldostools](https://aldostools.org/): [Bruteforce Save Data](https://bruteforcesavedata.forumms.net/)
 * [Nobody/Wild Light](https://github.com/nobodo): [Background music track](https://github.com/bucanero/apollo-vita/blob/main/data/haiku.s3m)
 
+## Translators
+
+Apollo supports multiple languages for its user interface. Thanks to the following contributors for their help with translations:
+
+- [Akela](https://x.com/Akela_1979) (Russian), [Bucanero](https://github.com/bucanero) (Spanish), [TheheroGAC](https://x.com/TheheroGAC) (Italian), [yyoossk](https://x.com/Cloud0835) (Japanese)
+
 # Building
 
 You need to have installed:
@@ -156,6 +164,7 @@ You need to have installed:
 - [cURL](https://github.com/vitasdk/packages/tree/master/curl) library
 - [libxmp-lite](https://github.com/vitasdk/packages/tree/master/libxmp-lite) library
 - [libZip](https://github.com/vitasdk/packages/tree/master/libzip) library
+- [mini18n](https://github.com/bucanero/mini18n) library
 - [dbglogger](https://github.com/bucanero/dbglogger) library
 
 > [!TIP]

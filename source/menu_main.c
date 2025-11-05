@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <string.h>
+#include <mini18n.h>
 
 #include "saves.h"
 #include "menu.h"
@@ -37,7 +38,10 @@ void initMenuOptions(void)
 {
 	menu_options_maxopt = 0;
 	while (menu_options[menu_options_maxopt].name)
+	{
+		menu_options[menu_options_maxopt].name = mini18n(menu_options[menu_options_maxopt].name);
 		menu_options_maxopt++;
+	}
 	
 	menu_options_maxsel = (int *)calloc(menu_options_maxopt, sizeof(int));
 	
@@ -46,7 +50,10 @@ void initMenuOptions(void)
 		if (menu_options[i].type == APP_OPTION_LIST)
 		{
 			while (menu_options[i].options[menu_options_maxsel[i]])
+			{
+				menu_options[i].options[menu_options_maxsel[i]] = mini18n(menu_options[i].options[menu_options_maxsel[i]]);
 				menu_options_maxsel[i]++;
+			}
 		}
 	}
 }
@@ -76,7 +83,7 @@ static int ReloadUserSaves(save_list_t* save_list)
 
 	if (!save_list->list)
 	{
-		show_message("No save-games found");
+		show_message(_("No save-games found"));
 		return 0;
 	}
 
@@ -90,7 +97,30 @@ static code_entry_t* LoadRawPatch(void)
 
 	centry->name = strdup(selected_entry->title_id);
 	snprintf(patchPath, sizeof(patchPath), APOLLO_DATA_PATH "%s.savepatch", selected_entry->title_id);
-	centry->codes = readTextFile(patchPath, NULL);
+	centry->codes = readTextFile(patchPath);
+
+	return centry;
+}
+
+static code_entry_t* LoadOnlineSaveDetails(void)
+{
+	code_entry_t* centry = calloc(1, sizeof(code_entry_t));
+	centry->name = strdup(selected_entry->title_id);
+	centry->file = strdup(selected_centry->name+2);
+
+	for (int i = 55, len = strlen(centry->file); i < len; i += 55)
+		for (int j = i; j < len; j++)
+			if (centry->file[j] == ' ')
+			{
+				centry->file[j] = '\n';
+				i = j;
+				break;
+			}
+
+	asprintf(&centry->codes, "Game: %s\nTitle ID: %s\nFile: %s\n%s%s\n----- Details -----\n%s\n", 
+		selected_entry->name, selected_entry->title_id, selected_centry->file, selected_entry->path, selected_centry->file, centry->file);
+	free(centry->file);
+	centry->file = NULL;
 
 	return centry;
 }
@@ -268,7 +298,8 @@ static void SetMenu(int id)
 
 		case MENU_PATCHES: //Cheat Selection Menu
 			//if entering from game list, don't keep index, otherwise keep
-			if (menu_id == MENU_USB_SAVES || menu_id == MENU_HDD_SAVES || menu_id == MENU_ONLINE_DB || menu_id == MENU_TROPHIES || menu_id == MENU_VMC_SAVES)
+			if (menu_id == MENU_USB_SAVES || menu_id == MENU_HDD_SAVES || menu_id == MENU_ONLINE_DB || 
+				menu_id == MENU_USER_BACKUP || menu_id == MENU_TROPHIES || menu_id == MENU_VMC_SAVES)
 				menu_old_sel[MENU_PATCHES] = 0;
 
 			char iconfile[256] = {0};
@@ -311,10 +342,11 @@ static void SetMenu(int id)
 		case MENU_PATCH_VIEW: //Cheat View Menu
 			menu_old_sel[MENU_PATCH_VIEW] = 0;
 			if (apollo_config.doAni)
-				Draw_CheatsMenu_View_Ani("Patch view");
+				Draw_CheatsMenu_View_Ani(_("Patch view"));
 			break;
 
 		case MENU_SAVE_DETAILS: //Save Detail View Menu
+			menu_old_sel[MENU_SAVE_DETAILS] = 0;
 			if (apollo_config.doAni)
 				Draw_CheatsMenu_View_Ani(selected_entry->name);
 			break;
@@ -415,7 +447,7 @@ static void doSaveMenu(save_list_t * save_list)
 
 		if (!selected_entry->codes && !save_list->ReadCodes(selected_entry))
 		{
-			show_message("No data found in folder:\n%s", selected_entry->path);
+			show_message("%s\n%s", _("No data found in folder:"), selected_entry->path);
 			return;
 		}
 
@@ -467,7 +499,7 @@ static void doMainMenu(void)
 		return;
 	}
 
-	else if(vitaPadGetButtonPressed(SCE_CTRL_CIRCLE) && show_dialog(DIALOG_TYPE_YESNO, "Exit to XMB?"))
+	else if(vitaPadGetButtonPressed(SCE_CTRL_CIRCLE) && show_dialog(DIALOG_TYPE_YESNO, _("Exit to XMB?")))
 		close_app = 1;
 	
 	Draw_MainMenu();
@@ -607,7 +639,7 @@ static void doHexEditor(void)
 
 	else if (vitaPadGetButtonPressed(SCE_CTRL_CIRCLE))
 	{
-		if (show_dialog(DIALOG_TYPE_YESNO, "Save changes to %s?", strrchr(hex_data.filepath, '/') + 1) &&
+		if (show_dialog(DIALOG_TYPE_YESNO, _("Save changes to %s?"), strrchr(hex_data.filepath, '/') + 1) &&
 			(write_buffer(hex_data.filepath, hex_data.data, hex_data.size) == SUCCESS))
 		{
 			option_value_t* optval = list_get_item(selected_centry->options[option_index].opts, menu_sel);
@@ -666,7 +698,7 @@ static void doPatchViewMenu(void)
 		return;
 	}
 	
-	Draw_CheatsMenu_View("Patch view");
+	Draw_CheatsMenu_View(_("Patch view"));
 }
 
 static void doCodeOptionsMenu(void)
@@ -702,7 +734,7 @@ static void doCodeOptionsMenu(void)
 				snprintf(hex_data.filepath, sizeof(hex_data.filepath), APOLLO_USER_PATH "%s/%s", apollo_config.user_id, selected_entry->dir_name,  optval->name);
 				if (read_buffer(hex_data.filepath, &hex_data.data, &hex_data.size) < 0)
 				{
-					show_message("Unable to load\n%s", hex_data.filepath);
+					show_message("%s\n%s", _("Failed to load:"), hex_data.filepath);
 					SetMenu(last_menu_id[MENU_CODE_OPTIONS]);
 					return;
 				}
@@ -811,6 +843,13 @@ static void doPatchMenu(void)
 	else if (vitaPadGetButtonPressed(SCE_CTRL_TRIANGLE))
 	{
 		selected_centry = list_get_item(selected_entry->codes, menu_sel);
+
+		if (selected_entry->flags & SAVE_FLAG_ONLINE)
+		{
+			selected_centry = LoadOnlineSaveDetails();
+			SetMenu(MENU_SAVE_DETAILS);
+			return;
+		}
 
 		if (selected_centry->type == PATCH_GAMEGENIE || selected_centry->type == PATCH_BSD ||
 			selected_centry->type == PATCH_TROP_LOCK || selected_centry->type == PATCH_TROP_UNLOCK)

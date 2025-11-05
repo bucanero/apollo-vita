@@ -69,7 +69,6 @@ add_resources(apollo_res ${res_files})
 add_executable(${PROJECT_NAME}
   ${apollo_res}
   source/common.c
-  source/config.c
   source/dialog.c
   source/draw.c
   source/exec_cmd.c
@@ -119,6 +118,7 @@ target_link_libraries(${PROJECT_NAME}
   un7zip
   stdc++
   xmp-lite
+  mini18n
   xml2
   bz2
   z
@@ -133,6 +133,10 @@ vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} ${PROJECT_NAME}.self
   FILE sce_sys/livearea/contents/startup.png sce_sys/livearea/contents/startup.png
   FILE sce_sys/livearea/contents/template.xml sce_sys/livearea/contents/template.xml
   FILE data/appdata.zip cache/appdata.zip
+  FILE data/langs/lang_es.po data/lang_es.po
+  FILE data/langs/lang_it.po data/lang_it.po
+  FILE data/langs/lang_ja.po data/lang_ja.po
+  FILE data/langs/lang_ru.po data/lang_ru.po
   FILE libs/user.suprx sce_module/user.suprx
   FILE libs/kernel.skprx sce_module/kernel.skprx
 )

@@ -217,7 +217,7 @@ typedef struct
 {
     list_t * list;
     char path[128];
-    char* title;
+    const char* title;
     uint8_t id;
     void (*UpdatePath)(char *);
     int (*ReadCodes)(save_entry_t *);
@@ -231,7 +231,7 @@ list_t * ReadBackupList(const char* userPath);
 list_t * ReadTrophyList(const char* userPath);
 list_t * ReadVmcList(const char* userPath);
 void UnloadGameList(list_t * list);
-char * readTextFile(const char * path, long* size);
+char * readTextFile(const char * path);
 int sortSaveList_Compare(const void* A, const void* B);
 int sortSaveList_Compare_Type(const void* A, const void* B);
 int sortSaveList_Compare_TitleID(const void* A, const void* B);

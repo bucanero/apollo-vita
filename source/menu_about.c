@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <string.h>
+#include <mini18n.h>
 
 #include "saves.h"
 #include "menu.h"
@@ -113,7 +114,7 @@ void Draw_AboutMenu_Ani(void)
 		SDL_RenderClear(renderer);
 		DrawBackground2D(0xFFFFFFFF);
 
-		DrawHeader_Ani(cat_about_png_index, "About", "v" APOLLO_VERSION, APP_FONT_TITLE_COLOR, 0xffffffff, ani, 12);
+		DrawHeader_Ani(cat_about_png_index, _("About"), "v" APOLLO_VERSION, APP_FONT_TITLE_COLOR, 0xffffffff, ani, 12);
 
 		//------------- About Menu Contents
 
@@ -145,6 +146,6 @@ void Draw_AboutMenu(int ll)
 	if (ll)
 		return(_draw_LeonLuna());
 
-	DrawHeader(cat_about_png_index, 0, "About", "v" APOLLO_VERSION, APP_FONT_TITLE_COLOR | 0xFF, 0xffffffff, 0);
+	DrawHeader(cat_about_png_index, 0, _("About"), "v" APOLLO_VERSION, APP_FONT_TITLE_COLOR | 0xFF, 0xffffffff, 0);
 	_draw_AboutMenu(0xFF);
 }

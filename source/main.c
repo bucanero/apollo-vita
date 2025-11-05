@@ -18,6 +18,7 @@
 #include <psp2/kernel/processmgr.h>
 #include <psp2/kernel/modulemgr.h>
 #include <libxmp-lite/xmp.h>
+#include <mini18n.h>
 
 #include "saves.h"
 #include "sfo.h"
@@ -90,27 +91,12 @@ uint32_t* free_mem;                         // Pointer after last texture
 
 char user_id_str[SCE_SYSTEM_PARAM_USERNAME_MAXSIZE] = "Apollo";
 
-const char * menu_pad_help[TOTAL_MENU_IDS] = { NULL,												//Main
-								"\x10 Select    \x13 Back    \x12 Details    \x11 Refresh",			//Trophy list
-								"\x10 Select    \x13 Back    \x12 Details    \x11 Refresh",			//USB list
-								"\x10 Select    \x13 Back    \x12 Details    \x11 Refresh",			//HDD list
-								"\x10 Select    \x13 Back    \x12 Details    \x11 Refresh",			//Online list
-								"\x10 Select    \x13 Back    \x11 Refresh",							//User backup
-								"\x10 Select    \x13 Back",											//Options
-								"\x13 Back",														//About
-								"\x10 Select    \x12 View Code    \x13 Back",						//Select Cheats
-								"\x13 Back",														//View Cheat
-								"\x10 Select    \x13 Back",											//Cheat Option
-								"\x13 Back",														//View Details
-								"\x10 Value Up  \x11 Value Down   \x13 Exit",						//Hex Editor
-								};
-
 /*
 * HDD save list
 */
 save_list_t hdd_saves = {
     .id = MENU_HDD_SAVES,
-    .title = "Internal Saves",
+    .title = NULL,
     .list = NULL,
     .path = "",
     .ReadList = &ReadUserList,
@@ -123,7 +109,7 @@ save_list_t hdd_saves = {
 */
 save_list_t usb_saves = {
     .id = MENU_USB_SAVES,
-    .title = "External Saves",
+    .title = NULL,
     .list = NULL,
     .path = "",
     .ReadList = &ReadUsbList,
@@ -136,7 +122,7 @@ save_list_t usb_saves = {
 */
 save_list_t trophies = {
     .id = MENU_TROPHIES,
-    .title = "Trophies",
+    .title = NULL,
     .list = NULL,
     .path = "",
     .ReadList = &ReadTrophyList,
@@ -149,7 +135,7 @@ save_list_t trophies = {
 */
 save_list_t online_saves = {
     .id = MENU_ONLINE_DB,
-    .title = "Online Database",
+    .title = NULL,
     .list = NULL,
     .path = ONLINE_URL,
     .ReadList = &ReadOnlineList,
@@ -162,7 +148,7 @@ save_list_t online_saves = {
 */
 save_list_t user_backup = {
     .id = MENU_USER_BACKUP,
-    .title = "User Tools",
+    .title = NULL,
     .list = NULL,
     .path = "",
     .ReadList = &ReadBackupList,
@@ -175,7 +161,7 @@ save_list_t user_backup = {
 */
 save_list_t vmc_saves = {
     .id = MENU_VMC_SAVES,
-    .title = "Virtual Memory Card",
+    .title = NULL,
     .list = NULL,
     .path = "",
     .ReadList = &ReadVmcList,
@@ -183,6 +169,69 @@ save_list_t vmc_saves = {
     .UpdatePath = &update_vmc_path,
 };
 
+
+static const char* get_button_prompts(char* prompt)
+{
+	switch (menu_id)
+	{
+		case MENU_TROPHIES:
+		case MENU_USB_SAVES:
+		case MENU_HDD_SAVES:
+		case MENU_ONLINE_DB:
+		case MENU_VMC_SAVES:
+			snprintf(prompt, 0xFF, "\x10 %s    \x13 %s    \x12 %s    \x11 %s", _("Select"), _("Back"), _("Details"), _("Refresh"));
+			break;
+
+		case MENU_USER_BACKUP:
+			snprintf(prompt, 0xFF, "\x10 %s    \x13 %s    \x11 %s", _("Select"), _("Back"), _("Refresh"));
+			break;
+
+		case MENU_SETTINGS:
+		case MENU_CODE_OPTIONS:
+			snprintf(prompt, 0xFF, "\x10 %s    \x13 %s", _("Select"), _("Back"));
+			break;
+
+		case MENU_CREDITS:
+		case MENU_PATCH_VIEW:
+		case MENU_SAVE_DETAILS:
+			snprintf(prompt, 0xFF, "\x13 %s", _("Back"));
+			break;
+
+		case MENU_PATCHES:
+			snprintf(prompt, 0xFF, "\x10 %s    \x12 %s    \x13 %s", _("Select"), _("View Code"), _("Back"));
+			break;
+
+		case MENU_HEX_EDITOR:
+			snprintf(prompt, 0xFF, "\x10 %s    \x11 %s   \x13 %s", _("Value Up"), _("Value Down"), _("Exit"));
+			break;
+
+		case MENU_MAIN_SCREEN:
+		default:
+			prompt[0] = 0;
+			break;
+	}
+
+	return prompt;
+}
+
+static void helpFooter(void)
+{
+	char footer[256];
+	u8 alpha = 0xFF;
+
+	if (vitaPadGetConf()->idle > 0x100)
+	{
+		int dec = (vitaPadGetConf()->idle - 0x100) * 4;
+		alpha = (dec > alpha) ? 0 : (alpha - dec);
+	}
+	
+	SetFontSize(APP_FONT_SIZE_DESCRIPTION);
+	SetCurrentFont(font_adonais_regular);
+	SetFontAlign(FONT_ALIGN_SCREEN_CENTER);
+	SetFontColor(APP_FONT_COLOR | alpha, 0);
+	DrawString(0, SCREEN_HEIGHT - 44, get_button_prompts(footer));
+	SetFontAlign(FONT_ALIGN_LEFT);
+}
 
 static int initPad(void)
 {
@@ -397,6 +446,22 @@ void update_vmc_path(char* path)
 	path[0] = 0;
 }
 
+static void initLocalization(void)
+{
+	char path[256];
+
+	snprintf(path, sizeof(path), APOLLO_DATA_PATH "lang_%s.po", get_user_language());
+	if (mini18n_set_locale(path) != SUCCESS)
+		LOG("Localization file not found: %s", path);
+
+	hdd_saves.title = _("Internal Saves");
+	usb_saves.title = _("External Saves");
+	trophies.title = _("Trophies");
+	user_backup.title = _("User Tools");
+	online_saves.title = _("Online Database");
+	vmc_saves.title = _("Virtual Memory Card");
+}
+
 static void registerSpecialChars(void)
 {
 	// Register save tags
@@ -430,7 +495,7 @@ static void registerSpecialChars(void)
 static void terminate(void)
 {
 	LOG("Exiting...");
-
+	mini18n_close();
 	sceAudioOutReleasePort(audio);
 	sceKernelExitProcess(0);
 }
@@ -604,7 +669,7 @@ s32 main(s32 argc, const char* argv[])
 	if (apollo_config.dbglog)
 	{
 		dbglogger_init_mode(FILE_LOGGER, APOLLO_PATH "apollo.log", 0);
-		notification("Debug Logging Enabled\n%s", APOLLO_PATH "apollo.log");
+		notification("%s\n%s", _("Debug Logging Enabled"), APOLLO_PATH "apollo.log");
 	}
 
 	// Unpack application data on first run
@@ -612,7 +677,7 @@ s32 main(s32 argc, const char* argv[])
 	{
 //		clean_directory(APOLLO_DATA_PATH);
 		if (extract_zip(APOLLO_LOCAL_CACHE "appdata.zip", APOLLO_DATA_PATH))
-			show_message("Successfully installed local application data");
+			show_message(_("Successfully installed local application data"));
 
 		unlink_secure(APOLLO_LOCAL_CACHE "appdata.zip");
 	}
@@ -632,7 +697,7 @@ s32 main(s32 argc, const char* argv[])
 	if (file_exists(APOLLO_PATH "fuseid.bin") != SUCCESS &&
 		file_exists("ux0:pspemu/PSP/GAME/FUSEID/FUSEID.BIN") == SUCCESS &&
 		copy_file("ux0:pspemu/PSP/GAME/FUSEID/FUSEID.BIN", APOLLO_PATH "fuseid.bin") == SUCCESS)
-		notification("PSP FuseID successfully imported!");
+		notification(_("PSP FuseID successfully imported!"));
 
 	// Splash screen logo (fade-out)
 	drawSplashLogo(-1);
@@ -660,22 +725,8 @@ s32 main(s32 argc, const char* argv[])
 		drawScene();
 
 		//Draw help
-		if (menu_pad_help[menu_id])
-		{
-			u8 alpha = 0xFF;
-			if (vitaPadGetConf()->idle > 0x100)
-			{
-				int dec = (vitaPadGetConf()->idle - 0x100) * 4;
-				alpha = (dec > alpha) ? 0 : (alpha - dec);
-			}
-			
-			SetFontSize(APP_FONT_SIZE_DESCRIPTION);
-			SetCurrentFont(font_adonais_regular);
-			SetFontAlign(FONT_ALIGN_SCREEN_CENTER);
-			SetFontColor(APP_FONT_COLOR | alpha, 0);
-			DrawString(0, SCREEN_HEIGHT - 44, (char *)menu_pad_help[menu_id]);
-			SetFontAlign(FONT_ALIGN_LEFT);
-		}
+		if (menu_id)
+			helpFooter();
 
 #ifdef APOLLO_ENABLE_LOGGING
 		// Calculate FPS and ms/frame
