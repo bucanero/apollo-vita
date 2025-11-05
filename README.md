@@ -151,7 +151,7 @@ The Online Database project aims to [add more save-games](https://github.com/buc
 
 Apollo supports multiple languages for its user interface. Thanks to the following contributors for their help with translations:
 
-- [Bucanero](https://github.com/bucanero) (Spanish), [TheheroGAC](https://x.com/TheheroGAC) (Italian)
+- [Akela](https://x.com/Akela_1979) (Russian), [Bucanero](https://github.com/bucanero) (Spanish), [TheheroGAC](https://x.com/TheheroGAC) (Italian)
 
 # Building
 

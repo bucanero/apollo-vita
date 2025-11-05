@@ -315,7 +315,7 @@ static save_entry_t* _createSaveEntry(uint16_t flag, const char* icon, const cha
 {
 	save_entry_t* entry = (save_entry_t *)calloc(1, sizeof(save_entry_t));
 	entry->flags = flag;
-	asprintf(&entry->name, "%s%s", icon, name);
+	asprintf(&entry->name, "%s%s", (icon ? icon : ""), name);
 
 	return entry;
 }
@@ -844,7 +844,7 @@ static void read_vmc_files(const char* path, list_t* list)
 			!endsWith(dir->d_name, ".VMC") && !endsWith(dir->d_name, ".BIN") && !endsWith(dir->d_name, ".SRM"))
 			continue;
 
-		item = _createSaveEntry(SAVE_FLAG_PS1 | SAVE_FLAG_VMC, "", dir->d_name);
+		item = _createSaveEntry(SAVE_FLAG_PS1 | SAVE_FLAG_VMC, NULL, dir->d_name);
 		item->type = FILE_TYPE_VMC;
 		item->title_id = strdup("VMC");
 		item->dir_name = strdup(PS1_SAVES_PATH_HDD);
@@ -1433,7 +1433,7 @@ static void read_psp_savegames(const char* userPath, list_t *list, int flags)
 		if ((strcmp((char*) sfo_get_param_value(sfo, "SAVEDATA_FILE_LIST"), "CONFIG.BIN") == 0) &&
 			(file_exists(sfoPath) == SUCCESS))
 		{
-			item = _createSaveEntry(SAVE_FLAG_PS1 | flags, "", sfo_get_param_value(sfo, "TITLE"));
+			item = _createSaveEntry(SAVE_FLAG_PS1 | flags, NULL, sfo_get_param_value(sfo, "TITLE"));
 			item->type = FILE_TYPE_PSP;
 			item->dir_name = strdup((char*) sfo_get_param_value(sfo, "SAVEDATA_DIRECTORY"));
 			asprintf(&item->title_id, "%.9s", item->dir_name);
@@ -1441,14 +1441,14 @@ static void read_psp_savegames(const char* userPath, list_t *list, int flags)
 			list_append(list, item);
 
 			snprintf(sfoPath, sizeof(sfoPath), "%s (MemCard)", sfo_get_param_value(sfo, "TITLE"));
-			item = _createSaveEntry(SAVE_FLAG_PS1 | SAVE_FLAG_VMC | flags, "", sfoPath);
+			item = _createSaveEntry(SAVE_FLAG_PS1 | SAVE_FLAG_VMC | flags, NULL, sfoPath);
 			item->type = FILE_TYPE_VMC;
 			item->dir_name = strdup((char*) sfo_get_param_value(sfo, "SAVEDATA_DIRECTORY"));
 			item->title_id = strdup("VMC 0");
 			asprintf(&item->path, "%s%s/SCEVMC0.VMP", userPath, dir->d_name);
 			list_append(list, item);
 
-			item = _createSaveEntry(SAVE_FLAG_PS1 | SAVE_FLAG_VMC | flags, "", sfoPath);
+			item = _createSaveEntry(SAVE_FLAG_PS1 | SAVE_FLAG_VMC | flags, NULL, sfoPath);
 			item->type = FILE_TYPE_VMC;
 			item->dir_name = strdup((char*) sfo_get_param_value(sfo, "SAVEDATA_DIRECTORY"));
 			item->title_id = strdup("VMC 1");
@@ -1456,7 +1456,7 @@ static void read_psp_savegames(const char* userPath, list_t *list, int flags)
 		}
 		else
 		{
-			item = _createSaveEntry(SAVE_FLAG_PSP | flags, "", (char*) sfo_get_param_value(sfo, "TITLE"));
+			item = _createSaveEntry(SAVE_FLAG_PSP | flags, NULL, (char*) sfo_get_param_value(sfo, "TITLE"));
 			item->type = FILE_TYPE_PSP;
 			item->dir_name = strdup((char*) sfo_get_param_value(sfo, "SAVEDATA_DIRECTORY"));
 			asprintf(&item->title_id, "%.9s", item->dir_name);
@@ -1502,7 +1502,7 @@ static void read_usb_savegames(const char* userPath, list_t *list, sqlite3 *db)
 		}
 
 		char *sfo_data = (char*)(sfo_get_param_value(sfo, "PARAMS") + 0x28);
-		item = _createSaveEntry(SAVE_FLAG_PSV, "", get_appdb_title(db, sfo_data, sfoPath) ? sfoPath : sfo_data);
+		item = _createSaveEntry(SAVE_FLAG_PSV, NULL, get_appdb_title(db, sfo_data, sfoPath) ? sfoPath : sfo_data);
 		item->type = FILE_TYPE_PSV;
 		asprintf(&item->path, "%s%s/", userPath, dir->d_name);
 		asprintf(&item->title_id, "%.9s", sfo_data);
@@ -1544,7 +1544,7 @@ static void read_hdd_savegames(const char* userPath, list_t *list)
 
 	while (sqlite3_step(res) == SQLITE_ROW)
 	{
-		item = _createSaveEntry(SAVE_FLAG_PSV | SAVE_FLAG_HDD, "", (const char*) sqlite3_column_text(res, 2));
+		item = _createSaveEntry(SAVE_FLAG_PSV | SAVE_FLAG_HDD, NULL, (const char*) sqlite3_column_text(res, 2));
 		item->type = FILE_TYPE_PSV;
 		item->dir_name = strdup((const char*) sqlite3_column_text(res, 1));
 		item->title_id = strdup((const char*) sqlite3_column_text(res, 0));
@@ -1710,7 +1710,7 @@ static void _ReadOnlineListEx(const char* urlPath, uint16_t flag, list_t *list)
 
 		*ptr++ = 0;
 
-		item = _createSaveEntry(flag | SAVE_FLAG_ONLINE, "", ptr);
+		item = _createSaveEntry(flag | SAVE_FLAG_ONLINE, NULL, ptr);
 		item->title_id = strdup(line);
 		asprintf(&item->path, "%s%s/", urlPath, item->title_id);
 
@@ -1803,7 +1803,7 @@ list_t * ReadVmcList(const char* userPath)
 		LOG("Reading '%s'...", mcdata[i].saveName);
 
 		char* tmp = sjis2utf8(mcdata[i].saveTitle);
-		item = _createSaveEntry(SAVE_FLAG_PS1 | SAVE_FLAG_VMC, "", tmp);
+		item = _createSaveEntry(SAVE_FLAG_PS1 | SAVE_FLAG_VMC, NULL, tmp);
 		item->blocks = i;
 		item->type = FILE_TYPE_PS1;
 		item->dir_name = strdup(mcdata[i].saveName);
@@ -1881,7 +1881,7 @@ list_t * ReadTrophyList(const char* userPath)
 
 	while (sqlite3_step(res) == SQLITE_ROW)
 	{
-		item = _createSaveEntry(SAVE_FLAG_PSV | SAVE_FLAG_TROPHY | SAVE_FLAG_HDD, "", (const char*) sqlite3_column_text(res, 2));
+		item = _createSaveEntry(SAVE_FLAG_PSV | SAVE_FLAG_TROPHY | SAVE_FLAG_HDD, NULL, (const char*) sqlite3_column_text(res, 2));
 		item->blocks = sqlite3_column_int(res, 0);
 		item->title_id = strdup((const char*) sqlite3_column_text(res, 1));
 		asprintf(&item->path, TROPHY_PATH_HDD "data/%s/", apollo_config.user_id, item->title_id);
