@@ -147,6 +147,12 @@ The Online Database project aims to [add more save-games](https://github.com/buc
 * [aldostools](https://aldostools.org/): [Bruteforce Save Data](https://bruteforcesavedata.forumms.net/)
 * [Nobody/Wild Light](https://github.com/nobodo): [Background music track](https://github.com/bucanero/apollo-vita/blob/main/data/haiku.s3m)
 
+## Translators
+
+Apollo supports multiple languages for its user interface. Thanks to the following contributors for their help with translations:
+
+- [Bucanero](https://github.com/bucanero) (Spanish), [TheheroGAC](https://x.com/TheheroGAC) (Italian)
+
 # Building
 
 You need to have installed:
