@@ -1605,11 +1605,11 @@ list_t * ReadUsbList(const char* userPath)
 	list_append(item->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_COMMAND, NULL, NULL, CMD_COPY_SAVES_HDD);
-	asprintf(&cmd->name, CHAR_ICON_COPY " %s (ux0:user/)", _("Copy selected Saves to User Storage"), CMD_COPY_SAVES_HDD);
+	asprintf(&cmd->name, CHAR_ICON_COPY " %s (ux0:user/)", _("Copy selected Saves to User Storage"));
 	list_append(item->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_COMMAND, NULL, NULL, CMD_COPY_ALL_SAVES_HDD);
-	asprintf(&cmd->name, CHAR_ICON_COPY " %s (ux0:user/)", _("Copy all Saves to User Storage"), CMD_COPY_ALL_SAVES_HDD);
+	asprintf(&cmd->name, CHAR_ICON_COPY " %s (ux0:user/)", _("Copy all Saves to User Storage"));
 	list_append(item->codes, cmd);
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_NET " ", _("Start local Web Server"), CMD_SAVE_WEBSERVER);
