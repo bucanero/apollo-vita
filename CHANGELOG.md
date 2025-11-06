@@ -4,6 +4,27 @@ All notable changes to the `apollo-vita` project will be documented in this file
 
 ## [Unreleased]()
 
+---
+
+## [v2.0.4](https://github.com/bucanero/apollo-vita/releases/tag/v2.0.4) - 2025-11-09
+
+### Added
+
+* Localization support
+  - Auto-detect system language setting
+  - Languages: English, Italian, Japanese, Portuguese, Russian, Spanish
+* Show save details window for items in Online DB (`Triangle` button)
+
+### Misc
+
+* Updated Apollo Patch Engine to v1.4.0
+  - Update custom mod tags
+  - Support multiple mod options per line
+  - Add AES CTR, Blowfish CBC encryption
+  - Add DBZ Xenoverse 2 custom checksum
+
+---
+
 ## [v2.0.0](https://github.com/bucanero/apollo-vita/releases/tag/v2.0.0) - 2025-05-10
 
 ### Added
@@ -33,6 +54,8 @@ All notable changes to the `apollo-vita` project will be documented in this file
     - Support for SaveWizard and BSD codes with multiple options
 * Updated cURL library to v8.9.1
 
+---
+
 ## [v1.4.2](https://github.com/bucanero/apollo-vita/releases/tag/v1.4.2) - 2024-08-04
 
 ### Added
@@ -54,6 +77,8 @@ All notable changes to the `apollo-vita` project will be documented in this file
   - Change `compress` and `decompress` command syntax
     + `decompress(offset, wbits)`
     + `compress(offset)`
+
+---
 
 ## [v1.4.0](https://github.com/bucanero/apollo-vita/releases/tag/v1.4.0) - 2024-02-24
 
@@ -78,6 +103,8 @@ All notable changes to the `apollo-vita` project will be documented in this file
   - Add `camellia_ecb` encryption
   - Add RGG Studio decryption (PS4)
   - Add Dead Rising checksum
+
+---
 
 ## [v1.2.8](https://github.com/bucanero/apollo-vita/releases/tag/v1.2.8) - 2023-11-12
 
@@ -128,6 +155,8 @@ All notable changes to the `apollo-vita` project will be documented in this file
   - Fix SaveWizard Code Type C
   - Fix `right()` on little-endian platforms
 
+---
+
 ## [v1.2.4](https://github.com/bucanero/apollo-vita/releases/tag/v1.2.4) - 2023-04-12
 
 ### Added
@@ -149,6 +178,8 @@ All notable changes to the `apollo-vita` project will be documented in this file
   * Improve code types 9, B, D
   * Add value subtraction support (BSD)
 
+---
+
 ## [v1.2.0](https://github.com/bucanero/apollo-vita/releases/tag/v1.2.0) - 2023-02-04
 
 ### Added
@@ -166,6 +197,8 @@ All notable changes to the `apollo-vita` project will be documented in this file
 
 * Fixed a bug when importing decrypted data files
 
+---
+
 ## [v1.1.2](https://github.com/bucanero/apollo-vita/releases/tag/v1.1.2) - 2022-12-24
 
 _dedicated to Leon ~ in loving memory (2009 - 2022)_ :heart:
@@ -181,6 +214,8 @@ _dedicated to Leon ~ in loving memory (2009 - 2022)_ :heart:
 
 * Improved UI pad controls
 * Download application data updates from `apollo-patches` repository
+
+---
 
 ## [v1.1.0](https://github.com/bucanero/apollo-vita/releases/tag/v1.1.0) - 2022-10-23
 
@@ -218,6 +253,8 @@ _dedicated to Leon ~ in loving memory (2009 - 2022)_ :heart:
   * Fix `md5_xor` custom hash
   * Fix little-endian support for decrypters/hashes
 
+---
+
 ## [v1.0.2](https://github.com/bucanero/apollo-vita/releases/tag/v1.0.2) - 2022-07-30
 
 ### Added
@@ -246,6 +283,8 @@ _dedicated to Leon ~ in loving memory (2009 - 2022)_ :heart:
 * Fix PSP save copying to User Storage (`ux0:pspemu/`)
 * Fix bug with "Raw Patch file" view
 * Fix PSP cheat code values
+
+---
 
 ## [v1.0.0](https://github.com/bucanero/apollo-vita/releases/tag/v1.0.0) - 2022-07-24
 
@@ -325,6 +364,8 @@ _dedicated to Leon ~ in loving memory (2009 - 2022)_ :heart:
 * Improved save-game detailed information
 * Improved `Settings` menu
 * Fixed "new version check" download
+
+---
 
 ## [v0.8.0](https://github.com/bucanero/apollo-vita/releases/tag/v0.8.0) - 2022-06-25
 
