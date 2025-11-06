@@ -663,6 +663,7 @@ s32 main(s32 argc, const char* argv[])
 		return (-1);
 	}
 
+	initLocalization();
 	// Load application settings
 	load_app_settings(&apollo_config);
 
