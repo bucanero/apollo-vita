@@ -136,7 +136,7 @@ The Online Database project aims to [add more save-games](https://github.com/buc
 
 # Credits
 
-* [Bucanero](http://www.bucanero.com.ar/): [Project developer](https://github.com/bucanero)
+* [Bucanero](https://github.com/bucanero): [Project developer](https://bucanero.github.io/apollo-vita/)
 
 ## Acknowledgments
 
@@ -152,7 +152,7 @@ The Online Database project aims to [add more save-games](https://github.com/buc
 
 Apollo supports multiple languages for its user interface. Thanks to the following contributors for their help with translations:
 
-- [Akela](https://x.com/Akela_1979) (Russian), [Bucanero](https://github.com/bucanero) (Spanish), [TheheroGAC](https://x.com/TheheroGAC) (Italian), [yyoossk](https://x.com/Cloud0835) (Japanese)
+- [Akela](https://x.com/Akela_1979) (Russian), [Bucanero](https://github.com/bucanero) (Spanish), [TheheroGAC](https://x.com/TheheroGAC) (Italian), [yyoossk](https://x.com/Cloud0835) (Japanese), [Phoenixx1202](https://github.com/Phoenixx1202) (Portuguese)
 
 # Building
 
@@ -164,6 +164,7 @@ You need to have installed:
 - [cURL](https://github.com/vitasdk/packages/tree/master/curl) library
 - [libxmp-lite](https://github.com/vitasdk/packages/tree/master/libxmp-lite) library
 - [libZip](https://github.com/vitasdk/packages/tree/master/libzip) library
+- [mini18n](https://github.com/bucanero/mini18n) library
 - [dbglogger](https://github.com/bucanero/dbglogger) library
 
 > [!TIP]
