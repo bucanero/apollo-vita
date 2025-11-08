@@ -20,7 +20,7 @@ This homebrew app allows you to download, unlock, patch and resign save-game fil
 * **Standalone:** no computer required, everything happens on the PS Vita.
 * **Automatic settings:** auto-detection of User ID, and Account-ID settings.
 * **Multi-format:** supports PS Vita saves, PSP saves (Adrenaline), and PS1 saves.
-* **Localization support:** English, Italian, Japanese, Russian, Spanish.
+* **Localization support:** English, Italian, Japanese, Portuguese, Russian, Spanish.
 
 ## Vita & PSP Save Management
 
