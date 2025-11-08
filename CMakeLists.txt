@@ -17,7 +17,7 @@ find_package(OpenSSL REQUIRED)
 
 set(VITA_APP_NAME "Apollo Save Tool")
 set(VITA_TITLEID  "NP0APOLLO")
-set(VITA_VERSION  "02.00")
+set(VITA_VERSION  "02.04")
 
 option(APOLLO_ENABLE_LOGGING "enables debug logging over udp multicast" OFF)
 
@@ -136,6 +136,7 @@ vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} ${PROJECT_NAME}.self
   FILE data/langs/lang_es.po data/lang_es.po
   FILE data/langs/lang_it.po data/lang_it.po
   FILE data/langs/lang_ja.po data/lang_ja.po
+  FILE data/langs/lang_pt.po data/lang_pt.po
   FILE data/langs/lang_ru.po data/lang_ru.po
   FILE libs/user.suprx sce_module/user.suprx
   FILE libs/kernel.skprx sce_module/kernel.skprx
