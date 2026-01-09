@@ -275,7 +275,7 @@ static void downloadSaveHDD(const save_entry_t* entry, const char* file)
 
 	memset(&save, 0, sizeof(save_entry_t));
 	strncpy(dirname, (entry->flags & SAVE_FLAG_PSP) ?
-			(char*) sfo_get_param_value(sfo, "SAVEDATA_DIRECTORY") : 
+			(char*) sfo_get_param_value(sfo, "SAVEDATA_DIRECTORY") :
 			(char*) sfo_get_param_value(sfo, "PARENT_DIRECTORY") + 1, sizeof(dirname));
 	snprintf(titleid, sizeof(titleid), "%.9s", dirname);
 	save.path = path;
@@ -767,7 +767,7 @@ static int webReqHandler(dWebRequest_t* req, dWebResponse_t* res, void* list)
 
 		for (node = list_head(list); (item = list_get(node)); node = list_next(node))
 		{
-			if (item->type == FILE_TYPE_MENU || 
+			if (item->type == FILE_TYPE_MENU ||
 				(strncmp(req->resource+1, "PSV", 3) == 0 && !(item->flags & SAVE_FLAG_PSV)) ||
 				(strncmp(req->resource+1, "PSP", 3) == 0 && !(item->flags & SAVE_FLAG_PSP)))
 				continue;
@@ -1128,9 +1128,15 @@ static void* vita_host_callback(int id, int* size)
 	switch (id)
 	{
 	case APOLLO_HOST_TEMP_PATH:
+		if (size) *size = strlen(APOLLO_LOCAL_CACHE);
 		return APOLLO_LOCAL_CACHE;
 
+	case APOLLO_HOST_DATA_PATH:
+		if (size) *size = strlen(APOLLO_DATA_PATH);
+		return APOLLO_DATA_PATH;
+
 	case APOLLO_HOST_SYS_NAME:
+		if (size) *size = 11;
 		return "Apollo-Vita";
 
 	case APOLLO_HOST_PSID:
@@ -1176,7 +1182,7 @@ static int apply_cheat_patches(const save_entry_t* entry)
 
 	for (node = list_head(entry->codes); (code = list_get(node)); node = list_next(node))
 	{
-		if (!code->activated || (code->type != PATCH_GAMEGENIE && code->type != PATCH_BSD))
+		if (!code->activated || (code->type != PATCH_GAMEGENIE && code->type != PATCH_BSD && code->type != PATCH_PYTHON))
 			continue;
 
 		LOG("Active code: [%s]", code->name);
@@ -1192,8 +1198,8 @@ static int apply_cheat_patches(const save_entry_t* entry)
 			filename = optval->name;
 		}
 		
-		if (strstr(code->file, "~extracted\\"))
-			snprintf(tmpfile, sizeof(tmpfile), "%s[%s]%s", APOLLO_LOCAL_CACHE, entry->title_id, filename);
+		if (strncmp(code->file, "~extracted\\", 11) == 0)
+			snprintf(tmpfile, sizeof(tmpfile), "%s", code->file);
 		else
 		{
 			snprintf(tmpfile, sizeof(tmpfile), "%s%s", entry->path, filename);
@@ -1462,7 +1468,7 @@ static void uploadSaveFTP(const save_entry_t* save)
 	fp = fopen(APOLLO_LOCAL_CACHE "saves.ftp", "a");
 	if (fp)
 	{
-		fprintf(fp, "%s=[%s] %d-%02d-%02d %02d:%02d:%02d %s (CRC: %08X)\r\n", tmp, save->dir_name, 
+		fprintf(fp, "%s=[%s] %d-%02d-%02d %02d:%02d:%02d %s (CRC: %08X)\r\n", tmp, save->dir_name,
 				t.tm_year+1900, t.tm_mon+1, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec, save->name, crc);
 		fclose(fp);
 	}
