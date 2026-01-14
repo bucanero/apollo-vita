@@ -43,6 +43,7 @@ jobs:
       working-directory: vdpm
       run: |
         ./vdpm zlib
+        ./vdpm zstd
         ./vdpm bzip2
         ./vdpm libpng
         ./vdpm freetype
