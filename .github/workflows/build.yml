@@ -43,6 +43,7 @@ jobs:
       working-directory: vdpm
       run: |
         ./vdpm zlib
+        ./vdpm zstd
         ./vdpm bzip2
         ./vdpm libpng
         ./vdpm freetype
@@ -56,6 +57,8 @@ jobs:
         ./vdpm libxml2
         ./vdpm libxmp-lite
         ./vdpm mini18n
+        sed '65s/.*/INTERFACE_LINK_LIBRARIES "\$<LINK_ONLY:OpenSSL::SSL>;\$<LINK_ONLY:OpenSSL::Crypto>;\$<LINK_ONLY:ZLIB::ZLIB>;${_IMPORT_PREFIX}\/lib\/libzstd.a"/' ${VITASDK}/arm-vita-eabi/lib/cmake/CURL/CURLTargets.cmake > tmp.cmake
+        cp tmp.cmake ${VITASDK}/arm-vita-eabi/lib/cmake/CURL/CURLTargets.cmake
 
     - name: Install zip
       run: |
