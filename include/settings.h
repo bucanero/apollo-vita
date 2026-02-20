@@ -1,10 +1,10 @@
-#define APOLLO_VERSION          "2.0.4"     //Apollo Vita version (about menu)
+#define APOLLO_VERSION          "2.3.0"     //Apollo Vita version (about menu)
 #define APOLLO_PLATFORM         "Vita"      //Apollo platform
 
-#define MENU_TITLE_OFF			30			//Offset of menu title text from menu mini icon
-#define MENU_ICON_OFF 			70          //X Offset to start printing menu mini icon
-#define MENU_ANI_MAX 			0x80        //Max animation number
-#define MENU_SPLIT_OFF			200			//Offset from left of sub/split menu to start drawing
+#define MENU_TITLE_OFF          30          //Offset of menu title text from menu mini icon
+#define MENU_ICON_OFF           70          //X Offset to start printing menu mini icon
+#define MENU_ANI_MAX            0x80        //Max animation number
+#define MENU_SPLIT_OFF          200         //Offset from left of sub/split menu to start drawing
 #define OPTION_ITEM_OFF         730         //Offset from left of settings item/value
 
 #define USER_STORAGE_DEV        menu_options[3].options[apollo_config.storage]
