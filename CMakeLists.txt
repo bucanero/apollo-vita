@@ -138,6 +138,8 @@ vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} ${PROJECT_NAME}.self
   FILE data/langs/lang_ja.po data/lang_ja.po
   FILE data/langs/lang_pt.po data/lang_pt.po
   FILE data/langs/lang_ru.po data/lang_ru.po
+  FILE data/langs/lang_fr.po data/lang_fr.po
+  FILE data/langs/lang_de.po data/lang_de.po
   FILE data/langs/lang_zh_cn.po data/lang_zh_cn.po
   FILE data/langs/lang_zh_tw.po data/lang_zh_tw.po
   FILE libs/user.suprx sce_module/user.suprx
