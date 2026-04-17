@@ -19,6 +19,8 @@
 
 #define NET_POOLSIZE 	(16 * 1024)
 
+static CURL *ftp_ctx = NULL;
+
 
 int http_init(void)
 {
@@ -106,14 +108,12 @@ static void set_curl_opts(CURL* curl)
 	}
 }
 
-int http_download(const char* url, const char* filename, const char* local_dst, int show_progress)
+static int _curl_download(CURL *curl, const char* url, const char* filename, const char* local_dst, int show_progress)
 {
 	char full_url[1024];
-	CURL *curl;
 	CURLcode res;
 	FILE* fd;
 
-	curl = curl_easy_init();
 	if(!curl)
 	{
 		LOG("ERROR: CURL INIT");
@@ -123,7 +123,6 @@ int http_download(const char* url, const char* filename, const char* local_dst, 
 	fd = fopen(local_dst, "wb");
 	if (!fd) {
 		LOG("fopen Error: File path '%s'", local_dst);
-		curl_easy_cleanup(curl);
 		return HTTP_FAILED;
 	}
 
@@ -131,7 +130,6 @@ int http_download(const char* url, const char* filename, const char* local_dst, 
 	snprintf(full_url, sizeof(full_url), "%s%s", url, filename);
 	LOG("URL: %s >> %s", full_url, local_dst);
 
-	set_curl_opts(curl);
 	curl_easy_setopt(curl, CURLOPT_URL, full_url);
 	// The function that will be used to write the data 
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, fwrite);
@@ -158,8 +156,6 @@ int http_download(const char* url, const char* filename, const char* local_dst, 
 
 	// close file descriptor
 	fclose(fd);
-	// cleanup
-	curl_easy_cleanup(curl);
 
 	if (show_progress)
 		end_progress_bar();
@@ -174,11 +170,58 @@ int http_download(const char* url, const char* filename, const char* local_dst, 
 	return HTTP_SUCCESS;
 }
 
+int http_download(const char* url, const char* filename, const char* local_dst, int show_progress)
+{
+	int ret;
+	CURL *curl = curl_easy_init();
+
+	if (!curl)
+		return HTTP_FAILED;
+
+	set_curl_opts(curl);
+	ret = _curl_download(curl, url, filename, local_dst, show_progress);
+	curl_easy_cleanup(curl);
+
+	return ret;
+}
+
 void http_end(void)
 {
 	curl_global_cleanup();
 	sceNetCtlTerm();
 	sceNetTerm();
+}
+
+static size_t write_null(void *ptr, size_t size, size_t nmemb, void *userdata)
+{
+	// Tells libcurl all data was "handled"
+    return size * nmemb; 
+}
+
+void ftp_init(void)
+{
+	if (!ftp_ctx && (ftp_ctx = curl_easy_init()))
+		set_curl_opts(ftp_ctx);
+}
+
+void ftp_end(void)
+{
+	if (ftp_ctx)
+		curl_easy_cleanup(ftp_ctx);
+
+	ftp_ctx = NULL;
+}
+
+int ftp_download(const char* url, const char* filename, const char* local_dst, int show_progress)
+{
+	if (!ftp_ctx)
+		return HTTP_FAILED;
+
+	curl_easy_setopt(ftp_ctx, CURLOPT_UPLOAD, 0);
+	curl_easy_setopt(ftp_ctx, CURLOPT_NOBODY, 0);
+	curl_easy_setopt(ftp_ctx, CURLOPT_NOPROGRESS, 1L);
+
+	return _curl_download(ftp_ctx, url, filename, local_dst, show_progress);
 }
 
 int ftp_upload(const char* local_file, const char* url, const char* filename, int show_progress)
@@ -190,7 +233,7 @@ int ftp_upload(const char* local_file, const char* url, const char* filename, in
 	curl_off_t fsize, remoteFileSize = -1;
 
 	/* get a curl handle */
-	curl = curl_easy_init();
+	curl = ftp_ctx;
 	if(!curl)
 	{
 		LOG("ERROR: CURL INIT");
@@ -202,7 +245,6 @@ int ftp_upload(const char* local_file, const char* url, const char* filename, in
 	if(!fd)
 	{
 		LOG("Couldn't open '%s'", local_file);
-		curl_easy_cleanup(curl);
 		return HTTP_FAILED;
 	}
 
@@ -213,23 +255,21 @@ int ftp_upload(const char* local_file, const char* url, const char* filename, in
 
 	snprintf(remote_url, sizeof(remote_url), "%s%s", url, filename);
 
-	LOG("Local file size: %ld bytes.", fsize);
+	LOG("Local file size: %lld bytes.", fsize);
 	LOG("Uploading (%s) -> (%s)", local_file, remote_url);
 
-	set_curl_opts(curl);
 	curl_easy_setopt(curl, CURLOPT_URL, remote_url);
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
 	curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
-	curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_null);
 	// create missing dirs if needed
 	curl_easy_setopt(curl, CURLOPT_FTP_CREATE_MISSING_DIRS, CURLFTP_CREATE_DIR);
 
 	res = curl_easy_perform(curl);
-	if(res != CURLE_OK)
+	if(res != CURLE_OK && res != CURLE_REMOTE_FILE_NOT_FOUND)
 	{
 		LOG("Remote check failed: %s", curl_easy_strerror(res));
 		fclose(fd);
-		curl_easy_cleanup(curl);
 		return HTTP_FAILED;
 	}
 	else curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &remoteFileSize);
@@ -238,7 +278,6 @@ int ftp_upload(const char* local_file, const char* url, const char* filename, in
 	{
 		LOG("Error! '%s' remote size: %lld", filename, remoteFileSize);
 		fclose(fd);
-		curl_easy_cleanup(curl);
 		return HTTP_FAILED;
 	}
 
@@ -256,7 +295,6 @@ int ftp_upload(const char* local_file, const char* url, const char* filename, in
 	curl_easy_setopt(curl, CURLOPT_URL, remote_url);
 	// set file data transfer
 	curl_easy_setopt(curl, CURLOPT_NOBODY, 0);
-	curl_easy_setopt(curl, CURLOPT_HEADER, 0);
 	/* please ignore the IP in the PASV response */
 	curl_easy_setopt(curl, CURLOPT_FTP_SKIP_PASV_IP, 1L);
 	/* we want to use our own read function */
@@ -286,9 +324,6 @@ int ftp_upload(const char* local_file, const char* url, const char* filename, in
 
 	/* close the local file */
 	fclose(fd);
-
-	/* always cleanup */
-	curl_easy_cleanup(curl);
 
 	if (show_progress)
 		end_progress_bar();
