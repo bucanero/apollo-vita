@@ -1544,11 +1544,12 @@ static void uploadAllSavesFTP(const save_entry_t* save, int all)
 	LOG("Uploading all saves to FTP server...");
 	for (node = list_head(list); (item = list_get(node)); node = list_next(node))
 	{
-		if (item->type != FILE_TYPE_PSV || !(item->flags & SAVE_FLAG_HDD) || !(all || (item->flags & SAVE_FLAG_SELECTED)))
+		if ((item->type != FILE_TYPE_PSV && item->type != FILE_TYPE_PSP) ||
+			!(item->flags & SAVE_FLAG_HDD) || !(all || (item->flags & SAVE_FLAG_SELECTED)))
 			continue;
 
 		// Mount the save if it's encrypted and resolve the actual save path
-		if (!vita_SaveMount(item))
+		if (item->type == FILE_TYPE_PSV && !vita_SaveMount(item))
 		{
 			LOG("Failed to mount save: %s", item->dir_name);
 			err_count++;
@@ -1557,7 +1558,8 @@ static void uploadAllSavesFTP(const save_entry_t* save, int all)
 
 		(_upload_save_ftp(item)) ? done++ : err_count++;
 
-		vita_SaveUmount();
+		if (item->type == FILE_TYPE_PSV)
+			vita_SaveUmount();
 	}
 
 	clean_directory(APOLLO_LOCAL_CACHE, ".ftp");
