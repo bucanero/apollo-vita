@@ -192,12 +192,6 @@ void http_end(void)
 	sceNetTerm();
 }
 
-static size_t write_null(void *ptr, size_t size, size_t nmemb, void *userdata)
-{
-	// Tells libcurl all data was "handled"
-    return size * nmemb; 
-}
-
 void ftp_init(void)
 {
 	if (!ftp_ctx && (ftp_ctx = curl_easy_init()))
@@ -265,8 +259,6 @@ int ftp_upload(const char* local_file, const char* url, const char* filename, in
 	curl_easy_setopt(curl, CURLOPT_URL, remote_url);
 	// create missing dirs if needed
 	curl_easy_setopt(curl, CURLOPT_FTP_CREATE_MISSING_DIRS, CURLFTP_CREATE_DIR);
-	/* enable uploading */
-	curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
 	/* please ignore the IP in the PASV response */
 	curl_easy_setopt(curl, CURLOPT_FTP_SKIP_PASV_IP, 1L);
 	/* we want to use our own read function */
