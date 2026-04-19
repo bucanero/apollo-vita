@@ -1426,8 +1426,6 @@ static int _upload_save_ftp(const save_entry_t* save)
 	ftp_download(remote, "games.txt", APOLLO_LOCAL_CACHE "games.ftp", 0);
 
 	snprintf(remote, sizeof(remote), "%s%016" PRIX64 "/PS%c/%s/", apollo_config.ftp_url, apollo_config.account_id, type[save->type], save->title_id);
-	ftp_download(remote, "saves.txt", APOLLO_LOCAL_CACHE "saves.ftp", 0);
-	ftp_download(remote, "checksum.sfv", APOLLO_LOCAL_CACHE "sfv.ftp", 0);
 
 	gmtime_r(&(time_t){time(NULL)}, &t);
 	snprintf(local, sizeof(local), APOLLO_LOCAL_CACHE "%s_%d-%02d-%02d-%02d%02d%02d.zip",
@@ -1471,7 +1469,7 @@ static int _upload_save_ftp(const save_entry_t* save)
 	uint32_t crc = file_crc32(local);
 
 	LOG("Updating %s save index...", save->title_id);
-	fp = fopen(APOLLO_LOCAL_CACHE "saves.ftp", "a");
+	fp = fopen(APOLLO_LOCAL_CACHE "saves.ftp", "w");
 	if (fp)
 	{
 		fprintf(fp, "%s=[%s] %d-%02d-%02d %02d:%02d:%02d %s (CRC: %08X)\r\n", tmp, save->dir_name,
@@ -1480,7 +1478,7 @@ static int _upload_save_ftp(const save_entry_t* save)
 	}
 
 	LOG("Updating .sfv CRC32: %08X", crc);
-	fp = fopen(APOLLO_LOCAL_CACHE "sfv.ftp", "a");
+	fp = fopen(APOLLO_LOCAL_CACHE "sfv.ftp", "w");
 	if (fp)
 	{
 		fprintf(fp, "%s %08X\n", tmp, crc);
@@ -1488,10 +1486,8 @@ static int _upload_save_ftp(const save_entry_t* save)
 	}
 
 	ret = ftp_upload(local, remote, tmp, 1);
-	ret &= ftp_upload(APOLLO_LOCAL_CACHE "saves.ftp", remote, "saves.txt", 1);
-	ret &= ftp_upload(APOLLO_LOCAL_CACHE "sfv.ftp", remote, "checksum.sfv", 1);
-
 	unlink_secure(local);
+
 	tmp = readTextFile(APOLLO_LOCAL_CACHE "games.ftp");
 	if (!tmp)
 		tmp = strdup("");
@@ -1505,17 +1501,24 @@ static int _upload_save_ftp(const save_entry_t* save)
 		snprintf(local, sizeof(local), APOLLO_LOCAL_CACHE "%.9s.PNG", save->title_id);
 		ret &= ftp_upload(local, remote, (save->type == FILE_TYPE_PSP) ? "ICON0.PNG" : "icon0.png", 1);
 
-		fp = fopen(APOLLO_LOCAL_CACHE "games.ftp", "a");
+		fp = fopen(APOLLO_LOCAL_CACHE "games.ftp", "w");
 		if (fp)
 		{
 			fprintf(fp, "%s=%s\r\n", save->title_id, tmp);
 			fclose(fp);
 		}
 
-		snprintf(remote, sizeof(remote), "%s%016" PRIX64 "/PS%c/", apollo_config.ftp_url, apollo_config.account_id, type[save->type]);
-		ret &= ftp_upload(APOLLO_LOCAL_CACHE "games.ftp", remote, "games.txt", 1);
+		init_loading_screen("Sync with FTP Server...");
+		snprintf(local, sizeof(local), "%s%016" PRIX64 "/PS%c/", apollo_config.ftp_url, apollo_config.account_id, type[save->type]);
+		ret &= ftp_upload(APOLLO_LOCAL_CACHE "games.ftp", local, "games.txt", 0);
 	}
+	else init_loading_screen("Sync with FTP Server...");
+
 	free(tmp);
+
+	ret &= ftp_upload(APOLLO_LOCAL_CACHE "saves.ftp", remote, "saves.txt", 0);
+	ret &= ftp_upload(APOLLO_LOCAL_CACHE "sfv.ftp", remote, "checksum.sfv", 0);
+	stop_loading_screen();
 
 	return ret;
 }
