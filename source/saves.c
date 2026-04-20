@@ -1461,6 +1461,10 @@ static void read_psp_savegames(const char* userPath, list_t *list, int flags)
 			item->dir_name = strdup((char*) sfo_get_param_value(sfo, "SAVEDATA_DIRECTORY"));
 			asprintf(&item->title_id, "%.9s", item->dir_name);
 			asprintf(&item->path, "%s%s/", userPath, dir->d_name);
+
+			char *tmp = strchr(item->name, '\n');
+			if (tmp)
+				*tmp = ' ';
 		}
 
 		sfo_free(sfo);
@@ -1654,6 +1658,15 @@ list_t * ReadUserList(const char* userPath)
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_COPY " ", _("Copy all Saves to Backup Storage"), CMD_CODE_NULL);
 	_createOptions(cmd, _("Copy Saves to Backup Storage"), CMD_COPY_ALL_SAVES_USB);
 	list_append(item->codes, cmd);
+
+	if (apollo_config.ftp_url[0])
+	{
+		cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_NET " ", _("Upload selected Saves to FTP"), CMD_UPLOAD_SAVES);
+		list_append(item->codes, cmd);
+
+		cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_NET " ", _("Upload all Saves to FTP"), CMD_UPLOAD_ALL_SAVES);
+		list_append(item->codes, cmd);
+	}
 
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_NET " ", _("Start local Web Server"), CMD_SAVE_WEBSERVER);
 	list_append(item->codes, cmd);

@@ -92,6 +92,8 @@ enum cmd_code_enum
     CMD_COPY_ALL_SAVES_USB,
     CMD_COPY_SAVES_HDD,
     CMD_COPY_ALL_SAVES_HDD,
+    CMD_UPLOAD_SAVES,
+    CMD_UPLOAD_ALL_SAVES,
     CMD_DUMP_FINGERPRINTS,
     CMD_SAVE_WEBSERVER,
 
@@ -246,6 +248,9 @@ int ReadVmcCodes(save_entry_t * game);
 int http_init(void);
 void http_end(void);
 int http_download(const char* url, const char* filename, const char* local_dst, int show_progress);
+void ftp_init(void);
+void ftp_end(void);
+int ftp_download(const char* url, const char* filename, const char* local_dst, int show_progress);
 int ftp_upload(const char* local_file, const char* url, const char* filename, int show_progress);
 
 int extract_7zip(const char* zip_file, const char* dest_path);
