@@ -20,7 +20,7 @@ This homebrew app allows you to download, unlock, patch and resign save-game fil
 * **Standalone:** no computer required, everything happens on the PS Vita.
 * **Automatic settings:** auto-detection of User ID, and Account-ID settings.
 * **Multi-format:** supports PS Vita saves, PSP saves (Adrenaline), and PS1 saves.
-* **Localization support:** Chinese, English, Italian, Japanese, Portuguese, Russian, Spanish.
+* **Localization support:** Chinese, English, French, German, Italian, Japanese, Korean, Portuguese, Russian, Spanish.
 
 ## Vita & PSP Save Management
 
@@ -183,7 +183,7 @@ You can also set the `PSVITAIP` environment variable to your Vita's IP address, 
 
 # License
 
-[Apollo Save Tool](https://github.com/bucanero/apollo-vita/) (PS Vita) - Copyright (C) 2020-2025 [Damian Parrino](https://twitter.com/dparrino)
+[Apollo Save Tool](https://github.com/bucanero/apollo-vita/) (PS Vita) - Copyright (C) 2020-2026 [Damian Parrino](https://twitter.com/dparrino)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the [GNU General Public License][app_license] as published by
