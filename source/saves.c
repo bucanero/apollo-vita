@@ -1461,6 +1461,10 @@ static void read_psp_savegames(const char* userPath, list_t *list, int flags)
 			item->dir_name = strdup((char*) sfo_get_param_value(sfo, "SAVEDATA_DIRECTORY"));
 			asprintf(&item->title_id, "%.9s", item->dir_name);
 			asprintf(&item->path, "%s%s/", userPath, dir->d_name);
+
+			char *tmp = strchr(item->name, '\n');
+			if (tmp)
+				*tmp = ' ';
 		}
 
 		sfo_free(sfo);
