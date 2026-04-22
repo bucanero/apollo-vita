@@ -18,6 +18,8 @@ All notable changes to the `apollo-vita` project will be documented in this file
   - Add `des3_ecb`, `hmac_sha256` support
   - Fix `offzip` decompression bug
 
+---
+
 ## [v2.3.0](https://github.com/bucanero/apollo-vita/releases/tag/v2.3.0) - 2026-02-22
 
 ### Added
