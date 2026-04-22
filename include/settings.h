@@ -1,4 +1,4 @@
-#define APOLLO_VERSION          "2.3.0"     //Apollo Vita version (about menu)
+#define APOLLO_VERSION          "2.3.2"     //Apollo Vita version (about menu)
 #define APOLLO_PLATFORM         "Vita"      //Apollo platform
 
 #define MENU_TITLE_OFF          30          //Offset of menu title text from menu mini icon
@@ -54,4 +54,3 @@ void music_callback(int sel);
 void update_callback(int sel);
 
 int save_xml_owner(const char *xmlfile);
-int read_xml_owner(const char *xmlfile, const char *owner);
