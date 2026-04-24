@@ -1420,7 +1420,7 @@ static int _upload_save_ftp(const save_entry_t* save)
 	struct tm t;
 	char type[4] = {'-', '1', 'P', 'V'};
 
-	init_loading_screen("Sync with FTP Server...");
+	init_loading_screen("Preparing upload...");
 
 	snprintf(remote, sizeof(remote), "%s%016" PRIX64 "/PS%c/", apollo_config.ftp_url, apollo_config.account_id, type[save->type]);
 	ftp_download(remote, "games.txt", APOLLO_LOCAL_CACHE "games.ftp", 0);
