@@ -62,9 +62,9 @@ jobs:
     - name: Install unrar
       run: |
         curl -sL https://www.rarlab.com/rar/unrarsrc-6.1.6.tar.gz | tar xz -C ./
-        wget "https://github.com/vitasdk/packages/raw/refs/heads/master/unrar/0001-vita.patch"
+        wget "https://gist.github.com/bucanero/c0b3e143657df54f28e2027abca13c71/raw/17a13988aae9352fbe2886cb4f73a8832e0f5d35/unrar.patch"
         cd unrar
-        patch -Np1 -i "../0001-vita.patch"
+        patch -Np1 -i "../unrar.patch"
         make -f Makefile.vita
         cp libunrar.a $VITASDK/arm-vita-eabi/lib
         cp dll.hpp $VITASDK/arm-vita-eabi/include/unrar.h
