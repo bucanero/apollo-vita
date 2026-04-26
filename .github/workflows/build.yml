@@ -51,7 +51,6 @@ jobs:
         ./vdpm sdl2
         ./vdpm openssl
         ./vdpm curl
-        ./vdpm unrar
         ./vdpm polarssl
         ./vdpm un7zip
         ./vdpm libxml2
@@ -59,6 +58,16 @@ jobs:
         ./vdpm mini18n
         sed '65s/.*/INTERFACE_LINK_LIBRARIES "\$<LINK_ONLY:OpenSSL::SSL>;\$<LINK_ONLY:OpenSSL::Crypto>;\$<LINK_ONLY:ZLIB::ZLIB>;${_IMPORT_PREFIX}\/lib\/libzstd.a"/' ${VITASDK}/arm-vita-eabi/lib/cmake/CURL/CURLTargets.cmake > tmp.cmake
         cp tmp.cmake ${VITASDK}/arm-vita-eabi/lib/cmake/CURL/CURLTargets.cmake
+
+    - name: Install unrar
+      run: |
+        curl -sL https://www.rarlab.com/rar/unrarsrc-6.1.6.tar.gz | tar xz -C ./
+        wget "https://github.com/vitasdk/packages/raw/refs/heads/master/unrar/0001-vita.patch"
+        cd unrar
+        patch -Np1 -i "../0001-vita.patch"
+        make -f Makefile.vita
+        cp libunrar.a $VITASDK/arm-vita-eabi/lib
+        cp dll.hpp $VITASDK/arm-vita-eabi/include/unrar.h
 
     - name: Install zip
       run: |
