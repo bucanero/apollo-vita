@@ -242,14 +242,12 @@ msgid "Error! Couldn't upload save:"
 msgstr "Erro! Não foi possível enviar dado salvo:"
 
 #: exec_cmd.c:1551
-#, fuzzy
 msgid "Do you want to upload the selected saves to FTP?"
-msgstr "Você deseja fazer upload de %s?"
+msgstr "Você deseja fazer upload das partidas selecionadas para o FTP?"
 
 #: exec_cmd.c:1579
-#, fuzzy
 msgid "Saves uploaded to FTP"
-msgstr "Dados salvos exportados para:"
+msgstr "Dados salvos enviados para o FTP"
 
 #: exec_cmd.c:1592
 msgid "Memory card successfully imported to:"
@@ -286,9 +284,8 @@ msgid "Error! Can't find decrypted save-game file:"
 msgstr "Erro! Não é possível encontrar o arquivo de jogo salvo descriptografado:"
 
 #: exec_cmd.c:1673 exec_cmd.c:1678
-#, fuzzy, c-format
 msgid "Error! File %s couldn't be imported"
-msgstr "Erro! Não foi possível exportar o arquivo %s"
+msgstr "Erro! Não foi possível importar o arquivo %s"
 
 #: exec_cmd.c:1675
 msgid "File successfully imported to:"
@@ -372,7 +369,7 @@ msgstr "Diminuir valor"
 
 #: main.c:205
 msgid "Search"
-msgstr ""
+msgstr "Pesquisar"
 
 #: main.c:205
 msgid "Exit"
@@ -473,11 +470,11 @@ msgstr "Salvar alterações em %s?"
 
 #: menu_main.c:675
 msgid "Search bytes (hex)"
-msgstr ""
+msgstr "Pesquisar bytes (hex)"
 
 #: menu_main.c:691
 msgid "Value not found: 0x"
-msgstr ""
+msgstr "Valor não encontrado: 0x"
 
 #: menu_main.c:763
 msgid "Failed to load:"
@@ -731,9 +728,8 @@ msgid "Copy all Saves to Backup Storage"
 msgstr "Copiar todos os Salvamentos para Armazenamento de Backup"
 
 #: saves.c:1664
-#, fuzzy
 msgid "Upload selected Saves to FTP"
-msgstr "Fazer Upload do Backup Salvo para FTP"
+msgstr "Enviar partidas selecionadas para o FTP"
 
 #: saves.c:1783
 msgid "Memory Card Management"

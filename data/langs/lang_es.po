@@ -242,14 +242,12 @@ msgid "Error! Couldn't upload save:"
 msgstr "¡Error! No se pudo subir partida:"
 
 #: exec_cmd.c:1551
-#, fuzzy
 msgid "Do you want to upload the selected saves to FTP?"
-msgstr "¿Desea subir %s?"
+msgstr "¿Deseas subir las partidas seleccionadas al FTP?"
 
 #: exec_cmd.c:1579
-#, fuzzy
 msgid "Saves uploaded to FTP"
-msgstr "Partidas exportadas a:"
+msgstr "Partidas subidas al FTP"
 
 #: exec_cmd.c:1592
 msgid "Memory card successfully imported to:"
@@ -372,7 +370,7 @@ msgstr "Valor Abajo"
 
 #: main.c:205
 msgid "Search"
-msgstr ""
+msgstr "Buscar"
 
 #: main.c:205
 msgid "Exit"
@@ -473,11 +471,11 @@ msgstr "¿Guardar cambios en %s?"
 
 #: menu_main.c:675
 msgid "Search bytes (hex)"
-msgstr ""
+msgstr "Buscar bytes (hex)"
 
 #: menu_main.c:691
 msgid "Value not found: 0x"
-msgstr ""
+msgstr "Valor no encontrado: 0x"
 
 #: menu_main.c:763
 msgid "Failed to load:"
@@ -731,9 +729,8 @@ msgid "Copy all Saves to Backup Storage"
 msgstr "Copiar Todas las Partidas a Backup Storage"
 
 #: saves.c:1664
-#, fuzzy
 msgid "Upload selected Saves to FTP"
-msgstr "Subir copia de seguridad de partida a FTP"
+msgstr "Subir partidas seleccionadas al FTP"
 
 #: saves.c:1783
 msgid "Memory Card Management"

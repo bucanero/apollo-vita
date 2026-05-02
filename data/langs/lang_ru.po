@@ -242,14 +242,12 @@ msgid "Error! Couldn't upload save:"
 msgstr "Ошибка! Не удалось загрузить сохранение:"
 
 #: exec_cmd.c:1551
-#, fuzzy
 msgid "Do you want to upload the selected saves to FTP?"
-msgstr "Вы хотите загрузить %s?"
+msgstr "Вы хотите загрузить выбранные сохранения на FTP?"
 
 #: exec_cmd.c:1579
-#, fuzzy
 msgid "Saves uploaded to FTP"
-msgstr "Сохранения экспортированы в:"
+msgstr "Сохранения загружены на FTP"
 
 #: exec_cmd.c:1592
 msgid "Memory card successfully imported to:"
@@ -372,7 +370,7 @@ msgstr "Уменьшить"
 
 #: main.c:205
 msgid "Search"
-msgstr ""
+msgstr "Поиск"
 
 #: main.c:205
 msgid "Exit"
@@ -473,11 +471,11 @@ msgstr "Сохранить изменения в %s?"
 
 #: menu_main.c:675
 msgid "Search bytes (hex)"
-msgstr ""
+msgstr "Поиск байтов (hex)"
 
 #: menu_main.c:691
 msgid "Value not found: 0x"
-msgstr ""
+msgstr "Значение не найдено: 0x"
 
 #: menu_main.c:763
 msgid "Failed to load:"
@@ -731,9 +729,8 @@ msgid "Copy all Saves to Backup Storage"
 msgstr "Скопировать все сохранения в резервное хранилище"
 
 #: saves.c:1664
-#, fuzzy
 msgid "Upload selected Saves to FTP"
-msgstr "Загрузить резервную копию на FTP"
+msgstr "Загрузить выбранные сохранения на FTP"
 
 #: saves.c:1783
 msgid "Memory Card Management"

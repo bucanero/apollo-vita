@@ -242,14 +242,12 @@ msgid "Error! Couldn't upload save:"
 msgstr "오류! 세이브를 업로드할 수 없음:"
 
 #: exec_cmd.c:1551
-#, fuzzy
 msgid "Do you want to upload the selected saves to FTP?"
-msgstr "%s을(를) 업로드하시겠습니까?"
+msgstr "선택한 저장 파일을 FTP에 업로드하시겠습니까?"
 
 #: exec_cmd.c:1579
-#, fuzzy
 msgid "Saves uploaded to FTP"
-msgstr "세이브가 내보내기됨:"
+msgstr "저장 파일이 FTP에 업로드되었습니다"
 
 #: exec_cmd.c:1592
 msgid "Memory card successfully imported to:"
@@ -372,7 +370,7 @@ msgstr "값 감소"
 
 #: main.c:205
 msgid "Search"
-msgstr ""
+msgstr "검색"
 
 #: main.c:205
 msgid "Exit"
@@ -473,11 +471,11 @@ msgstr "%s에 변경 사항을 저장하시겠습니까?"
 
 #: menu_main.c:675
 msgid "Search bytes (hex)"
-msgstr ""
+msgstr "바이트 검색 (hex)"
 
 #: menu_main.c:691
 msgid "Value not found: 0x"
-msgstr ""
+msgstr "값을 찾을 수 없음: 0x"
 
 #: menu_main.c:763
 msgid "Failed to load:"
@@ -731,9 +729,8 @@ msgid "Copy all Saves to Backup Storage"
 msgstr "모든 세이브를 백업 저장소로 복사"
 
 #: saves.c:1664
-#, fuzzy
 msgid "Upload selected Saves to FTP"
-msgstr "세이브 백업을 FTP로 업로드"
+msgstr "선택한 저장 파일을 FTP에 업로드"
 
 #: saves.c:1783
 msgid "Memory Card Management"

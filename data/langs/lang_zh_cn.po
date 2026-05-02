@@ -242,14 +242,12 @@ msgid "Error! Couldn't upload save:"
 msgstr "错误！无法上传存档："
 
 #: exec_cmd.c:1551
-#, fuzzy
 msgid "Do you want to upload the selected saves to FTP?"
-msgstr "您确定要上传 %s 吗？"
+msgstr "您确定要将所选存档上传到FTP吗？"
 
 #: exec_cmd.c:1579
-#, fuzzy
 msgid "Saves uploaded to FTP"
-msgstr "存档已导出至："
+msgstr "存档已上传至FTP"
 
 #: exec_cmd.c:1592
 msgid "Memory card successfully imported to:"
@@ -372,7 +370,7 @@ msgstr "减少数值"
 
 #: main.c:205
 msgid "Search"
-msgstr ""
+msgstr "搜索"
 
 #: main.c:205
 msgid "Exit"
@@ -473,11 +471,11 @@ msgstr "保存更改至 %s 吗？"
 
 #: menu_main.c:675
 msgid "Search bytes (hex)"
-msgstr ""
+msgstr "搜索字节 (hex)"
 
 #: menu_main.c:691
 msgid "Value not found: 0x"
-msgstr ""
+msgstr "未找到值: 0x"
 
 #: menu_main.c:763
 msgid "Failed to load:"
@@ -731,9 +729,8 @@ msgid "Copy all Saves to Backup Storage"
 msgstr "复制所有存档至备份存储"
 
 #: saves.c:1664
-#, fuzzy
 msgid "Upload selected Saves to FTP"
-msgstr "上传存档备份至 FTP"
+msgstr "将所选存档上传至FTP"
 
 #: saves.c:1783
 msgid "Memory Card Management"
