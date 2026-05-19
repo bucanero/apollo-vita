@@ -895,10 +895,3 @@ msgstr "Registro de Depuração Desabilitado"
 
 #~ msgid "Error! Couldn't zip save:"
 #~ msgstr "Erro! Não foi possível compactar dado salvo:"
-
-#, c-format
-#~ msgid "Error! File %s couldn"
-#~ msgstr "Erro! Não foi possível importar o arquivo %s"
-
-#~ msgid "PSP Saves"
-#~ msgstr "Dados Salvos PSP"
