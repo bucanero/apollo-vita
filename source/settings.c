@@ -356,7 +356,8 @@ int load_app_settings(app_config_t* config)
 	}
 
 	sceKernelGetOpenPsId((SceKernelOpenPsId*) config->psid);
-	_vshSblAimgrGetConsoleId((char*) config->idps);
+	_vshSblAimgrGetConsoleId(filePath);
+	memcpy(config->idps, filePath, sizeof(config->idps));
 	config->idps[0] = ES64(config->idps[0]);
 	config->idps[1] = ES64(config->idps[1]);
 
