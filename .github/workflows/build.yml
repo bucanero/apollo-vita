@@ -38,6 +38,7 @@ jobs:
       working-directory: vdpm
       run: |
         ./bootstrap-vitasdk.sh
+        chmod +x "$VITASDK/bin/pacman"
 
     - name: Install SDK libraries
       working-directory: vdpm
