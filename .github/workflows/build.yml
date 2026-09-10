@@ -38,28 +38,15 @@ jobs:
       working-directory: vdpm
       run: |
         ./bootstrap-vitasdk.sh
-        chmod +x "$VITASDK/bin/pacman"
+        echo "${VITASDK}/bin" >> $GITHUB_PATH
 
     - name: Install SDK libraries
-      working-directory: vdpm
+      env:
+        VDPM_NONINTERACTIVE: 1
       run: |
-        ./vdpm zlib
-        ./vdpm zstd
-        ./vdpm bzip2
-        ./vdpm libpng
-        ./vdpm freetype
-        ./vdpm taihen
-        ./vdpm sdl2
-        ./vdpm openssl
-        ./vdpm curl
-        ./vdpm unrar
-        ./vdpm polarssl
-        ./vdpm un7zip
-        ./vdpm libxml2
-        ./vdpm libxmp-lite
-        ./vdpm mini18n
-        sed '65s/.*/INTERFACE_LINK_LIBRARIES "\$<LINK_ONLY:OpenSSL::SSL>;\$<LINK_ONLY:OpenSSL::Crypto>;\$<LINK_ONLY:ZLIB::ZLIB>;${_IMPORT_PREFIX}\/lib\/libzstd.a"/' ${VITASDK}/arm-vita-eabi/lib/cmake/CURL/CURLTargets.cmake > tmp.cmake
-        cp tmp.cmake ${VITASDK}/arm-vita-eabi/lib/cmake/CURL/CURLTargets.cmake
+        vdpm install zlib zstd bzip2 libpng freetype taihen sdl2 openssl curl \
+          unrar polarssl un7zip libxml2 libxmp-lite mini18n
+        sed -i '65s/.*/INTERFACE_LINK_LIBRARIES "\$<LINK_ONLY:OpenSSL::SSL>;\$<LINK_ONLY:OpenSSL::Crypto>;\$<LINK_ONLY:ZLIB::ZLIB>;${_IMPORT_PREFIX}\/lib\/libzstd.a"/' ${VITASDK}/arm-vita-eabi/lib/cmake/CURL/CURLTargets.cmake
 
     - name: Install zip
       run: |
