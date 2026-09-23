@@ -197,11 +197,7 @@ static void SetMenu(int id)
 			if (apollo_config.doAni)
 				Draw_CheatsMenu_View_Ani_Exit();
 
-			if (selected_centry->name)
-				free(selected_centry->name);
-			if (selected_centry->codes)
-				free(selected_centry->codes);
-			free(selected_centry);
+			apollo_free_code_entry(selected_centry);
 			break;
 
 		case MENU_PATCH_VIEW: //Cheat View Menu
