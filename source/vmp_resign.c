@@ -9,11 +9,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <polarssl/aes.h>
-#include <polarssl/sha1.h>
 
 #include "utils.h"
+#include "saves.h"
 #include "shiftjis.h"
 
+#define PSV_TYPE_PS1    0x01
+#define PSV_TYPE_PS2    0x02
 #define PSV_SEED_OFFSET 0x08
 #define PSV_HASH_OFFSET 0x1C
 #define PSV_TYPE_OFFSET 0x3C
@@ -44,12 +46,6 @@ static const uint8_t vmp_iv[0x10] = {
 };
 
 
-static void XorWithByte(uint8_t* buf, uint8_t byte, int length)
-{
-	for (int i = 0; i < length; ++i)
-		buf[i] ^= byte;
-}
-
 static void XorWithIv(uint8_t* buf, const uint8_t* Iv)
 {
 	// The block in AES is always 128bit no matter the key size
@@ -57,18 +53,18 @@ static void XorWithIv(uint8_t* buf, const uint8_t* Iv)
 		buf[i] ^= Iv[i];
 }
  
-static void generateHash(const uint8_t *input, uint8_t *salt_seed, uint8_t *dest, size_t sz)
+//Derive the 0x40-byte HMAC key from the seed, then sign `input` in place.
+//`dest` points at the signature field inside `input`, which is zeroed before
+//hashing -- so the same routine both produces and checks a signature.
+static void generateHash(const uint8_t *input, const uint8_t *salt_seed, uint8_t *dest, size_t sz)
 {
 	aes_context aes_ctx;
-	sha1_context sha1_ctx;
 	uint8_t salt[0x40];
 	uint8_t work_buf[0x14];
 
 	memset(salt , 0, sizeof(salt));
 	memset(&aes_ctx, 0, sizeof(aes_context));
-	memcpy(salt_seed, "www.bucanero.com.ar", 20);
 
-	LOG("Signing VMP Memory Card File...");
 	//idk why the normal cbc doesn't work.
 	memcpy(work_buf, salt_seed, 0x10);
 
@@ -85,23 +81,12 @@ static void generateHash(const uint8_t *input, uint8_t *salt_seed, uint8_t *dest
 	XorWithIv(salt + 0x10, work_buf);
 	
 	memset(salt + 0x14, 0, sizeof(salt) - 0x14);
+
+	//The signature is HMAC-SHA1 over the whole file, keyed by the salt, with
+	//the signature field itself zeroed. The salt is exactly one SHA-1 block,
+	//so the key is used as it stands and no normalisation happens.
 	memset(dest, 0, 0x14);
-
-	XorWithByte(salt, 0x36, sizeof(salt));
-
-	memset(&sha1_ctx, 0, sizeof(sha1_context));
-	sha1_starts(&sha1_ctx);
-	sha1_update(&sha1_ctx, salt, sizeof(salt));
-	sha1_update(&sha1_ctx, input, sz);
-	sha1_finish(&sha1_ctx, work_buf);
-
-	XorWithByte(salt, 0x6A, sizeof(salt));
-
-	memset(&sha1_ctx, 0, sizeof(sha1_context));
-	sha1_starts(&sha1_ctx);
-	sha1_update(&sha1_ctx, salt, sizeof(salt));
-	sha1_update(&sha1_ctx, work_buf, 0x14);
-	sha1_finish(&sha1_ctx, dest);
+	calculate_hmac_hash(input, sz, salt, sizeof(salt), dest);
 }
 
 int vmp_resign(const char *src_vmp)
@@ -122,6 +107,11 @@ int vmp_resign(const char *src_vmp)
 		return 0;
 	}
 
+	//Stamping the seed is part of signing, not of hashing: the signature
+	//covers the file as it will be written, seed included.
+	memcpy(input + VMP_SEED_OFFSET, "www.bucanero.com.ar", 20);
+
+	LOG("Signing VMP Memory Card File...");
 	generateHash(input, input + VMP_SEED_OFFSET, input + VMP_HASH_OFFSET, sz);
 
 	LOG("New signature:");
@@ -137,6 +127,40 @@ int vmp_resign(const char *src_vmp)
 	LOG("VMP resigned successfully: %s", src_vmp);
 
 	return 1;
+}
+
+int psv_verify(uint8_t *psv, size_t len)
+{
+	uint8_t stored[0x14], computed[0x14];
+	int signed_at_all = 0;
+
+	if (len < 0x84 || memcmp(psv, "\0VSP", 4) != 0)
+		return PSV_SIG_UNKNOWN;
+
+	//Only the PS1 derivation is implemented here, which is the only type
+	//psv_resign() writes. A PS2 .PSV is a save we cannot check, not a bad one.
+	if (psv[PSV_TYPE_OFFSET] != PSV_TYPE_PS1)
+		return PSV_SIG_UNKNOWN;
+
+	memcpy(stored, psv + PSV_HASH_OFFSET, sizeof(stored));
+
+	for (int i = 0; i < (int)sizeof(stored); i++)
+		if (stored[i]) {
+			signed_at_all = 1;
+			break;
+		}
+
+	if (!signed_at_all)
+		return PSV_SIG_UNSIGNED;
+
+	//generateHash() writes into the file's own signature field, which is
+	//also what it has to hash as zeros. Let it, then put the original back
+	//so the caller's buffer comes out exactly as it went in.
+	generateHash(psv, psv + PSV_SEED_OFFSET, psv + PSV_HASH_OFFSET, len);
+	memcpy(computed, psv + PSV_HASH_OFFSET, sizeof(computed));
+	memcpy(psv + PSV_HASH_OFFSET, stored, sizeof(stored));
+
+	return memcmp(stored, computed, sizeof(stored)) == 0 ? PSV_SIG_OK : PSV_SIG_BAD;
 }
 
 int psv_resign(const char *src_psv)
@@ -155,6 +179,9 @@ int psv_resign(const char *src_psv)
 		return 0;
 	}
 
+	memcpy(input + PSV_SEED_OFFSET, "www.bucanero.com.ar", 20);
+
+	LOG("Signing PSV Save File...");
 	generateHash(input, input + PSV_SEED_OFFSET, input + PSV_HASH_OFFSET, sz);
 
 	LOG("New signature:");

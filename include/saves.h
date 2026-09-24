@@ -293,4 +293,21 @@ int psp_ResignSavedata(const char* fpath);
 
 int vmp_resign(const char *src_vmp);
 int psv_resign(const char *src_psv);
+
+/* Results of psv_verify(). */
+#define PSV_SIG_OK        1   /* the signature matches the contents */
+#define PSV_SIG_BAD       0   /* a signature is present and does not match */
+#define PSV_SIG_UNSIGNED (-1) /* the field is all zeros - never signed */
+#define PSV_SIG_UNKNOWN  (-2) /* not a PSV, or a save type we cannot check */
+
+/*
+ * Check a .PSV's HMAC-SHA1 against its contents. The buffer is written to and
+ * restored, so it must be writable; its contents are unchanged on return.
+ *
+ * A failure is worth reporting but not worth refusing an import over: several
+ * tools wrote .PSV files before the signature was understood, and those saves
+ * are otherwise perfectly good.
+ */
+int psv_verify(uint8_t *psv, size_t len);
+
 char* sjis2utf8(char* input);

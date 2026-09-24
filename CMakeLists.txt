@@ -28,6 +28,11 @@ endif()
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+# newlib objects carry no .note.GNU-stack, so binutils >= 2.39 warns that the
+# stack is implicitly executable. PT_GNU_STACK means nothing to the Vita
+# loader; state the permission explicitly to keep the link output quiet.
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-z,noexecstack")
+
 include_directories(
   include
   ${VITASDK}/arm-vita-eabi/include/freetype2
