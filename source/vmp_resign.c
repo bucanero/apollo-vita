@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <polarssl/aes.h>
-#include <polarssl/sha1.h>
 
 #include "utils.h"
 #include "saves.h"
@@ -87,7 +86,7 @@ static void generateHash(const uint8_t *input, const uint8_t *salt_seed, uint8_t
 	//the signature field itself zeroed. The salt is exactly one SHA-1 block,
 	//so the key is used as it stands and no normalisation happens.
 	memset(dest, 0, 0x14);
-	sha1_hmac(salt, sizeof(salt), input, sz, dest);
+	calculate_hmac_hash(input, sz, salt, sizeof(salt), dest);
 }
 
 int vmp_resign(const char *src_vmp)
