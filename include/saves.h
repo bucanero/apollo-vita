@@ -36,6 +36,7 @@
 
 #define PS1VMC_PATH_USB         "%s:data/PS1/VMC/"
 #define DCVMU_PATH_USB          "%s:data/DC/VMU/"
+#define DCVMU_PATH_FLYCAST      "ux0:data/flycast/"
 
 #define ONLINE_URL              "https://bucanero.github.io/apollo-saves/"
 #define ONLINE_PATCH_URL        "https://bucanero.github.io/apollo-patches/PSV/"

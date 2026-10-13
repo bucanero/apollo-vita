@@ -859,7 +859,7 @@ static void read_vmc_files(const char* path, list_t* list)
 	closedir(d);
 }
 
-static void read_vmu_files(list_t* list)
+static void read_vmu_files(const char* userPath, list_t* list, int flags)
 {
 	save_entry_t *item;
 	DIR *d;
@@ -868,8 +868,7 @@ static void read_vmu_files(list_t* list)
 	char vmuPath[256];
 	uint8_t sig[16];
 
-	snprintf(vmuPath, sizeof(vmuPath), DCVMU_PATH_USB, USER_STORAGE_DEV);
-	d = opendir(vmuPath);
+	d = opendir(userPath);
 
 	if (!d)
 		return;
@@ -880,7 +879,7 @@ static void read_vmu_files(list_t* list)
 			!(endsWith(dir->d_name, ".VMU") || endsWith(dir->d_name, ".DCM") || endsWith(dir->d_name, ".BIN")))
 			continue;
 
-		snprintf(vmuPath, sizeof(vmuPath), DCVMU_PATH_USB "%s", USER_STORAGE_DEV, dir->d_name);
+		snprintf(vmuPath, sizeof(vmuPath), "%s%s", userPath, dir->d_name);
 		if ((fp = fopen(vmuPath, "rb")) == NULL)
 			continue;
 
@@ -893,7 +892,7 @@ static void read_vmu_files(list_t* list)
 		if (memcmp(sig, "UUUUUUUUUUUUUUUU", sizeof(sig)) != 0)
 			continue;
 
-		item = _createSaveEntry(SAVE_FLAG_DC | SAVE_FLAG_VMC, NULL, dir->d_name);
+		item = _createSaveEntry(SAVE_FLAG_DC | SAVE_FLAG_VMC | flags, NULL, dir->d_name);
 		item->type = FILE_TYPE_VMC;
 		item->title_id = strdup("VMU");
 		item->dir_name = strdup(DC_SAVES_PATH_USB);
@@ -1685,6 +1684,7 @@ list_t * ReadUsbList(const char* userPath)
 	code_entry_t *cmd;
 	list_t *list;
 	sqlite3* appdb;
+	char path[256];
 
 	if (dir_exists(userPath) != SUCCESS)
 		return NULL;
@@ -1724,7 +1724,9 @@ list_t * ReadUsbList(const char* userPath)
 	read_usb_savegames(userPath, list, appdb);
 	read_psp_savegames(userPath, list, 0);
 	read_vmc_files(userPath, list);
-	read_vmu_files(list);
+
+	snprintf(path, sizeof(path), DCVMU_PATH_USB, USER_STORAGE_DEV);
+	read_vmu_files(path, list, 0);
 	sqlite3_close(appdb);
 
 	return list;
@@ -1775,6 +1777,10 @@ list_t * ReadUserList(const char* userPath)
 
 	read_hdd_savegames(userPath, list);
 	read_psp_savegames(PSP_SAVES_PATH_HDD, list, SAVE_FLAG_HDD);
+
+	// Flycast keeps its VMUs in its data folder, or in the config folder on older setups
+	read_vmu_files(DCVMU_PATH_FLYCAST "data/", list, SAVE_FLAG_HDD);
+	read_vmu_files(DCVMU_PATH_FLYCAST, list, SAVE_FLAG_HDD);
 
 	return list;
 }
