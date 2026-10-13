@@ -11,6 +11,7 @@
 #include "common.h"
 #include "utils.h"
 #include "ps1card.h"
+#include "dccard.h"
 
 extern save_list_t hdd_saves;
 extern save_list_t usb_saves;
@@ -18,6 +19,7 @@ extern save_list_t trophies;
 extern save_list_t online_saves;
 extern save_list_t user_backup;
 extern save_list_t vmc_saves;
+extern save_list_t vmu_saves;
 
 extern int close_app;
 
@@ -150,6 +152,14 @@ static void SetMenu(int id)
 			}
 			break;
 
+		case MENU_DCVMC_SAVES:
+			if (id == MENU_MAIN_SCREEN)
+			{
+				UnloadGameList(vmu_saves.list);
+				vmu_saves.list = NULL;
+			}
+			break;
+
 		case MENU_ONLINE_DB: //Cheats Online Menu
 			if (apollo_config.online_opt && id == MENU_MAIN_SCREEN)
 			{
@@ -183,6 +193,11 @@ static void SetMenu(int id)
 				case MENU_VMC_SAVES:
 					saveMemoryCard(vmc_saves.path, 0, 0);
 					ReloadUserSaves(&vmc_saves);
+					break;
+
+				case MENU_DCVMC_SAVES:
+					dccard_save(vmu_saves.path);
+					ReloadUserSaves(&vmu_saves);
 					break;
 				
 				case MENU_USB_SAVES:
@@ -273,6 +288,14 @@ static void SetMenu(int id)
 				Draw_UserCheatsMenu_Ani(&vmc_saves);
 			break;
 
+		case MENU_DCVMC_SAVES: //DC VMU Menu
+			if (!vmu_saves.list && !ReloadUserSaves(&vmu_saves))
+				return;
+
+			if (apollo_config.doAni)
+				Draw_UserCheatsMenu_Ani(&vmu_saves);
+			break;
+
 		case MENU_CREDITS: //About Menu
 			// set to display the PSID on the About menu
 			sprintf((char*) menu_about_strings_project[3], "%016llx", apollo_config.account_id);
@@ -298,7 +321,7 @@ static void SetMenu(int id)
 		case MENU_PATCHES: //Cheat Selection Menu
 			//if entering from game list, don't keep index, otherwise keep
 			if (menu_id == MENU_USB_SAVES || menu_id == MENU_HDD_SAVES || menu_id == MENU_ONLINE_DB ||
-				menu_id == MENU_USER_BACKUP || menu_id == MENU_TROPHIES || menu_id == MENU_VMC_SAVES)
+				menu_id == MENU_USER_BACKUP || menu_id == MENU_TROPHIES || menu_id == MENU_VMC_SAVES || menu_id == MENU_DCVMC_SAVES)
 				menu_old_sel[MENU_PATCHES] = 0;
 
 			char iconfile[256] = {0};
@@ -319,6 +342,14 @@ static void SetMenu(int id)
 
 				if (selected_entry->flags & (SAVE_FLAG_PSV|SAVE_FLAG_PS1) && file_exists(iconfile) != SUCCESS)
 					http_download(selected_entry->path, "icon0.png", iconfile, 1);
+			}
+			else if (selected_entry->flags & SAVE_FLAG_VMC && selected_entry->type == FILE_TYPE_DC)
+			{
+				uint8_t* icon = dccard_get_icon(selected_entry->blocks);
+				LoadRawTexture(icon_png_file_index, icon, 32, 32);
+				menu_textures[icon_png_file_index].height = 64;
+				menu_textures[icon_png_file_index].width = 64;
+				free(icon);
 			}
 			else if (selected_entry->flags & SAVE_FLAG_VMC)
 			{
@@ -436,6 +467,13 @@ static void doSaveMenu(save_list_t * save_list)
 	else if (vitaPadGetButtonPressed(SCE_CTRL_CROSS))
 	{
 		selected_entry = list_get_item(save_list->list, menu_sel);
+
+		if (selected_entry->type == FILE_TYPE_VMC && selected_entry->flags & SAVE_FLAG_DC)
+		{
+			strncpy(vmu_saves.path, selected_entry->path, sizeof(vmu_saves.path));
+			SetMenu(MENU_DCVMC_SAVES);
+			return;
+		}
 
 		if (selected_entry->type == FILE_TYPE_VMC && selected_entry->flags & SAVE_FLAG_VMC)
 		{
@@ -946,6 +984,10 @@ void drawScene(void)
 
 		case MENU_VMC_SAVES: //VMC Menu
 			doSaveMenu(&vmc_saves);
+			break;
+
+		case MENU_DCVMC_SAVES: //DC VMU Menu
+			doSaveMenu(&vmu_saves);
 			break;
 	}
 }

@@ -98,6 +98,9 @@ add_executable(${PROJECT_NAME}
   source/vmp_resign.c
   source/key_zrif.c
   source/ps1card.c
+  source/dccard.c
+  source/dcsave.c
+  source/dcvmu.c
   source/ciso.c
 )
 

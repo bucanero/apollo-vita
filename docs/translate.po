@@ -893,3 +893,27 @@ msgstr ""
 #: settings.c:306
 msgid "Debug Logging Disabled"
 msgstr ""
+
+#: main.c
+msgid "DC Virtual Memory Card"
+msgstr ""
+
+#: menu_cheats.c
+msgid "Dreamcast Saves"
+msgstr ""
+
+#: saves.c
+msgid "Export save game to .DCI format"
+msgstr ""
+
+#: saves.c
+msgid "Export save game to .VMI/.VMS format"
+msgstr ""
+
+#: saves.c
+msgid "Export Memory Card to raw .BIN"
+msgstr ""
+
+#: saves.c
+msgid "Export Memory Card to Nexus .DCM"
+msgstr ""

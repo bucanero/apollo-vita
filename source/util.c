@@ -114,3 +114,23 @@ int calculate_file_hmac_hash(const char *file_path, const u8 *key, u32 key_lengt
 u64 align_to_pow2(u64 offset, u64 alignment) {
 	return (offset + alignment - 1) & ~(alignment - 1);
 }
+
+void append_le_uint16(u8 *buf, u16 val) {
+	buf[0] = (u8)val;
+	buf[1] = (u8)(val >> 8);
+}
+
+void append_le_uint32(u8 *buf, u32 val) {
+	buf[0] = (u8)val;
+	buf[1] = (u8)(val >> 8);
+	buf[2] = (u8)(val >> 16);
+	buf[3] = (u8)(val >> 24);
+}
+
+u16 read_le_uint16(const u8 *buf) {
+	return (u16)(buf[0] | (buf[1] << 8));
+}
+
+u32 read_le_uint32(const u8 *buf) {
+	return (u32)buf[0] | ((u32)buf[1] << 8) | ((u32)buf[2] << 16) | ((u32)buf[3] << 24);
+}

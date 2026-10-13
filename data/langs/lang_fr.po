@@ -894,5 +894,29 @@ msgstr "Erreur de téléchargement !"
 msgid "Debug Logging Disabled"
 msgstr "Journalisation de débogage désactivée"
 
+#: main.c
+msgid "DC Virtual Memory Card"
+msgstr "Carte mémoire virtuelle DC"
+
+#: menu_cheats.c
+msgid "Dreamcast Saves"
+msgstr "Sauvegardes Dreamcast"
+
+#: saves.c
+msgid "Export save game to .DCI format"
+msgstr "Exporter la sauvegarde au format .DCI"
+
+#: saves.c
+msgid "Export save game to .VMI/.VMS format"
+msgstr "Exporter la sauvegarde au format .VMI/.VMS"
+
+#: saves.c
+msgid "Export Memory Card to raw .BIN"
+msgstr "Exporter la carte mémoire au format .BIN brut"
+
+#: saves.c
+msgid "Export Memory Card to Nexus .DCM"
+msgstr "Exporter la carte mémoire au format Nexus .DCM"
+
 #~ msgid "Error! Couldn't zip save:"
 #~ msgstr "Erreur ! Impossible de compresser la sauvegarde :"

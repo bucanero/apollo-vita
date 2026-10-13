@@ -894,5 +894,29 @@ msgstr "Ошибка загрузки!"
 msgid "Debug Logging Disabled"
 msgstr "Ведение отладочного журнала отключено"
 
+#: main.c
+msgid "DC Virtual Memory Card"
+msgstr "Виртуальная карта памяти DC"
+
+#: menu_cheats.c
+msgid "Dreamcast Saves"
+msgstr "Сохранения Dreamcast"
+
+#: saves.c
+msgid "Export save game to .DCI format"
+msgstr "Экспортировать сохранение в формате .DCI"
+
+#: saves.c
+msgid "Export save game to .VMI/.VMS format"
+msgstr "Экспортировать сохранение в формате .VMI/.VMS"
+
+#: saves.c
+msgid "Export Memory Card to raw .BIN"
+msgstr "Экспортировать карту памяти в необработанный файл .BIN"
+
+#: saves.c
+msgid "Export Memory Card to Nexus .DCM"
+msgstr "Экспортировать карту памяти в Nexus .DCM"
+
 #~ msgid "Error! Couldn't zip save:"
 #~ msgstr "Ошибка! Не удалось архивировать сохранение:"

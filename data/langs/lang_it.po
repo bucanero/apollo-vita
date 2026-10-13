@@ -894,5 +894,29 @@ msgstr "Errore di download!"
 msgid "Debug Logging Disabled"
 msgstr "Registrazione Debug Disabilitata"
 
+#: main.c
+msgid "DC Virtual Memory Card"
+msgstr "Scheda di memoria virtuale DC"
+
+#: menu_cheats.c
+msgid "Dreamcast Saves"
+msgstr "Salvataggi Dreamcast"
+
+#: saves.c
+msgid "Export save game to .DCI format"
+msgstr "Esporta il salvataggio in formato .DCI"
+
+#: saves.c
+msgid "Export save game to .VMI/.VMS format"
+msgstr "Esporta il salvataggio in formato .VMI/.VMS"
+
+#: saves.c
+msgid "Export Memory Card to raw .BIN"
+msgstr "Esporta la memory card in formato .BIN grezzo"
+
+#: saves.c
+msgid "Export Memory Card to Nexus .DCM"
+msgstr "Esporta la memory card in formato Nexus .DCM"
+
 #~ msgid "Error! Couldn't zip save:"
 #~ msgstr "Errore! Impossibile comprimere il salvataggio:"
