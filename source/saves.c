@@ -1408,9 +1408,9 @@ int sortSaveList_Compare_TitleID(const void* a, const void* b)
 
 static int parseTypeFlags(int flags)
 {
-	if (flags & SAVE_FLAG_DC)
+	if (flags & SAVE_FLAG_VMC)
 		return 5;
-	else if (flags & SAVE_FLAG_VMC)
+	else if (flags & SAVE_FLAG_DC)
 		return 4;
 	else if (flags & SAVE_FLAG_PS1)
 		return 3;
