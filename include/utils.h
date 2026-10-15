@@ -16,6 +16,11 @@ int calculate_hmac_hash(const u8 *data, u64 size, const u8 *key, u32 key_length,
 int calculate_file_hmac_hash(const char *file_path, const u8 *key, u32 key_length, u8 output[20]);
 
 u64 align_to_pow2(u64 offset, u64 alignment);
+
+void append_le_uint16(u8 *buf, u16 val);
+void append_le_uint32(u8 *buf, u32 val);
+u16 read_le_uint16(const u8 *buf);
+u32 read_le_uint32(const u8 *buf);
 void notification(const char *p_Format, ...);
 
 // todo: why asprintf is not defined?

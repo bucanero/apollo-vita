@@ -169,6 +169,19 @@ save_list_t vmc_saves = {
     .UpdatePath = &update_vmc_path,
 };
 
+/*
+* Dreamcast VMU list
+*/
+save_list_t vmu_saves = {
+    .id = MENU_DCVMC_SAVES,
+    .title = NULL,
+    .list = NULL,
+    .path = "",
+    .ReadList = &ReadVmuList,
+    .ReadCodes = &ReadVmuCodes,
+    .UpdatePath = &update_vmc_path,
+};
+
 
 static const char* get_button_prompts(char* prompt)
 {
@@ -179,6 +192,7 @@ static const char* get_button_prompts(char* prompt)
 		case MENU_HDD_SAVES:
 		case MENU_ONLINE_DB:
 		case MENU_VMC_SAVES:
+		case MENU_DCVMC_SAVES:
 			snprintf(prompt, 0xFF, "\x10 %s    \x13 %s    \x12 %s    \x11 %s", _("Select"), _("Back"), _("Details"), _("Refresh"));
 			break;
 
@@ -338,6 +352,7 @@ static int LoadTextures_Menu(void)
 	load_menu_texture(tag_vmc, png);
 	load_menu_texture(tag_psp, png);
 	load_menu_texture(tag_psv, png);
+	load_menu_texture(tag_dc, png);
 	load_menu_texture(tag_warning, png);
 	load_menu_texture(tag_zip, png);
 	load_menu_texture(tag_net, png);
@@ -460,6 +475,7 @@ static void initLocalization(void)
 	user_backup.title = _("User Tools");
 	online_saves.title = _("Online Database");
 	vmc_saves.title = _("Virtual Memory Card");
+	vmu_saves.title = _("DC Virtual Memory Card");
 }
 
 static void registerSpecialChars(void)
@@ -469,6 +485,7 @@ static void registerSpecialChars(void)
 	RegisterSpecialCharacter(CHAR_TAG_VMC, 2, 1.0, &menu_textures[tag_vmc_png_index]);
 	RegisterSpecialCharacter(CHAR_TAG_PSP, 2, 1.5, &menu_textures[tag_psp_png_index]);
 	RegisterSpecialCharacter(CHAR_TAG_PSV, 2, 1.5, &menu_textures[tag_psv_png_index]);
+	RegisterSpecialCharacter(CHAR_TAG_DC, 2, 1.5, &menu_textures[tag_dc_png_index]);
 	RegisterSpecialCharacter(CHAR_TAG_PCE, 2, 1.5, &menu_textures[tag_pce_png_index]);
 	RegisterSpecialCharacter(CHAR_TAG_LOCKED, 0, 1.3, &menu_textures[tag_lock_png_index]);
 	RegisterSpecialCharacter(CHAR_TAG_OWNER, 0, 1.3, &menu_textures[tag_own_png_index]);

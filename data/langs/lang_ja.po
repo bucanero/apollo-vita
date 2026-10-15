@@ -894,5 +894,29 @@ msgstr "ダウンロードエラー!"
 msgid "Debug Logging Disabled"
 msgstr "デバッグログが無効"
 
+#: main.c
+msgid "DC Virtual Memory Card"
+msgstr "DC仮想メモリーカード"
+
+#: menu_cheats.c
+msgid "Dreamcast Saves"
+msgstr "Dreamcast セーブデータ"
+
+#: saves.c
+msgid "Export save game to .DCI format"
+msgstr "セーブデータを.DCI形式でエクスポート"
+
+#: saves.c
+msgid "Export save game to .VMI/.VMS format"
+msgstr "セーブデータを.VMI/.VMS形式でエクスポート"
+
+#: saves.c
+msgid "Export Memory Card to raw .BIN"
+msgstr "メモリーカードを生の.BIN形式でエクスポート"
+
+#: saves.c
+msgid "Export Memory Card to Nexus .DCM"
+msgstr "メモリーカードをNexus .DCM形式でエクスポート"
+
 #~ msgid "Error! Couldn't zip save:"
 #~ msgstr "エラー!セーブデータを圧縮できませんでした:"

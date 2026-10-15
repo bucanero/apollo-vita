@@ -894,5 +894,29 @@ msgstr "下载错误！"
 msgid "Debug Logging Disabled"
 msgstr "调试日志已禁用"
 
+#: main.c
+msgid "DC Virtual Memory Card"
+msgstr "DC 虚拟存储卡"
+
+#: menu_cheats.c
+msgid "Dreamcast Saves"
+msgstr "Dreamcast 存档"
+
+#: saves.c
+msgid "Export save game to .DCI format"
+msgstr "导出 .DCI 格式存档"
+
+#: saves.c
+msgid "Export save game to .VMI/.VMS format"
+msgstr "导出 .VMI/.VMS 格式存档"
+
+#: saves.c
+msgid "Export Memory Card to raw .BIN"
+msgstr "将存储卡导出为原始 .BIN 文件"
+
+#: saves.c
+msgid "Export Memory Card to Nexus .DCM"
+msgstr "将存储卡导出为 Nexus .DCM"
+
 #~ msgid "Error! Couldn't zip save:"
 #~ msgstr "错误！无法压缩存档："
