@@ -6,6 +6,30 @@ All notable changes to the `apollo-vita` project will be documented in this file
 
 ---
 
+## [v2.4.0](https://github.com/bucanero/apollo-vita/releases/tag/v2.4.0) - 2026-10-17
+
+### Added
+
+* Manage Dreamcast Virtual Memory Card images (VMU)
+  - Supports `.BIN` and external formats (`.DCM`, `.VMU`)
+  - List, import, export, and delete DC saves inside VMU images
+  - Import/Export - Supported formats: `.VMI/VMS`, `.DCI`
+* Apollo Patch Engine v3.0.0
+  - MGS Peace Walker decryption support for PSP saves.
+  - Fletcher-16 and Fletcher-32 checksums.
+  - New `[SW:]`, `[BSD:]`, `[LE:]` and `[BE:]` title prefixes, which can be combined.
+  - Save Wizard lines inside BSD scripts.
+  - Fix Several BSD byte-order bugs.
+  - Fix MicroPython `struct.pack_into` bug on 32-bit targets.
+  - Parser fixes for tabs and for unreadable `set pointer` arguments.
+
+### Fixed
+
+* Fixed minor PS1 memcard issues.
+* Fixed a bug when reloading a virtual memcard after an update.
+
+---
+
 ## [v2.3.2](https://github.com/bucanero/apollo-vita/releases/tag/v2.3.2) - 2026-04-26
 
 ### Added
