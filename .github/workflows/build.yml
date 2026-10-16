@@ -40,6 +40,19 @@ jobs:
         ./bootstrap-vitasdk.sh
         echo "${VITASDK}/bin" >> $GITHUB_PATH
 
+      # pin the library repository to a known-good package release
+    - name: Pin SDK package release
+      env:
+        PACKAGES_RELEASE: packages-2026.08-snapshot-20261015.55.1
+        PACKAGES_DB_SHA256: f4799192253cff2dccef74c26d7cf8c566934740db4bbf4d5ed5d339708f584f
+      run: |
+        server="https://github.com/vitasdk/vitasdk-autobuild/releases/download/${PACKAGES_RELEASE}"
+        curl -fsSL -o vita.db "${server}/vita.db"
+        echo "${PACKAGES_DB_SHA256}  vita.db" | sha256sum -c -
+        mv vita.db ${VITASDK}/var/lib/pacman/sync/vita.db
+        sed -i "/^\[vita\]$/{n;s|^Server = .*|Server = ${server}|}" ${VITASDK}/etc/pacman.conf
+        grep -qxF "Server = ${server}" ${VITASDK}/etc/pacman.conf
+
     - name: Install SDK libraries
       env:
         VDPM_NONINTERACTIVE: 1

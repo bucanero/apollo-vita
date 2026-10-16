@@ -38,6 +38,15 @@ This homebrew app allows you to download, unlock, patch and resign save-game fil
 * **Export VMC saves:** allows the user to export saves on VMC images to `.MCS`/`.PSV`/`.PSX` formats.
 * **Delete VMC saves:** remove any PS1 save file stored on VMC images.
 
+## Dreamcast VMU Management
+
+* **VMU saves listing:** quick access to all save files on Dreamcast VMU images. Flycast emulator VMUs are detected automatically.
+  - Supported VMU formats: `.BIN`, `.VMU` (raw), `.DCM` (Nexus)
+* **Import saves to VMU:** enables importing saves (`.DCI`, `.VMI`/`.VMS` formats) to VMU images.
+* **Export VMU saves:** allows the user to export saves on VMU images to `.DCI`/`.VMI`+`.VMS` formats.
+* **Convert VMU images:** export VMU images between raw `.BIN` and Nexus `.DCM` formats.
+* **Delete VMU saves:** remove any Dreamcast save file stored on VMU images.
+
 # Download
 
 Get the [latest version here][app_latest].
@@ -77,6 +86,14 @@ On first run, the application will detect and setup the required user settings.
 |-----|--------|
 | **External saves** | your saves must be stored on `<uma0/imc0/xmc0/ux0>:data/PS1/SAVEDATA/`. |
 | **Virtual Memory Cards** | VMC images will be scanned from `<uma0/imc0/xmc0/ux0>:data/PS1/VMC/`. |
+
+### Dreamcast
+
+| DC | Folder |
+|-----|--------|
+| **External saves** | your saves must be stored on `<uma0/imc0/xmc0/ux0>:data/DC/SAVEDATA/`. |
+| **VMU images** | VMU images will be scanned from `<uma0/imc0/xmc0/ux0>:data/DC/VMU/`. |
+| **Flycast VMUs** | Flycast VMU images (`vmu_save_A1.bin`, etc.) will be scanned from `ux0:data/flycast/data/` and `ux0:data/flycast/`. |
 
 ## PSP Saves Requirements
 
