@@ -4,6 +4,20 @@ All notable changes to the `apollo-vita` project will be documented in this file
 
 ## [Unreleased]()
 
+### Added
+
+* Online Database and FTP backups: press `SELECT` to filter the list by platform (All, PSV, PSP, PS1, DC). The filter is remembered.
+* Footer help shows the `SELECT` button on save lists
+  - `SELECT` selects saves on the Trophies, USB and HDD lists, and filters the Online Database
+
+### Fixed
+
+* Centered text with button icons, such as the footer help, was shifted to the right
+
+### Misc
+
+* Add missing translation strings (`Open`, `Filter`, `Apply Changes`)
+
 ---
 
 ## [v2.4.0](https://github.com/bucanero/apollo-vita/releases/tag/v2.4.0) - 2026-10-17

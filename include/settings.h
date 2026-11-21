@@ -45,6 +45,7 @@ typedef struct __attribute__((packed))
     uint64_t account_id;
     char save_db[256];
     char ftp_url[512];
+    uint8_t online_filter;      // Online DB platform (0 = all); last, so older settings files still load
 } app_config_t;
 
 extern menu_option_t menu_options[];

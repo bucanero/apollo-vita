@@ -340,7 +340,7 @@ msgstr "Herunterladen..."
 msgid "Uploading..."
 msgstr "Hochladen..."
 
-#: main.c:182 main.c:186 main.c:191 main.c:201
+#: main.c:193 main.c:206 main.c:211 main.c:221
 msgid "Select"
 msgstr "Auswählen"
 
@@ -917,6 +917,22 @@ msgstr "Speicherkarte als rohes .BIN exportieren"
 #: saves.c
 msgid "Export Memory Card to Nexus .DCM"
 msgstr "Speicherkarte als Nexus .DCM exportieren"
+
+#: main.c:197
+msgid "Filter"
+msgstr "Filtern"
+
+#: saves.c:1088 saves.c:1212
+msgid "Apply Changes"
+msgstr "Änderungen übernehmen"
+
+#: menu_main.c:211 menu_main.c:221 menu_main.c:755
+msgid "Error! Couldn't save changes to:"
+msgstr "Fehler! Änderungen konnten nicht gespeichert werden in:"
+
+#: main.c:193 main.c:197 main.c:202
+msgid "Open"
+msgstr "Öffnen"
 
 #~ msgid "Error! Couldn't zip save:"
 #~ msgstr "Fehler! Spielstand konnte nicht gezippt werden:"

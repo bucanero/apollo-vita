@@ -340,7 +340,7 @@ msgstr "다운로드 중..."
 msgid "Uploading..."
 msgstr "업로드 중..."
 
-#: main.c:182 main.c:186 main.c:191 main.c:201
+#: main.c:193 main.c:206 main.c:211 main.c:221
 msgid "Select"
 msgstr "선택"
 
@@ -917,6 +917,22 @@ msgstr "메모리 카드를 raw .BIN으로 내보내기"
 #: saves.c
 msgid "Export Memory Card to Nexus .DCM"
 msgstr "메모리 카드를 Nexus .DCM으로 내보내기"
+
+#: main.c:197
+msgid "Filter"
+msgstr "필터"
+
+#: saves.c:1088 saves.c:1212
+msgid "Apply Changes"
+msgstr "변경 사항 적용"
+
+#: menu_main.c:211 menu_main.c:221 menu_main.c:755
+msgid "Error! Couldn't save changes to:"
+msgstr "오류! 변경 사항을 저장할 수 없습니다:"
+
+#: main.c:193 main.c:197 main.c:202
+msgid "Open"
+msgstr "열기"
 
 #~ msgid "Error! Couldn't zip save:"
 #~ msgstr "오류! 세이브를 압축할 수 없음:"
