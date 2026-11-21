@@ -65,7 +65,7 @@ jobs:
       run: |
         curl -sL https://libzip.org/download/libzip-1.9.2.tar.gz | tar xz -C ./
         cd libzip-1.9.2
-        cmake -DCMAKE_TOOLCHAIN_FILE=${VITASDK}/share/vita.toolchain.cmake -DBUILD_SHARED=OFF -DBUILD_EXAMPLES=OFF -DBUILD_TOOLS=OFF -DBUILD_REGRESS=OFF -DBUILD_DOC=OFF -DENABLE_LZMA=OFF -DENABLE_ZSTD=OFF .
+        cmake -DCMAKE_TOOLCHAIN_FILE=${VITASDK}/share/vita.toolchain.cmake -DBUILD_SHARED=OFF -DBUILD_EXAMPLES=OFF -DBUILD_TOOLS=OFF -DBUILD_REGRESS=OFF -DBUILD_DOC=OFF -DENABLE_LZMA=OFF -DENABLE_ZSTD=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5 .
         make
         cp zipconf.h ${VITASDK}/arm-vita-eabi/include/zipconf.h
         cp lib/zip.h ${VITASDK}/arm-vita-eabi/include/zip.h
