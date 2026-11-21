@@ -8,10 +8,11 @@ All notable changes to the `apollo-vita` project will be documented in this file
 
 * Online Database and FTP backups: press `SELECT` to filter the list by platform (All, PSV, PSP, PS1, DC). The filter is remembered.
 * Footer help shows the `SELECT` button on save lists
-  - `SELECT` selects saves on the Trophies, USB and HDD lists, and filters the Online Database
+  - `SELECT` selects saves on the Trophies, USB, HDD and Virtual Memory Card lists, and filters the Online Database
 
 ### Fixed
 
+* PS1 and DC Virtual Memory Cards: saves couldn't be selected, so "Export selected Saves" exported nothing
 * Centered text with button icons, such as the footer help, was shifted to the right
 
 ### Misc

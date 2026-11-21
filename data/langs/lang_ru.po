@@ -340,7 +340,7 @@ msgstr "Загрузка..."
 msgid "Uploading..."
 msgstr "Отправка..."
 
-#: main.c:193 main.c:206 main.c:211 main.c:221
+#: main.c:195 main.c:203 main.c:208 main.c:218
 msgid "Select"
 msgstr "Выбрать"
 
@@ -918,7 +918,7 @@ msgstr "Экспортировать карту памяти в необрабо
 msgid "Export Memory Card to Nexus .DCM"
 msgstr "Экспортировать карту памяти в Nexus .DCM"
 
-#: main.c:197
+#: main.c:199
 msgid "Filter"
 msgstr "Фильтр"
 
@@ -930,7 +930,7 @@ msgstr "Применить изменения"
 msgid "Error! Couldn't save changes to:"
 msgstr "Ошибка! Не удалось сохранить изменения в:"
 
-#: main.c:193 main.c:197 main.c:202
+#: main.c:195 main.c:199
 msgid "Open"
 msgstr "Открыть"
 

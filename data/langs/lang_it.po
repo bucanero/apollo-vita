@@ -340,7 +340,7 @@ msgstr "Download in corso..."
 msgid "Uploading..."
 msgstr "Caricamento in corso..."
 
-#: main.c:193 main.c:206 main.c:211 main.c:221
+#: main.c:195 main.c:203 main.c:208 main.c:218
 msgid "Select"
 msgstr "Seleziona"
 
@@ -918,7 +918,7 @@ msgstr "Esporta la memory card in formato .BIN grezzo"
 msgid "Export Memory Card to Nexus .DCM"
 msgstr "Esporta la memory card in formato Nexus .DCM"
 
-#: main.c:197
+#: main.c:199
 msgid "Filter"
 msgstr "Filtra"
 
@@ -930,7 +930,7 @@ msgstr "Applica Modifiche"
 msgid "Error! Couldn't save changes to:"
 msgstr "Errore! Impossibile salvare le modifiche in:"
 
-#: main.c:193 main.c:197 main.c:202
+#: main.c:195 main.c:199
 msgid "Open"
 msgstr "Apri"
 

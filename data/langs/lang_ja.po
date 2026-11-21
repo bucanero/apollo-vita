@@ -340,7 +340,7 @@ msgstr "ダウンロード中..."
 msgid "Uploading..."
 msgstr "アップロード中..."
 
-#: main.c:193 main.c:206 main.c:211 main.c:221
+#: main.c:195 main.c:203 main.c:208 main.c:218
 msgid "Select"
 msgstr "選択"
 
@@ -918,7 +918,7 @@ msgstr "メモリーカードを生の.BIN形式でエクスポート"
 msgid "Export Memory Card to Nexus .DCM"
 msgstr "メモリーカードをNexus .DCM形式でエクスポート"
 
-#: main.c:197
+#: main.c:199
 msgid "Filter"
 msgstr "フィルター"
 
@@ -930,7 +930,7 @@ msgstr "変更を適用"
 msgid "Error! Couldn't save changes to:"
 msgstr "エラー!変更を保存できませんでした:"
 
-#: main.c:193 main.c:197 main.c:202
+#: main.c:195 main.c:199
 msgid "Open"
 msgstr "開く"
 

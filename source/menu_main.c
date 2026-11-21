@@ -574,10 +574,11 @@ static void doSaveMenu(save_list_t * save_list)
 		cycleOnlineFilter(save_list);
 	}
 	else if (vitaPadGetButtonPressed(SCE_CTRL_SELECT) &&
-		(save_list->id == MENU_HDD_SAVES || save_list->id == MENU_USB_SAVES || save_list->id == MENU_TROPHIES))
+		(save_list->id == MENU_HDD_SAVES || save_list->id == MENU_USB_SAVES || save_list->id == MENU_TROPHIES ||
+		save_list->id == MENU_VMC_SAVES || save_list->id == MENU_DCVMC_SAVES))
 	{
 		selected_entry = list_get_item(save_list->list, menu_sel);
-		if (selected_entry->type != FILE_TYPE_MENU)
+		if (selected_entry->type != FILE_TYPE_MENU && selected_entry->type != FILE_TYPE_VMC)
 			selected_entry->flags ^= SAVE_FLAG_SELECTED;
 	}
 	else if (vitaPadGetButtonPressed(SCE_CTRL_SQUARE))
