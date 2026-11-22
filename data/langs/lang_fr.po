@@ -340,7 +340,7 @@ msgstr "Téléchargement..."
 msgid "Uploading..."
 msgstr "Téléversement..."
 
-#: main.c:182 main.c:186 main.c:191 main.c:201
+#: main.c:195 main.c:203 main.c:208 main.c:218
 msgid "Select"
 msgstr "Sélectionner"
 
@@ -917,6 +917,22 @@ msgstr "Exporter la carte mémoire au format .BIN brut"
 #: saves.c
 msgid "Export Memory Card to Nexus .DCM"
 msgstr "Exporter la carte mémoire au format Nexus .DCM"
+
+#: main.c:199
+msgid "Filter"
+msgstr "Filtrer"
+
+#: saves.c:1088 saves.c:1212
+msgid "Apply Changes"
+msgstr "Appliquer les Modifications"
+
+#: menu_main.c:211 menu_main.c:221 menu_main.c:755
+msgid "Error! Couldn't save changes to:"
+msgstr "Erreur ! Impossible d'enregistrer les modifications dans :"
+
+#: main.c:195 main.c:199
+msgid "Open"
+msgstr "Ouvrir"
 
 #~ msgid "Error! Couldn't zip save:"
 #~ msgstr "Erreur ! Impossible de compresser la sauvegarde :"

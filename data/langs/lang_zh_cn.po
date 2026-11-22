@@ -340,7 +340,7 @@ msgstr "正在下载..."
 msgid "Uploading..."
 msgstr "正在上传..."
 
-#: main.c:182 main.c:186 main.c:191 main.c:201
+#: main.c:195 main.c:203 main.c:208 main.c:218
 msgid "Select"
 msgstr "选择"
 
@@ -917,6 +917,22 @@ msgstr "将存储卡导出为原始 .BIN 文件"
 #: saves.c
 msgid "Export Memory Card to Nexus .DCM"
 msgstr "将存储卡导出为 Nexus .DCM"
+
+#: main.c:199
+msgid "Filter"
+msgstr "筛选"
+
+#: saves.c:1088 saves.c:1212
+msgid "Apply Changes"
+msgstr "应用修改"
+
+#: menu_main.c:211 menu_main.c:221 menu_main.c:755
+msgid "Error! Couldn't save changes to:"
+msgstr "错误！无法保存修改至："
+
+#: main.c:195 main.c:199
+msgid "Open"
+msgstr "打开"
 
 #~ msgid "Error! Couldn't zip save:"
 #~ msgstr "错误！无法压缩存档："

@@ -41,6 +41,7 @@
 #define ONLINE_URL              "https://bucanero.github.io/apollo-saves/"
 #define ONLINE_PATCH_URL        "https://bucanero.github.io/apollo-patches/PSV/"
 #define ONLINE_CACHE_TIMEOUT    24*3600     // 1-day local cache
+#define ONLINE_FILTER_COUNT     5           // Online DB filters: all, PSV, PSP, PS1, DC
 
 #define OWNER_XML_FILE          "owners.xml"
 
@@ -203,6 +204,7 @@ enum char_flag_enum
     CHAR_TRP_SYNC,
     CHAR_TAG_PS4,
     CHAR_TAG_DC,
+    CHAR_BTN_SELECT,
 };
 
 enum code_type_enum
@@ -243,6 +245,8 @@ typedef struct
 list_t * ReadUsbList(const char* userPath);
 list_t * ReadUserList(const char* userPath);
 list_t * ReadOnlineList(const char* urlPath);
+list_t * ReadOnlineListFiltered(const char* urlPath, int filter);
+const char * online_filter_name(int filter);
 list_t * ReadBackupList(const char* userPath);
 list_t * ReadTrophyList(const char* userPath);
 list_t * ReadVmcList(const char* userPath);
@@ -259,6 +263,9 @@ int ReadOnlineSaves(save_entry_t * game);
 int ReadBackupCodes(save_entry_t * bup);
 int ReadVmcCodes(save_entry_t * game);
 int ReadVmuCodes(save_entry_t * save);
+
+int vmc_read_save_file(const save_entry_t* save, const char* filename, uint8_t** data, size_t* size);
+int vmc_write_save_file(const save_entry_t* save, const char* filename, const uint8_t* data, size_t size);
 
 int http_init(void);
 void http_end(void);

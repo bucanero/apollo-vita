@@ -28,6 +28,7 @@ int * menu_options_maxsel;
 
 int menu_id = 0;												// Menu currently in
 int menu_sel = 0;												// Index of selected item (use varies per menu)
+static int online_filter_changed = 0;							// Online DB filter changed: saved on exit
 int menu_old_sel[TOTAL_MENU_IDS] = { 0 };						// Previous menu_sel for each menu
 int last_menu_id[TOTAL_MENU_IDS] = { 0 };						// Last menu id called (for returning)
 
@@ -60,6 +61,16 @@ void initMenuOptions(void)
 	}
 }
 
+static void sortUserSaves(save_list_t* save_list)
+{
+	if (apollo_config.doSort == SORT_BY_NAME)
+		list_bubbleSort(save_list->list, &sortSaveList_Compare);
+	else if (apollo_config.doSort == SORT_BY_TITLE_ID)
+		list_bubbleSort(save_list->list, &sortSaveList_Compare_TitleID);
+	else if (apollo_config.doSort == SORT_BY_TYPE)
+		list_bubbleSort(save_list->list, &sortSaveList_Compare_Type);
+}
+
 static int ReloadUserSaves(save_list_t* save_list)
 {
     init_loading_screen("Loading save games...");
@@ -74,12 +85,7 @@ static int ReloadUserSaves(save_list_t* save_list)
 		save_list->UpdatePath(save_list->path);
 
 	save_list->list = save_list->ReadList(save_list->path);
-	if (apollo_config.doSort == SORT_BY_NAME)
-		list_bubbleSort(save_list->list, &sortSaveList_Compare);
-	else if (apollo_config.doSort == SORT_BY_TITLE_ID)
-		list_bubbleSort(save_list->list, &sortSaveList_Compare_TitleID);
-	else if (apollo_config.doSort == SORT_BY_TYPE)
-		list_bubbleSort(save_list->list, &sortSaveList_Compare_Type);
+	sortUserSaves(save_list);
 
     stop_loading_screen();
 
@@ -161,6 +167,12 @@ static void SetMenu(int id)
 			break;
 
 		case MENU_ONLINE_DB: //Cheats Online Menu
+			if (online_filter_changed && id == MENU_MAIN_SCREEN)
+			{
+				online_filter_changed = 0;
+				save_app_settings(&apollo_config);
+			}
+
 			if (apollo_config.online_opt && id == MENU_MAIN_SCREEN)
 			{
 				UnloadGameList(online_saves.list);
@@ -181,31 +193,50 @@ static void SetMenu(int id)
 			break;
 
 		case MENU_PATCHES: //Cheat Selection Menu
-			if (selected_entry->flags & SAVE_FLAG_UPDATED)
+			// The patch menu's own screens (code options, hex editor, details)
+			// come back to it: keep the flag until we leave to the save list
+			if (selected_entry->flags & SAVE_FLAG_UPDATED &&
+				id != MENU_PATCH_VIEW && id != MENU_CODE_OPTIONS && id != MENU_SAVE_DETAILS && id != MENU_HEX_EDITOR)
 			{
-				// Clear the flag first: reloading the list below frees every
-				// entry, selected_entry included, and writing to it afterwards
-				// corrupts whatever the new list allocated in its place.
-				selected_entry->flags ^= SAVE_FLAG_UPDATED;
-
+				// Clear the flag before reloading: reloading the list frees
+				// every entry, selected_entry included, and writing to it
+				// afterwards corrupts whatever the new list allocated in its place.
+				// A card that fails to save keeps the flag, and its changes in
+				// memory, so leaving the save again retries.
 				switch (id)
 				{
 				case MENU_VMC_SAVES:
-					saveMemoryCard(vmc_saves.path, 0, 0);
+					if (!saveMemoryCard(vmc_saves.path, 0, 0))
+					{
+						show_message("%s\n%s", _("Error! Couldn't save changes to:"), vmc_saves.path);
+						break;
+					}
+					selected_entry->flags ^= SAVE_FLAG_UPDATED;
 					ReloadUserSaves(&vmc_saves);
 					break;
 
 				case MENU_DCVMC_SAVES:
-					dccard_save(vmu_saves.path);
+					if (!dccard_save(vmu_saves.path))
+					{
+						show_message("%s\n%s", _("Error! Couldn't save changes to:"), vmu_saves.path);
+						break;
+					}
+					selected_entry->flags ^= SAVE_FLAG_UPDATED;
 					ReloadUserSaves(&vmu_saves);
 					break;
 				
 				case MENU_USB_SAVES:
+					selected_entry->flags ^= SAVE_FLAG_UPDATED;
 					ReloadUserSaves(&usb_saves);
 					break;
 
 				case MENU_HDD_SAVES:
+					selected_entry->flags ^= SAVE_FLAG_UPDATED;
 					ReloadUserSaves(&hdd_saves);
+					break;
+
+				default:
+					selected_entry->flags ^= SAVE_FLAG_UPDATED;
 					break;
 				}
 			}
@@ -340,7 +371,7 @@ static void SetMenu(int id)
 				if (selected_entry->flags & SAVE_FLAG_PSP && file_exists(iconfile) != SUCCESS)
 					http_download(selected_entry->path, "ICON0.PNG", iconfile, 1);
 
-				if (selected_entry->flags & (SAVE_FLAG_PSV|SAVE_FLAG_PS1) && file_exists(iconfile) != SUCCESS)
+				if (selected_entry->flags & (SAVE_FLAG_PSV|SAVE_FLAG_PS1|SAVE_FLAG_DC) && file_exists(iconfile) != SUCCESS)
 					http_download(selected_entry->path, "icon0.png", iconfile, 1);
 			}
 			else if (selected_entry->flags & SAVE_FLAG_VMC && selected_entry->type == FILE_TYPE_DC)
@@ -454,6 +485,39 @@ static int updatePadSelection(int total)
 	return 1;
 }
 
+/*
+ * SELECT on the Online DB (or FTP backup) list: show the next platform, in
+ * the order all -> PSV -> PSP -> PS1 -> DC -> all. Platforms with nothing to
+ * show are skipped, and if nothing loads at all the current list stays.
+ */
+static void cycleOnlineFilter(save_list_t* save_list)
+{
+	list_t* list = NULL;
+	uint8_t filter = apollo_config.online_filter;
+
+	init_loading_screen("Loading save games...");
+	for (int i = 0; i < ONLINE_FILTER_COUNT && !list; i++)
+	{
+		filter = (filter + 1) % ONLINE_FILTER_COUNT;
+		list = ReadOnlineListFiltered(save_list->path, filter);
+	}
+	stop_loading_screen();
+
+	if (!list)
+		return;
+
+	UnloadGameList(save_list->list);
+	save_list->list = list;
+	sortUserSaves(save_list);
+	menu_sel = 0;
+
+	if (filter != apollo_config.online_filter)
+	{
+		apollo_config.online_filter = filter;
+		online_filter_changed = 1;
+	}
+}
+
 static void doSaveMenu(save_list_t * save_list)
 {
 	if (updatePadSelection(list_count(save_list->list)))
@@ -505,11 +569,18 @@ static void doSaveMenu(save_list_t * save_list)
 			return;
 		}
 	}
+	// Check the list first: reading a press clears it, so the SELECT branch
+	// below would never see it
+	else if (save_list->id == MENU_ONLINE_DB && vitaPadGetButtonPressed(SCE_CTRL_SELECT))
+	{
+		cycleOnlineFilter(save_list);
+	}
 	else if (vitaPadGetButtonPressed(SCE_CTRL_SELECT) &&
-		(save_list->id == MENU_HDD_SAVES || save_list->id == MENU_USB_SAVES || save_list->id == MENU_TROPHIES))
+		(save_list->id == MENU_HDD_SAVES || save_list->id == MENU_USB_SAVES || save_list->id == MENU_TROPHIES ||
+		save_list->id == MENU_VMC_SAVES || save_list->id == MENU_DCVMC_SAVES))
 	{
 		selected_entry = list_get_item(save_list->list, menu_sel);
-		if (selected_entry->type != FILE_TYPE_MENU)
+		if (selected_entry->type != FILE_TYPE_MENU && selected_entry->type != FILE_TYPE_VMC)
 			selected_entry->flags ^= SAVE_FLAG_SELECTED;
 	}
 	else if (vitaPadGetButtonPressed(SCE_CTRL_SQUARE))
@@ -676,7 +747,18 @@ static void doHexEditor(void)
 
 	else if (vitaPadGetButtonPressed(SCE_CTRL_CIRCLE))
 	{
-		if (show_dialog(DIALOG_TYPE_YESNO, _("Save changes to %s?"), strrchr(hex_data.filepath, '/') + 1) &&
+		if (selected_entry->flags & SAVE_FLAG_VMC)
+		{
+			// Write the changes straight to the memory card save
+			if (show_dialog(DIALOG_TYPE_YESNO, _("Save changes to %s?"), strrchr(hex_data.filepath, '/') + 1))
+			{
+				if (vmc_write_save_file(selected_entry, strrchr(hex_data.filepath, '/') + 1, hex_data.data, hex_data.size))
+					selected_entry->flags |= SAVE_FLAG_UPDATED;
+				else
+					show_message("%s\n%s", _("Error! Couldn't save changes to:"), hex_data.filepath);
+			}
+		}
+		else if (show_dialog(DIALOG_TYPE_YESNO, _("Save changes to %s?"), strrchr(hex_data.filepath, '/') + 1) &&
 			(write_buffer(hex_data.filepath, hex_data.data, hex_data.size) == SUCCESS))
 		{
 			option_value_t* optval = list_get_item(selected_centry->options[option_index].opts, menu_sel);
@@ -788,6 +870,27 @@ static void doCodeOptionsMenu(void)
 		{
 			option_value_t* optval = list_get_item(code->options[option_index].opts, menu_sel);
 
+			if (optval->value[0] == CMD_HEX_EDIT_FILE && selected_entry->flags & SAVE_FLAG_VMC)
+			{
+				// Edit the save file directly from the memory card
+				memset(&hex_data, 0, sizeof(hex_data));
+				snprintf(hex_data.filepath, sizeof(hex_data.filepath), "VMC:/%s/%s", selected_entry->dir_name, optval->name);
+				// The editor needs at least one byte to put its cursor on
+				if (!vmc_read_save_file(selected_entry, optval->name, &hex_data.data, &hex_data.size) || !hex_data.size)
+				{
+					if (hex_data.data && !hex_data.size)
+						free(hex_data.data);
+
+					show_message("%s\n%s", _("Failed to load:"), hex_data.filepath);
+					SetMenu(last_menu_id[MENU_CODE_OPTIONS]);
+					return;
+				}
+				code->activated = 0;
+
+				SetMenu(MENU_HEX_EDITOR);
+				return;
+			}
+
 			if (optval->value[0] == CMD_HEX_EDIT_FILE)
 			{
 				optval->value[1] = CMD_DECRYPT_FILE;
@@ -795,8 +898,11 @@ static void doCodeOptionsMenu(void)
 
 				memset(&hex_data, 0, sizeof(hex_data));
 				snprintf(hex_data.filepath, sizeof(hex_data.filepath), APOLLO_USER_PATH "%s/%s", apollo_config.user_id, selected_entry->dir_name,  optval->name);
-				if (read_buffer(hex_data.filepath, &hex_data.data, &hex_data.size) < 0)
+				if (read_buffer(hex_data.filepath, &hex_data.data, &hex_data.size) < 0 || !hex_data.size)
 				{
+					if (hex_data.data && !hex_data.size)
+						free(hex_data.data);
+
 					show_message("%s\n%s", _("Failed to load:"), hex_data.filepath);
 					SetMenu(last_menu_id[MENU_CODE_OPTIONS]);
 					return;
@@ -853,7 +959,7 @@ static void doPatchMenu(void)
 	{
 		selected_centry = list_get_item(selected_entry->codes, menu_sel);
 
-		if (selected_centry->type != PATCH_NULL)
+		if (selected_centry->type != PATCH_NULL && !(selected_centry->flags & APOLLO_CODE_FLAG_DISABLED))
 			selected_centry->activated = !selected_centry->activated;
 
 		if (selected_centry->type == PATCH_COMMAND)
