@@ -569,7 +569,9 @@ static void doSaveMenu(save_list_t * save_list)
 			return;
 		}
 	}
-	else if (vitaPadGetButtonPressed(SCE_CTRL_SELECT) && save_list->id == MENU_ONLINE_DB)
+	// Check the list first: reading a press clears it, so the SELECT branch
+	// below would never see it
+	else if (save_list->id == MENU_ONLINE_DB && vitaPadGetButtonPressed(SCE_CTRL_SELECT))
 	{
 		cycleOnlineFilter(save_list);
 	}
