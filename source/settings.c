@@ -35,7 +35,7 @@ static const char* sort_opt[] = {_i18n("Disabled"), _i18n("by Name"), _i18n("by 
 static void log_callback(int sel);
 static void sort_callback(int sel);
 static void ani_callback(int sel);
-static void owner_callback(int sel);
+static void storage_callback(int sel);
 static void db_url_callback(int sel);
 static void clearcache_callback(int sel);
 static void upd_appdata_callback(int sel);
@@ -65,7 +65,7 @@ menu_option_t menu_options[] = {
 		.options = ext_src,
 		.type = APP_OPTION_LIST,
 		.value = &apollo_config.storage,
-		.callback = owner_callback
+		.callback = storage_callback
 	},
 	{ .name = _i18n("Version Update Check"),
 		.options = NULL, 
@@ -291,9 +291,18 @@ end_update:
 	return;
 }
 
-static void owner_callback(int sel)
+static void storage_callback(int sel)
 {
+	extern save_list_t usb_saves;
+
 	apollo_config.storage = sel;
+
+	// External Saves keeps its list: drop it, so the new source is read next time
+	if (usb_saves.list)
+	{
+		UnloadGameList(usb_saves.list);
+		usb_saves.list = NULL;
+	}
 }
 
 static void log_callback(int sel)
