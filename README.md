@@ -29,6 +29,7 @@ This homebrew app allows you to download, unlock, patch and resign save-game fil
 * **Save files patching:** complete support for Save Wizard and [Bruteforce Save Data](https://bruteforcesavedata.forumms.net/) cheat patches to enhance your save-games.
 * **Save import/export:** allows the user to decrypt and export save files, and import decrypted saves from other consoles.
 * **Save downloading:** easy access to an Online Database of save-game files to download straight to your Vita.
+  - Includes PS Vita, PSP, PS1 and Dreamcast saves, and the list can be filtered by platform.
 
 ## PS1 Virtual Memory Card Management
 
@@ -37,6 +38,7 @@ This homebrew app allows you to download, unlock, patch and resign save-game fil
 * **Import saves to VMC:** enables importing saves (`.MCS`, `.PSV`, `.PSX`, `.PS1`, `.MCB`, `.PDA` formats) to VMCs from other tools and consoles.
 * **Export VMC saves:** allows the user to export saves on VMC images to `.MCS`/`.PSV`/`.PSX` formats.
 * **Delete VMC saves:** remove any PS1 save file stored on VMC images.
+* **VMC saves patching:** apply cheat patches and hex edit PS1 saves directly inside VMC images.
 
 ## Dreamcast VMU Management
 
@@ -46,6 +48,7 @@ This homebrew app allows you to download, unlock, patch and resign save-game fil
 * **Export VMU saves:** allows the user to export saves on VMU images to `.DCI`/`.VMI`+`.VMS` formats.
 * **Convert VMU images:** export VMU images between raw `.BIN` and Nexus `.DCM` formats.
 * **Delete VMU saves:** remove any Dreamcast save file stored on VMU images.
+* **VMU saves patching:** apply cheat patches and hex edit Dreamcast saves directly inside VMU images. The VMS header checksum is updated automatically.
 
 # Download
 
@@ -128,12 +131,15 @@ Using the application is simple and straight-forward:
  - To view the item's details, press ![Triangle](https://github.com/bucanero/pkgi-ps3/raw/master/data/TRIANGLE.png).
 It will open the context menu on the screen. Press ![O button](https://github.com/bucanero/pkgi-ps3/raw/master/data/CIRCLE.png) to return to the list.
  - To reload the list, press ![Square](https://github.com/bucanero/pkgi-ps3/raw/master/data/SQUARE.png).
+ - To select saves for bulk actions (copy, export, resign, upload), press <kbd>SELECT</kbd> on the Internal, USB, Trophies and Virtual Memory Card lists. On the Online Database list, <kbd>SELECT</kbd> filters the list by platform (All, PSV, PSP, PS1, DC).
  - Press <kbd>L1</kbd>/<kbd>L2</kbd> or <kbd>R1</kbd>/<kbd>R2</kbd> trigger buttons to move pages up or down.
 
 # Online Database
 
-The application also provides direct access to the [Apollo online database](https://github.com/bucanero/apollo-saves) of save-game files for PlayStation Vita and PSP games.
+The application also provides direct access to the [Apollo online database](https://github.com/bucanero/apollo-saves) of save-game files for PlayStation Vita, PSP, PS1 and Dreamcast games.
 These usually offer additional features such as completed games that can save you many hours of playing.
+
+Press <kbd>SELECT</kbd> on the Online Database list to show only one platform's saves. The filter is remembered.
 
 The Online Database project aims to [add more save-games](https://github.com/bucanero/apollo-saves/issues/new/choose) shared by the community.
 

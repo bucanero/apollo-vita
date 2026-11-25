@@ -6,6 +6,13 @@ All notable changes to the `apollo-vita` project will be documented in this file
 
 ### Added
 
+* Apply cheat codes to saves inside Virtual Memory Cards (PS1 VMC, DC VMU)
+  - New `Apply Changes` command for VMC saves
+  - Hex edit save files directly on the memory card
+  - Load `.savepatch` cheats for PS1 and DC saves
+  - DC patches are matched by VMU file name through `dctitleid.txt`, so a single patch can cover a game's slot files and regional names
+  - The DC VMS header CRC is updated automatically after a change
+* Online Database: Dreamcast saves (`.VMI/VMS`), downloaded to the DC import folder
 * Online Database and FTP backups: press `SELECT` to filter the list by platform (All, PSV, PSP, PS1, DC). The filter is remembered.
 * Footer help shows the `SELECT` button on save lists
   - `SELECT` selects saves on the Trophies, USB, HDD and Virtual Memory Card lists, and filters the Online Database
@@ -13,6 +20,10 @@ All notable changes to the `apollo-vita` project will be documented in this file
 ### Fixed
 
 * PS1 and DC Virtual Memory Cards: saves couldn't be selected, so "Export selected Saves" exported nothing
+* Memory card changes that fail to save now show an error, and are kept so leaving the save again retries
+* Cheat codes meant for another save or region could still be selected and applied
+* PS1 saves whose product code uses `P` instead of `-` (e.g. `SLPSP01234`) now match their patches
+* Crash in the Hex editor when opening an empty file
 * Centered text with button icons, such as the footer help, was shifted to the right
 
 ### Misc
